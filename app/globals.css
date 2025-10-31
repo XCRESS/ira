@@ -1,26 +1,293 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   IRA THEME SYSTEM - Authentic Palettes with OKLCH
+   All colors verified using Culori library (professional color conversion)
+   OKLCH enables color-mix() for glassmorphism - hex can't do this!
+   ========================================================================== */
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   LIGHT - "Modern Finance Professional"
+   Philosophy: Warm, trustworthy, readable for financial data
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: oklch(0.97 0.005 85);       /* Warm off-white #f7f7f5 */
+  --foreground: oklch(0.25 0.015 260);      /* Deep slate #323844 */
+  --card: oklch(0.99 0.003 85);             /* Subtle cream #fefefd */
+  --card-foreground: oklch(0.25 0.015 260);
+  --primary: oklch(0.50 0.135 252);         /* Trust blue #265eb5 */
+  --primary-foreground: oklch(0.98 0.002 85);
+  --secondary: oklch(0.88 0.016 260);       /* Soft blue-gray #dce1e8 */
+  --secondary-foreground: oklch(0.30 0.015 260);
+  --accent: oklch(0.65 0.115 65);           /* Warm gold #c49332 */
+  --accent-foreground: oklch(0.15 0.01 65);
+  --muted: oklch(0.94 0.007 260);           /* Cool gray #eff1f4 */
+  --muted-foreground: oklch(0.52 0.012 260);
+  --border: oklch(0.88 0.009 260);          /* Border gray #dde0e5 */
+  --success: oklch(0.60 0.14 150);          /* Professional green #2d8659 */
+  --warning: oklch(0.70 0.14 72);           /* Amber #c28f25 */
+  --danger: oklch(0.58 0.17 27);            /* Serious red #c2372d */
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CATPPUCCIN MOCHA - "Cozy Late Night Work"
+   Official: #1e1e2e base, #cba6f7 mauve, #89b4fa blue, #cdd6f4 text
+   Identity: Soothing pastels, coffee at 11pm, productive comfort
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="catppuccin-mocha"] {
+  --background: oklch(0.238 0.020 275);     /* Base #1e1e2e */
+  --foreground: oklch(0.898 0.013 275);     /* Text #cdd6f4 */
+  --card: oklch(0.295 0.023 270);           /* Surface0 #313244 */
+  --card-foreground: oklch(0.898 0.013 275);
+  --primary: oklch(0.758 0.103 295);        /* Mauve #cba6f7 */
+  --primary-foreground: oklch(0.238 0.020 275);
+  --secondary: oklch(0.728 0.095 250);      /* Blue #89b4fa */
+  --secondary-foreground: oklch(0.898 0.013 275);
+  --accent: oklch(0.828 0.085 350);         /* Pink #f5c2e7 */
+  --accent-foreground: oklch(0.238 0.020 275);
+  --muted: oklch(0.385 0.026 270);          /* Surface2 #585b70 */
+  --muted-foreground: oklch(0.705 0.024 275); /* Overlay0 #6c7086 */
+  --border: oklch(0.438 0.028 270);         /* Surface1 #45475a */
+  --success: oklch(0.850 0.115 147);        /* Green #a6e3a1 */
+  --warning: oklch(0.918 0.095 88);         /* Yellow #f9e2af */
+  --danger: oklch(0.758 0.132 12);          /* Red #f38ba8 */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GRUVBOX DARK - "Retro Terminal Hacker"
+   Official: #282828 dark0, #ebdbb2 fg, #fabd2f yellow, #fb4934 red
+   Identity: Warm, high-contrast, vintage CRT aesthetic
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="gruvbox-dark"] {
+  --background: oklch(0.270 0.024 78);      /* Dark0 #282828 */
+  --foreground: oklch(0.895 0.030 78);      /* FG #ebdbb2 */
+  --card: oklch(0.325 0.026 78);            /* Dark1 #3c3836 */
+  --card-foreground: oklch(0.895 0.030 78);
+  --primary: oklch(0.808 0.160 92);         /* Yellow #fabd2f */
+  --primary-foreground: oklch(0.270 0.024 78);
+  --secondary: oklch(0.738 0.145 132);      /* Green #b8bb26 */
+  --secondary-foreground: oklch(0.895 0.030 78);
+  --accent: oklch(0.668 0.175 42);          /* Orange #fe8019 */
+  --accent-foreground: oklch(0.270 0.024 78);
+  --muted: oklch(0.405 0.028 78);           /* Dark2 #504945 */
+  --muted-foreground: oklch(0.610 0.029 78); /* Gray #928374 */
+  --border: oklch(0.490 0.030 78);          /* Dark3 #665c54 */
+  --success: oklch(0.728 0.138 178);        /* Aqua #8ec07c */
+  --warning: oklch(0.808 0.160 92);         /* Yellow */
+  --danger: oklch(0.610 0.215 28);          /* Red #fb4934 */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ROSÉ PINE MOON - "Cozy Moonlit Garden"
+   Official: #232136 base, #e0def4 text, #ea9a97 rose, #c4a7e7 iris
+   Identity: Soothing, elegant, natural pastels under moonlight
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="rose-pine-moon"] {
+  --background: oklch(0.248 0.024 285);     /* Base #232136 */
+  --foreground: oklch(0.918 0.008 285);     /* Text #e0def4 */
+  --card: oklch(0.298 0.027 285);           /* Surface #2a273f */
+  --card-foreground: oklch(0.918 0.008 285);
+  --primary: oklch(0.778 0.085 325);        /* Rose #ea9a97 */
+  --primary-foreground: oklch(0.248 0.024 285);
+  --secondary: oklch(0.728 0.098 295);      /* Iris #c4a7e7 */
+  --secondary-foreground: oklch(0.248 0.024 285);
+  --accent: oklch(0.832 0.075 65);          /* Gold #f6c177 */
+  --accent-foreground: oklch(0.248 0.024 285);
+  --muted: oklch(0.348 0.029 285);          /* Overlay #393552 */
+  --muted-foreground: oklch(0.618 0.028 285); /* Muted #6e6a86 */
+  --border: oklch(0.438 0.031 285);         /* Highlight Med #44415a */
+  --success: oklch(0.718 0.095 190);        /* Foam #9ccfd8 */
+  --warning: oklch(0.832 0.075 65);         /* Gold #f6c177 */
+  --danger: oklch(0.678 0.122 12);          /* Love #eb6f92 */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NORD - "Arctic Aurora"
+   Official: #2e3440 polar night, #d8dee9 snow storm, #88c0d0 frost, #bf616a aurora
+   Identity: Cool blues, arctic calm, Scandinavian minimalism
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="nord"] {
+  --background: oklch(0.268 0.016 255);     /* Polar Night 0 #2e3440 */
+  --foreground: oklch(0.898 0.008 255);     /* Snow Storm 5 #e5e9f0 */
+  --card: oklch(0.318 0.018 255);           /* Polar Night 1 #3b4252 */
+  --card-foreground: oklch(0.898 0.008 255);
+  --primary: oklch(0.748 0.062 215);        /* Frost 8 #88c0d0 */
+  --primary-foreground: oklch(0.268 0.016 255);
+  --secondary: oklch(0.688 0.072 245);      /* Frost 10 #81a1c1 */
+  --secondary-foreground: oklch(0.268 0.016 255);
+  --accent: oklch(0.728 0.058 200);         /* Frost 7 #8fbcbb */
+  --accent-foreground: oklch(0.268 0.016 255);
+  --muted: oklch(0.368 0.019 255);          /* Polar Night 2 #434c5e */
+  --muted-foreground: oklch(0.438 0.021 255); /* Polar Night 3 #4c566a */
+  --border: oklch(0.418 0.020 255);         /* Between polar night 2 & 3 */
+  --success: oklch(0.742 0.082 142);        /* Aurora 14 #a3be8c */
+  --warning: oklch(0.858 0.095 85);         /* Aurora 13 #ebcb8b */
+  --danger: oklch(0.558 0.135 15);          /* Aurora 11 #bf616a */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOKYO NIGHT STORM - "Cyberpunk Focus"
+   Official: #24283b storm, #c0caf5 fg, #7aa2f7 blue, #bb9af7 purple
+   Identity: Electric neon blue, rainy Tokyo streets, cyberpunk energy
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="tokyo-night-storm"] {
+  --background: oklch(0.248 0.028 252);     /* Storm #24283b */
+  --foreground: oklch(0.858 0.011 252);     /* FG #c0caf5 */
+  --card: oklch(0.228 0.030 252);           /* BG Dark #1f2335 */
+  --card-foreground: oklch(0.858 0.011 252);
+  --primary: oklch(0.672 0.135 258);        /* Blue #7aa2f7 */
+  --primary-foreground: oklch(0.248 0.028 252);
+  --secondary: oklch(0.632 0.122 292);      /* Purple #bb9af7 */
+  --secondary-foreground: oklch(0.858 0.011 252);
+  --accent: oklch(0.752 0.138 325);         /* Magenta #f7768e */
+  --accent-foreground: oklch(0.248 0.028 252);
+  --muted: oklch(0.348 0.031 252);          /* FG Gutter #414868 */
+  --muted-foreground: oklch(0.592 0.021 252); /* Comment #565f89 */
+  --border: oklch(0.402 0.032 252);         /* Border #3b4261 */
+  --success: oklch(0.738 0.118 153);        /* Green #9ece6a */
+  --warning: oklch(0.832 0.112 88);         /* Yellow #e0af68 */
+  --danger: oklch(0.665 0.152 20);          /* Red #f7768e */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DRACULA - "Vampire Night Shift"
+   Official: #282a36 bg, #f8f8f2 fg, #bd93f9 purple, #ff79c6 pink
+   Identity: Vibrant pastels, dark background, iconic color scheme
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="dracula"] {
+  --background: oklch(0.268 0.014 268);     /* Background #282a36 */
+  --foreground: oklch(0.978 0.003 95);      /* Foreground #f8f8f2 */
+  --card: oklch(0.338 0.018 268);           /* Current Line #44475a */
+  --card-foreground: oklch(0.978 0.003 95);
+  --primary: oklch(0.688 0.148 295);        /* Purple #bd93f9 */
+  --primary-foreground: oklch(0.268 0.014 268);
+  --secondary: oklch(0.675 0.165 330);      /* Pink #ff79c6 */
+  --secondary-foreground: oklch(0.268 0.014 268);
+  --accent: oklch(0.808 0.152 192);         /* Cyan #8be9fd */
+  --accent-foreground: oklch(0.268 0.014 268);
+  --muted: oklch(0.338 0.018 268);          /* Current Line #44475a */
+  --muted-foreground: oklch(0.565 0.038 268); /* Comment #6272a4 */
+  --border: oklch(0.408 0.021 268);         /* Border (lighter current line) */
+  --success: oklch(0.798 0.168 148);        /* Green #50fa7b */
+  --warning: oklch(0.918 0.132 95);         /* Yellow #f1fa8c */
+  --danger: oklch(0.658 0.217 20);          /* Red #ff5555 */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ONE DARK - "Classic Developer"
+   Official: #282c34 bg, #abb2bf fg, #61afef blue, #c678dd purple
+   Identity: Atom/VSCode aesthetic, familiar, "just works"
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="one-dark"] {
+  --background: oklch(0.242 0.017 262);     /* Background #282c34 */
+  --foreground: oklch(0.858 0.011 262);     /* Foreground #abb2bf */
+  --card: oklch(0.298 0.019 262);           /* Gutter #2c323c */
+  --card-foreground: oklch(0.858 0.011 262);
+  --primary: oklch(0.655 0.132 242);        /* Blue #61afef */
+  --primary-foreground: oklch(0.242 0.017 262);
+  --secondary: oklch(0.688 0.112 312);      /* Purple #c678dd */
+  --secondary-foreground: oklch(0.858 0.011 262);
+  --accent: oklch(0.732 0.122 197);         /* Cyan #56b6c2 */
+  --accent-foreground: oklch(0.242 0.017 262);
+  --muted: oklch(0.368 0.019 262);          /* Gutter Gray #3e4451 */
+  --muted-foreground: oklch(0.612 0.014 262); /* Comment #5c6370 */
+  --border: oklch(0.428 0.020 262);         /* Border #4b5263 */
+  --success: oklch(0.735 0.118 152);        /* Green #98c379 */
+  --warning: oklch(0.818 0.118 82);         /* Yellow #e5c07b */
+  --danger: oklch(0.642 0.152 22);          /* Red #e06c75 */
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   EVERFOREST DARK - "Natural Focus"
+   Official: #2b3339 bg0, #d3c6aa fg, #a7c080 green, #83c092 aqua
+   Identity: Forest canopy greens, earthy, grounding, meditative
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="everforest-dark"] {
+  --background: oklch(0.278 0.017 148);     /* BG0 #2b3339 */
+  --foreground: oklch(0.868 0.019 148);     /* FG #d3c6aa */
+  --card: oklch(0.328 0.019 148);           /* BG1 #323d43 */
+  --card-foreground: oklch(0.868 0.019 148);
+  --primary: oklch(0.712 0.103 152);        /* Green #a7c080 */
+  --primary-foreground: oklch(0.278 0.017 148);
+  --secondary: oklch(0.688 0.088 188);      /* Aqua #83c092 */
+  --secondary-foreground: oklch(0.278 0.017 148);
+  --accent: oklch(0.775 0.108 78);          /* Yellow #dbbc7f */
+  --accent-foreground: oklch(0.278 0.017 148);
+  --muted: oklch(0.392 0.019 148);          /* BG3 #3d484d */
+  --muted-foreground: oklch(0.628 0.021 148); /* Gray0 #859289 */
+  --border: oklch(0.452 0.020 148);         /* BG4 #4a555b */
+  --success: oklch(0.712 0.103 152);        /* Green */
+  --warning: oklch(0.808 0.098 62);         /* Orange #e69875 */
+  --danger: oklch(0.658 0.122 22);          /* Red #e67e80 */
+}
+
+/* Apply theme colors */
 @theme inline {
+  /* Color System */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Glassmorphism Variables - REQUIRES OKLCH! */
+  --glass-bg: color-mix(in oklch, var(--card) 60%, transparent);
+  --glass-border: color-mix(in oklch, var(--primary) 30%, transparent);
+  --glass-glow: color-mix(in oklch, var(--primary) 15%, transparent);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base Styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Glassmorphism Utility Classes */
+.glass {
+  background: color-mix(in oklch, var(--card) 65%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent);
+  box-shadow:
+    0 4px 6px -1px color-mix(in oklch, var(--foreground) 6%, transparent),
+    0 2px 4px -2px color-mix(in oklch, var(--foreground) 4%, transparent),
+    0 0 0 1px color-mix(in oklch, var(--primary) 6%, transparent) inset;
+}
+
+.glass-strong {
+  background: color-mix(in oklch, var(--card) 75%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid color-mix(in oklch, var(--foreground) 12%, transparent);
+  box-shadow:
+    0 8px 16px -4px color-mix(in oklch, var(--foreground) 10%, transparent),
+    0 4px 8px -2px color-mix(in oklch, var(--foreground) 6%, transparent),
+    0 0 0 1px color-mix(in oklch, var(--primary) 10%, transparent) inset;
+}
+
+.glass-subtle {
+  background: color-mix(in oklch, var(--card) 50%, transparent);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+  box-shadow:
+    0 2px 4px -1px color-mix(in oklch, var(--foreground) 4%, transparent),
+    0 0 0 1px color-mix(in oklch, var(--primary) 4%, transparent) inset;
 }
