@@ -1,6 +1,7 @@
 // IRA Platform - Shared TypeScript Types
 
 import { z } from "zod"
+import { type ErrorCode } from "./errors"
 
 // ============================================
 // VALIDATION SCHEMAS
@@ -49,7 +50,7 @@ export type UpdateLeadStatusInput = z.infer<typeof UpdateLeadStatusSchema>
 
 export type ActionResponse<T = void> =
   | { success: true; data: T }
-  | { success: false; error: string }
+  | { success: false; error: string; code?: ErrorCode; context?: Record<string, unknown> }
 
 // Lead with relations
 export type LeadWithRelations = {

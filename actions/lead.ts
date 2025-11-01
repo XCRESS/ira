@@ -1,60 +1,63 @@
 "use server"
 
-// IRA Platform - Lead Management Server Actions
-// Following Next.js 15+ Server Actions pattern
+// IRA Platform - Lead Management Server Actions (Refactored)
+// ✅ Atomic sequence generation (no race conditions)
+// ✅ Optimistic locking (concurrent modification protection)
+// ✅ Structured error handling (error codes instead of strings)
+// ✅ User.isActive verification in DAL
+// ✅ Proper transaction management
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
-import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
+import {
+  verifyAuth,
+  verifyRole,
+  generateLeadId,
+  createAuditLog,
+  checkOptimisticLock,
+  handlePrismaError,
+  leadInclude,
+} from "@/lib/dal"
 import {
   CreateLeadSchema,
   UpdateLeadSchema,
   AssignAssessorSchema,
   UpdateLeadStatusSchema,
-  generateLeadId,
   sortLeadsByStatusPriority,
   type ActionResponse,
   type LeadWithRelations,
 } from "@/lib/types"
+import { Errors, AppError, ErrorCode } from "@/lib/errors"
+import { ZodError } from "zod"
 
 // ============================================
-// HELPER FUNCTIONS
+// ERROR HANDLER WRAPPER
 // ============================================
 
-/**
- * Verify authentication and return session
- * Used in all actions for Data Access Layer pattern
- */
-async function verifyAuth() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
-
-  if (!session) {
-    throw new Error("Unauthorized - Please sign in")
+function handleActionError(error: unknown): ActionResponse<never> {
+  if (error instanceof AppError) {
+    return {
+      success: false,
+      error: error.message,
+      code: error.code,
+      context: error.context,
+    }
   }
 
-  return session
-}
+  if (error instanceof ZodError) {
+    return {
+      success: false,
+      error: error.issues[0]?.message || "Invalid input",
+      code: ErrorCode.INVALID_INPUT,
+    }
+  }
 
-/**
- * Create an audit log entry
- */
-async function createAuditLog(
-  userId: string,
-  action: string,
-  leadId?: string,
-  details?: Record<string, unknown>
-) {
-  await prisma.auditLog.create({
-    data: {
-      userId,
-      action,
-      leadId,
-      details: details ? JSON.parse(JSON.stringify(details)) : {},
-    },
-  })
+  console.error("Unexpected error in action:", error)
+  return {
+    success: false,
+    error: "An unexpected error occurred",
+    code: ErrorCode.UNKNOWN_ERROR,
+  }
 }
 
 // ============================================
@@ -63,36 +66,33 @@ async function createAuditLog(
 
 /**
  * Create a new lead (REVIEWER only)
+ * ✅ Atomic lead ID generation (no race conditions)
+ * ✅ CIN uniqueness check
+ * ✅ Proper error handling
  */
 export async function createLead(
   input: unknown
 ): Promise<ActionResponse<LeadWithRelations>> {
   try {
-    // 1. Verify auth
-    const session = await verifyAuth()
+    // 1. Verify auth and role
+    const session = await verifyRole("REVIEWER")
 
-    // 2. Check role
-    if (session.user.role !== "REVIEWER") {
-      return { success: false, error: "Only reviewers can create leads" }
-    }
-
-    // 3. Validate input
+    // 2. Validate input
     const validatedData = CreateLeadSchema.parse(input)
 
-    // 4. Check if CIN already exists
+    // 3. Check if CIN already exists
     const existing = await prisma.lead.findUnique({
       where: { cin: validatedData.cin },
     })
 
     if (existing) {
-      return { success: false, error: "A lead with this CIN already exists" }
+      throw Errors.duplicateCIN(validatedData.cin)
     }
 
-    // 5. Generate lead ID
-    const leadCount = await prisma.lead.count()
-    const leadId = generateLeadId(leadCount)
+    // 4. Generate lead ID atomically (prevents race conditions)
+    const leadId = await generateLeadId()
 
-    // 6. Create lead
+    // 5. Create lead
     const lead = await prisma.lead.create({
       data: {
         leadId,
@@ -105,58 +105,29 @@ export async function createLead(
         status: "NEW",
         createdById: session.user.id,
       },
-      include: {
-        assignedAssessor: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        assessment: {
-          select: {
-            id: true,
-            status: true,
-            percentage: true,
-            rating: true,
-          },
-        },
-        _count: {
-          select: {
-            documents: true,
-          },
-        },
-      },
+      include: leadInclude,
     })
 
-    // 7. Create audit log
+    // 6. Create audit log
     await createAuditLog(session.user.id, "LEAD_CREATED", lead.id, {
       companyName: lead.companyName,
       cin: lead.cin,
+      leadId: lead.leadId,
     })
 
-    // 8. Revalidate paths
+    // 7. Revalidate paths
     revalidatePath("/dashboard/leads")
 
     return { success: true, data: lead }
   } catch (error) {
-    console.error("Create lead error:", error)
-    if (error instanceof Error) {
-      return { success: false, error: error.message }
-    }
-    return { success: false, error: "Failed to create lead" }
+    return handleActionError(handlePrismaError(error))
   }
 }
 
 /**
  * Get all leads with optional filters
+ * ✅ Role-based filtering (assessors see only their leads)
+ * ✅ Priority sorting for reviewers
  */
 export async function getLeads(filters?: {
   assignedTo?: string
@@ -167,12 +138,10 @@ export async function getLeads(filters?: {
     const session = await verifyAuth()
 
     // 2. Build where clause
-    interface WhereClause {
+    const where: {
       assignedAssessorId?: string
-      status?: string
-    }
-
-    const where: WhereClause = {}
+      status?: "NEW" | "ASSIGNED" | "IN_REVIEW" | "PAYMENT_PENDING" | "COMPLETED"
+    } = {}
 
     // If assessor, only show assigned leads
     if (session.user.role === "ASSESSOR") {
@@ -184,41 +153,13 @@ export async function getLeads(filters?: {
       where.assignedAssessorId = filters.assignedTo
     }
     if (filters?.status) {
-      where.status = filters.status
+      where.status = filters.status as "NEW" | "ASSIGNED" | "IN_REVIEW" | "PAYMENT_PENDING" | "COMPLETED"
     }
 
     // 3. Fetch leads
     const leads = await prisma.lead.findMany({
       where,
-      include: {
-        assignedAssessor: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        assessment: {
-          select: {
-            id: true,
-            status: true,
-            percentage: true,
-            rating: true,
-          },
-        },
-        _count: {
-          select: {
-            documents: true,
-          },
-        },
-      },
+      include: leadInclude,
       orderBy: {
         createdAt: "desc",
       },
@@ -230,13 +171,13 @@ export async function getLeads(filters?: {
 
     return { success: true, data: sortedLeads }
   } catch (error) {
-    console.error("Get leads error:", error)
-    return { success: false, error: "Failed to fetch leads" }
+    return handleActionError(error)
   }
 }
 
 /**
  * Get single lead by ID with full details
+ * ✅ Access control (assessors can only view assigned leads)
  */
 export async function getLead(
   leadId: string
@@ -248,61 +189,35 @@ export async function getLead(
     // 2. Fetch lead
     const lead = await prisma.lead.findUnique({
       where: { id: leadId },
-      include: {
-        assignedAssessor: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        assessment: {
-          select: {
-            id: true,
-            status: true,
-            percentage: true,
-            rating: true,
-          },
-        },
-        _count: {
-          select: {
-            documents: true,
-          },
-        },
-      },
+      include: leadInclude,
     })
 
     if (!lead) {
-      return { success: false, error: "Lead not found" }
+      throw Errors.leadNotFound(leadId)
     }
 
     // 3. Check access (assessors can only view their assigned leads)
     if (session.user.role === "ASSESSOR") {
       if (lead.assignedAssessor?.id !== session.user.id) {
-        return { success: false, error: "Access denied" }
+        throw Errors.insufficientPermissions()
       }
     }
 
     return { success: true, data: lead }
   } catch (error) {
-    console.error("Get lead error:", error)
-    return { success: false, error: "Failed to fetch lead" }
+    return handleActionError(error)
   }
 }
 
 /**
  * Update lead information
+ * ✅ Optimistic locking (prevents concurrent modifications)
+ * ✅ Role-based access control
  */
 export async function updateLead(
   leadId: string,
-  input: unknown
+  input: unknown,
+  expectedUpdatedAt: string // ISO timestamp for optimistic locking
 ): Promise<ActionResponse<LeadWithRelations>> {
   try {
     // 1. Verify auth
@@ -317,149 +232,110 @@ export async function updateLead(
     })
 
     if (!lead) {
-      return { success: false, error: "Lead not found" }
+      throw Errors.leadNotFound(leadId)
     }
 
     // 4. Check access
     if (session.user.role === "ASSESSOR") {
       if (lead.assignedAssessorId !== session.user.id) {
-        return { success: false, error: "Access denied" }
+        throw Errors.insufficientPermissions()
       }
     }
 
-    // 5. Update lead
+    // 5. Optimistic locking check
+    checkOptimisticLock(lead.updatedAt, new Date(expectedUpdatedAt))
+
+    // 6. Update lead
     const updated = await prisma.lead.update({
-      where: { id: leadId },
-      data: validatedData,
-      include: {
-        assignedAssessor: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        assessment: {
-          select: {
-            id: true,
-            status: true,
-            percentage: true,
-            rating: true,
-          },
-        },
-        _count: {
-          select: {
-            documents: true,
-          },
-        },
+      where: {
+        id: leadId,
+        updatedAt: lead.updatedAt, // Atomic check-and-set
       },
+      data: validatedData,
+      include: leadInclude,
     })
 
-    // 6. Create audit log
-    await createAuditLog(session.user.id, "LEAD_UPDATED", lead.id, validatedData)
+    // 7. Create audit log
+    await createAuditLog(session.user.id, "LEAD_UPDATED", lead.id, {
+      changes: validatedData,
+    })
 
-    // 7. Revalidate paths
+    // 8. Revalidate paths
     revalidatePath("/dashboard/leads")
     revalidatePath(`/dashboard/leads/${leadId}`)
 
     return { success: true, data: updated }
   } catch (error) {
-    console.error("Update lead error:", error)
-    if (error instanceof Error) {
-      return { success: false, error: error.message }
-    }
-    return { success: false, error: "Failed to update lead" }
+    return handleActionError(handlePrismaError(error))
   }
 }
 
 /**
  * Assign assessor to lead (REVIEWER only)
- * Creates an empty Assessment record with status DRAFT
+ * ✅ Transaction ensures atomicity (lead + assessment)
+ * ✅ Optimistic locking
+ * ✅ Validates assessor exists and has correct role
  */
 export async function assignAssessor(
   leadId: string,
-  input: unknown
+  input: unknown,
+  expectedUpdatedAt: string
 ): Promise<ActionResponse<LeadWithRelations>> {
   try {
-    // 1. Verify auth
-    const session = await verifyAuth()
+    // 1. Verify auth and role
+    const session = await verifyRole("REVIEWER")
 
-    // 2. Check role
-    if (session.user.role !== "REVIEWER") {
-      return { success: false, error: "Only reviewers can assign assessors" }
-    }
-
-    // 3. Validate input
+    // 2. Validate input
     const validatedData = AssignAssessorSchema.parse(input)
 
-    // 4. Check if assessor exists and has correct role
+    // 3. Check if assessor exists and has correct role
     const assessor = await prisma.user.findUnique({
       where: { id: validatedData.assessorId },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        isActive: true,
+      },
     })
 
     if (!assessor) {
-      return { success: false, error: "Assessor not found" }
+      throw Errors.insufficientPermissions("Assessor not found")
     }
 
     if (assessor.role !== "ASSESSOR") {
-      return { success: false, error: "Selected user is not an assessor" }
+      throw Errors.insufficientPermissions("Selected user is not an assessor")
     }
 
-    // 5. Check if lead exists
+    if (!assessor.isActive) {
+      throw Errors.userInactive()
+    }
+
+    // 4. Check if lead exists and optimistic lock
     const lead = await prisma.lead.findUnique({
       where: { id: leadId },
       include: { assessment: true },
     })
 
     if (!lead) {
-      return { success: false, error: "Lead not found" }
+      throw Errors.leadNotFound(leadId)
     }
 
-    // 6. Update lead and create/update assessment
+    checkOptimisticLock(lead.updatedAt, new Date(expectedUpdatedAt))
+
+    // 5. Transaction: Update lead + create/update assessment
     const updated = await prisma.$transaction(async (tx) => {
       // Update lead status and assignment
       const updatedLead = await tx.lead.update({
-        where: { id: leadId },
+        where: {
+          id: leadId,
+          updatedAt: lead.updatedAt, // Atomic check
+        },
         data: {
           assignedAssessorId: validatedData.assessorId,
           status: "ASSIGNED",
         },
-        include: {
-          assignedAssessor: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          createdBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          assessment: {
-            select: {
-              id: true,
-              status: true,
-              percentage: true,
-              rating: true,
-            },
-          },
-          _count: {
-            select: {
-              documents: true,
-            },
-          },
-        },
+        include: leadInclude,
       })
 
       // Create assessment if it doesn't exist
@@ -482,23 +358,19 @@ export async function assignAssessor(
       return updatedLead
     })
 
-    // 7. Create audit log
+    // 6. Create audit log
     await createAuditLog(session.user.id, "LEAD_ASSIGNED", lead.id, {
       assessorId: validatedData.assessorId,
       assessorName: assessor.name,
     })
 
-    // 8. Revalidate paths
+    // 7. Revalidate paths
     revalidatePath("/dashboard/leads")
     revalidatePath(`/dashboard/leads/${leadId}`)
 
     return { success: true, data: updated }
   } catch (error) {
-    console.error("Assign assessor error:", error)
-    if (error instanceof Error) {
-      return { success: false, error: error.message }
-    }
-    return { success: false, error: "Failed to assign assessor" }
+    return handleActionError(handlePrismaError(error))
   }
 }
 
@@ -510,16 +382,20 @@ export async function updateLeadStatus(
   input: unknown
 ): Promise<ActionResponse<void>> {
   try {
-    // 1. Verify auth
-    const session = await verifyAuth()
+    // 1. Verify auth and role
+    const session = await verifyRole("REVIEWER")
 
-    // 2. Check role
-    if (session.user.role !== "REVIEWER") {
-      return { success: false, error: "Only reviewers can update lead status" }
-    }
-
-    // 3. Validate input
+    // 2. Validate input
     const validatedData = UpdateLeadStatusSchema.parse(input)
+
+    // 3. Check lead exists
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId },
+    })
+
+    if (!lead) {
+      throw Errors.leadNotFound(leadId)
+    }
 
     // 4. Update lead
     await prisma.lead.update({
@@ -529,6 +405,7 @@ export async function updateLeadStatus(
 
     // 5. Create audit log
     await createAuditLog(session.user.id, "LEAD_STATUS_UPDATED", leadId, {
+      oldStatus: lead.status,
       newStatus: validatedData.status,
     })
 
@@ -538,16 +415,13 @@ export async function updateLeadStatus(
 
     return { success: true, data: undefined }
   } catch (error) {
-    console.error("Update lead status error:", error)
-    if (error instanceof Error) {
-      return { success: false, error: error.message }
-    }
-    return { success: false, error: "Failed to update lead status" }
+    return handleActionError(error)
   }
 }
 
 /**
  * Get all assessors (for assignment dropdown)
+ * ✅ Only returns active assessors
  */
 export async function getAssessors(): Promise<
   ActionResponse<Array<{ id: string; name: string; email: string }>>
@@ -556,9 +430,12 @@ export async function getAssessors(): Promise<
     // 1. Verify auth
     await verifyAuth()
 
-    // 2. Fetch assessors
+    // 2. Fetch active assessors only
     const assessors = await prisma.user.findMany({
-      where: { role: "ASSESSOR" },
+      where: {
+        role: "ASSESSOR",
+        isActive: true,
+      },
       select: {
         id: true,
         name: true,
@@ -569,7 +446,6 @@ export async function getAssessors(): Promise<
 
     return { success: true, data: assessors }
   } catch (error) {
-    console.error("Get assessors error:", error)
-    return { success: false, error: "Failed to fetch assessors" }
+    return handleActionError(error)
   }
 }

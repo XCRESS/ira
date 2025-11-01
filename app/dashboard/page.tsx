@@ -12,8 +12,6 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react"
-import { Breadcrumbs } from "@/components/breadcrumbs"
-
 export default async function DashboardPage() {
   // Verify authentication
   const session = await auth.api.getSession({
@@ -44,13 +42,10 @@ export default async function DashboardPage() {
   const recentLeads = leads.slice(0, 5)
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Breadcrumbs */}
-      <Breadcrumbs items={[{ label: "Dashboard" }]} />
-
+    <div className="p-4 md:p-6">
       {/* Welcome Section */}
-      <div className="glass rounded-2xl p-6">
-        <h1 className="text-2xl font-bold">Welcome back, {user.name}!</h1>
+      <div className="glass rounded-2xl p-6 mt-6">
+        <p className="text-lg font-semibold">Welcome back, {user.name}!</p>
         <p className="mt-1 text-sm text-foreground/70">
           {user.role === "REVIEWER"
             ? "Monitor all assessments and manage your team"
@@ -59,46 +54,46 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="glass space-y-2 rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground/70">Total Leads</p>
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mt-6">
+        <div className="glass rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-foreground/70">Total</p>
             <FileText className="h-5 w-5 text-foreground/50" />
           </div>
-          <p className="text-3xl font-bold">{stats.total}</p>
-          <p className="text-xs text-foreground/60">All companies in pipeline</p>
+          <p className="text-2xl font-bold">{stats.total}</p>
+          <p className="text-xs text-foreground/60 mt-1">All leads</p>
         </div>
 
-        <div className="glass space-y-2 rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground/70">New Leads</p>
-            <AlertCircle className="h-5 w-5 text-blue-500" />
+        <div className="glass rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-foreground/70">New</p>
+            <AlertCircle className="h-5 w-5 text-foreground/50" />
           </div>
-          <p className="text-3xl font-bold text-blue-500">{stats.new}</p>
-          <p className="text-xs text-foreground/60">Awaiting assignment</p>
+          <p className="text-2xl font-bold">{stats.new}</p>
+          <p className="text-xs text-foreground/60 mt-1">Unassigned</p>
         </div>
 
-        <div className="glass space-y-2 rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground/70">In Progress</p>
-            <Clock className="h-5 w-5 text-yellow-500" />
+        <div className="glass rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-foreground/70">Active</p>
+            <Clock className="h-5 w-5 text-foreground/50" />
           </div>
-          <p className="text-3xl font-bold text-yellow-500">{stats.inProgress}</p>
-          <p className="text-xs text-foreground/60">Being assessed</p>
+          <p className="text-2xl font-bold">{stats.inProgress}</p>
+          <p className="text-xs text-foreground/60 mt-1">In progress</p>
         </div>
 
-        <div className="glass space-y-2 rounded-xl p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground/70">Completed</p>
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
+        <div className="glass rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-foreground/70">Done</p>
+            <CheckCircle2 className="h-5 w-5 text-success" />
           </div>
-          <p className="text-3xl font-bold text-green-500">{stats.completed}</p>
-          <p className="text-xs text-foreground/60">Fully assessed</p>
+          <p className="text-2xl font-bold">{stats.completed}</p>
+          <p className="text-xs text-foreground/60 mt-1">Completed</p>
         </div>
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 mt-6">
         {/* Quick Actions */}
         <div className="glass space-y-4 rounded-2xl p-6 lg:col-span-1">
           <h2 className="text-lg font-semibold">Quick Actions</h2>

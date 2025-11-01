@@ -5,7 +5,6 @@ import Link from "next/link"
 import { getLead, getAssessors } from "@/actions/lead"
 import { getStatusDisplay } from "@/lib/types"
 import { AssignAssessorForm } from "@/components/assign-assessor-form"
-import { Breadcrumbs } from "@/components/breadcrumbs"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -56,16 +55,9 @@ export default async function LeadDetailPage(props: Props) {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <Breadcrumbs
-        items={[
-          { label: "Leads", href: "/dashboard/leads" },
-          { label: lead.companyName },
-        ]}
-      />
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{lead.companyName}</h1>
         <span
           className={`inline-flex rounded-full px-4 py-1.5 text-sm font-medium ${status.color}`}

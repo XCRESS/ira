@@ -2,7 +2,6 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { LeadForm } from "@/components/lead-form"
-import { Breadcrumbs } from "@/components/breadcrumbs"
 
 export default async function NewLeadPage() {
   // 1. Verify authentication
@@ -20,18 +19,10 @@ export default async function NewLeadPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="mx-auto max-w-2xl space-y-6">
-        {/* Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: "Leads", href: "/dashboard/leads" },
-            { label: "New Lead" },
-          ]}
-        />
-
+    <div className="p-4 md:p-6">
+      <div className="mx-auto max-w-2xl">
         {/* Header */}
-        <div>
+        <div className="mb-6">
           <h1 className="text-2xl font-bold">Create New Lead</h1>
           <p className="mt-1 text-sm text-foreground/70">
             Add a new client company to the IPO readiness assessment pipeline

@@ -4,9 +4,9 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { getLeads } from "@/actions/lead"
 import { getStatusDisplay } from "@/lib/types"
-import { Breadcrumbs } from "@/components/breadcrumbs"
 import { EmptyState } from "@/components/empty-state"
 import { ClickableRow } from "@/components/clickable-row"
+import { LeadCard } from "@/components/lead-card"
 import { FileText, Plus } from "lucide-react"
 
 export default async function LeadsPage() {
@@ -36,25 +36,22 @@ export default async function LeadsPage() {
   const isReviewer = session.user.role === "REVIEWER"
 
   return (
-    <div className="space-y-6 p-6">
-      <Breadcrumbs items={[{ label: "Leads" }]} />
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Leads</h1>
-        {isReviewer && (
+    <div className="p-4 md:p-6">
+      {/* Action Button */}
+      {isReviewer && (
+        <div className="flex justify-end mb-6">
           <Link
             href="/dashboard/leads/new"
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="flex items-center gap-2 rounded-lg bg-primary px-3 md:px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95"
           >
             <Plus className="h-4 w-4" />
-            <span>New Lead</span>
+            <span className="hidden sm:inline">New Lead</span>
           </Link>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mt-6">
         <div className="glass space-y-1 rounded-xl p-4">
           <p className="text-sm text-foreground/70">Total Leads</p>
           <p className="text-2xl font-bold">{leads.length}</p>
@@ -79,9 +76,9 @@ export default async function LeadsPage() {
         </div>
       </div>
 
-      {/* Leads Table */}
-      <div className="glass overflow-hidden rounded-2xl">
-        {leads.length === 0 ? (
+      {/* Empty State */}
+      {leads.length === 0 && (
+        <div className="glass rounded-2xl mt-6">
           <EmptyState
             icon={FileText}
             title="No leads yet"
@@ -99,7 +96,29 @@ export default async function LeadsPage() {
                 : undefined
             }
           />
-        ) : (
+        </div>
+      )}
+
+      {/* Mobile: Card List (< 768px) */}
+      {leads.length > 0 && (
+        <div className="md:hidden space-y-3 mt-6">
+          {leads.map((lead) => {
+            const status = getStatusDisplay(lead.status)
+            return (
+              <LeadCard
+                key={lead.id}
+                lead={lead}
+                statusColor={status.color}
+                statusLabel={status.label}
+              />
+            )
+          })}
+        </div>
+      )}
+
+      {/* Desktop: Table (≥ 768px) */}
+      {leads.length > 0 && (
+        <div className="hidden md:block glass overflow-hidden rounded-2xl mt-6">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b border-foreground/10">
@@ -186,8 +205,8 @@ export default async function LeadsPage() {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

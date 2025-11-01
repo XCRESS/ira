@@ -30,6 +30,7 @@ model User {
 
   // Custom role field for IRA
   role          UserRole  @default(ASSESSOR)
+  isActive      Boolean   @default(true)
 
   // Better Auth relations
   sessions      Session[]
@@ -254,4 +255,12 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_log")
+}
+
+// Counter for atomic sequence generation (prevents race conditions)
+model Counter {
+  id    String @id
+  value Int    @default(0)
+
+  @@map("counter")
 }

@@ -202,27 +202,29 @@ session.user.role  // "ASSESSOR" | "REVIEWER"
 session.user.image // string | null
 ```
 
-### Server Actions
+### Server Actions (Refactored - Jan 2025)
+
+**New Pattern**: All actions now use centralized Data Access Layer from [lib/dal.ts](lib/dal.ts)
 
 ```typescript
 'use server'
+import { verifyAuth, verifyRole } from "@/lib/dal"
 
 async function someAction() {
-  // CRITICAL: Always verify auth first (Data Access Layer pattern)
-  const session = await auth.api.getSession({ headers: await headers() })
+  // ✅ NEW: Use DAL helpers (includes isActive check)
+  const session = await verifyAuth()  // Verifies auth + isActive
+  // OR
+  const session = await verifyRole("REVIEWER")  // Verifies auth + role + isActive
 
-  if (!session) {
-    throw new Error("Unauthorized")
-  }
-
-  // Check role
-  if (session.user.role !== "REVIEWER") {
-    throw new Error("Forbidden")
-  }
-
-  // Proceed with action
+  // session.user.id, session.user.name, session.user.role, session.user.isActive
+  // Throws AppError if unauthorized or inactive
 }
 ```
+
+**Key Changes**:
+- ✅ `verifyAuth()` now checks `User.isActive` field on every request
+- ✅ Returns typed `VerifiedSession` object
+- ✅ Throws structured `AppError` instead of generic errors
 
 ### Authentication Flow
 
@@ -266,33 +268,48 @@ export async function middleware(request: NextRequest) {
 
 ## 2. Leads
 
-### `actions/lead.ts` ✅ IMPLEMENTED
+### `actions/lead.ts` ✅ IMPLEMENTED & REFACTORED (Jan 2025)
 
-**Status**: Fully implemented with Next.js 15+ Server Actions
+**Status**: Fully implemented with enterprise-grade patterns
 
 **Implementation Notes**:
-- All actions use `"use server"` directive
-- Data Access Layer pattern: `verifyAuth()` called first in all actions
-- Input validation with Zod schemas
-- Automatic audit logging for all mutations
-- `revalidatePath()` for cache invalidation
-- Proper TypeScript types with `ActionResponse<T>` generic
+- ✅ All actions use `"use server"` directive
+- ✅ Data Access Layer pattern: `verifyAuth()` / `verifyRole()` from [lib/dal.ts](lib/dal.ts)
+- ✅ Input validation with Zod schemas
+- ✅ **Atomic lead ID generation** - No race conditions (uses Counter table)
+- ✅ **Optimistic locking** - `updateLead` and `assignAssessor` prevent concurrent modifications
+- ✅ **Structured error handling** - Returns error codes + context
+- ✅ Automatic audit logging for all mutations (typed actions)
+- ✅ `revalidatePath()` for cache invalidation
+- ✅ Transaction management - `assignAssessor` uses atomic transactions
+- ✅ Proper TypeScript types with `ActionResponse<T>` generic
 
 ```typescript
 'use server';
 
+// ============================================
+// REFACTORED RESPONSE TYPE (Jan 2025)
+// ============================================
+type ActionResponse<T> =
+  | { success: true; data: T }
+  | {
+      success: false;
+      error: string;           // User-friendly message
+      code?: ErrorCode;        // Machine-readable code (DUPLICATE_CIN, LEAD_NOT_FOUND, etc.)
+      context?: Record<...>    // Debug context
+    }
+
+// ============================================
+// ACTIONS
+// ============================================
+
 // Create lead (REVIEWER only) ✅
-async function createLead(data: {
-  companyName: string;
-  contactPerson: string;
-  phone: string;
-  email: string;
-  cin: string;
-  address: string;
-}): Promise<{ success: boolean; data?: Lead; error?: string }>
-// ✅ Implemented: Creates lead with auto-generated leadId (LD-2024-001)
-// ✅ Checks CIN uniqueness
-// ✅ Creates audit log entry
+async function createLead(input: unknown): Promise<ActionResponse<Lead>>
+// ✅ Implemented: Creates lead with ATOMIC leadId generation (LD-2025-001)
+// ✅ No race conditions - uses Counter table with atomic increment
+// ✅ Checks CIN uniqueness (throws DUPLICATE_CIN error)
+// ✅ Zod validation at entry point
+// ✅ Creates typed audit log entry (LEAD_CREATED)
 // ✅ Revalidates /dashboard/leads
 
 // Get all leads (sorted by status for reviewer) ✅
@@ -313,26 +330,30 @@ async function getLead(leadId: string): Promise<{
 // ✅ Implemented: Returns lead with all relations
 // ✅ Access control: Assessors can only view their assigned leads
 
-// Update lead info ✅
-async function updateLead(leadId: string, data: {
-  companyName?: string;
-  contactPerson?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-}): Promise<{ success: boolean; data?: Lead; error?: string }>
-// ✅ Implemented: Zod validation, audit log, revalidation
+// Update lead info ✅ REFACTORED
+async function updateLead(
+  leadId: string,
+  input: unknown,
+  expectedUpdatedAt: string  // ← NEW: ISO timestamp for optimistic locking
+): Promise<ActionResponse<Lead>>
+// ✅ Implemented: Optimistic locking prevents concurrent modifications
+// ✅ Checks lead.updatedAt matches expectedUpdatedAt before update
+// ✅ Returns CONCURRENT_MODIFICATION error if mismatch
+// ✅ Zod validation, audit log (LEAD_UPDATED), revalidation
+// ✅ Role-based access: Assessors can only update assigned leads
 
-// Assign assessor (REVIEWER only) ✅
-async function assignAssessor(leadId: string, input: { assessorId: string }): Promise<{
-  success: boolean;
-  data?: Lead;
-  error?: string;
-}>
+// Assign assessor (REVIEWER only) ✅ REFACTORED
+async function assignAssessor(
+  leadId: string,
+  input: unknown,
+  expectedUpdatedAt: string  // ← NEW: ISO timestamp for optimistic locking
+): Promise<ActionResponse<Lead>>
 // ✅ Implemented: Creates Assessment with empty answers, status = DRAFT
 // ✅ Updates lead status to ASSIGNED
-// ✅ Uses transaction to ensure atomicity
-// ✅ Validates assessor role
+// ✅ Uses $transaction to ensure atomicity (lead + assessment)
+// ✅ Validates assessor exists, has ASSESSOR role, and isActive = true
+// ✅ Optimistic locking check before update
+// ✅ Creates typed audit log (LEAD_ASSIGNED with assessor details)
 
 // Update status (REVIEWER only) ✅
 async function updateLeadStatus(leadId: string, input: { status: LeadStatus }): Promise<{
@@ -342,13 +363,10 @@ async function updateLeadStatus(leadId: string, input: { status: LeadStatus }): 
 }>
 // ✅ Implemented: Updates status with audit log
 
-// Get assessors (for dropdown) ✅
-async function getAssessors(): Promise<{
-  success: boolean;
-  data?: Array<{ id: string; name: string; email: string }>;
-  error?: string;
-}>
-// ✅ Implemented: Returns all users with role=ASSESSOR
+// Get assessors (for dropdown) ✅ REFACTORED
+async function getAssessors(): Promise<ActionResponse<Array<{ id: string; name: string; email: string }>>>
+// ✅ Implemented: Returns all users with role=ASSESSOR AND isActive=true
+// ✅ Filters out deactivated assessors
 
 // ⏳ TODO: Send payment link (REVIEWER only)
 async function sendPaymentLink(leadId: string): Promise<{

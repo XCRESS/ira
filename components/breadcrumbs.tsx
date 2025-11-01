@@ -22,7 +22,27 @@ export function Breadcrumbs({ items }: Props) {
     return () => setMounted(false)
   }, [])
 
-  const breadcrumbContent = (
+  // Only render on client after mount
+  if (!mounted || typeof window === "undefined") return null
+
+  const portalElement = document.getElementById("breadcrumbs-portal")
+  if (!portalElement) return null
+
+  // Only render if we're in the visible layout (desktop or mobile)
+  // Check if parent is visible by checking display style
+  const isVisible = () => {
+    let element = portalElement.parentElement
+    while (element) {
+      const style = window.getComputedStyle(element)
+      if (style.display === "none") return false
+      element = element.parentElement
+    }
+    return true
+  }
+
+  if (!isVisible()) return null
+
+  return createPortal(
     <nav className="flex items-center gap-2 text-sm">
       <Link
         href="/dashboard"
@@ -46,16 +66,7 @@ export function Breadcrumbs({ items }: Props) {
           )}
         </div>
       ))}
-    </nav>
+    </nav>,
+    portalElement
   )
-
-  // Render into header portal if available, otherwise render inline
-  if (mounted && typeof window !== "undefined") {
-    const portalElement = document.getElementById("breadcrumbs-portal")
-    if (portalElement) {
-      return createPortal(breadcrumbContent, portalElement)
-    }
-  }
-
-  return breadcrumbContent
 }

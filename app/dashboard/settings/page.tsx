@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { User, Palette, Bell, Shield } from "lucide-react"
 
@@ -38,11 +37,9 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="p-6">
-      <Breadcrumbs items={[{ label: "Settings" }]} />
-
+    <div className="p-4 md:p-6">
       {/* Settings Layout */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         {/* Sidebar Navigation */}
         <nav className="glass space-y-1 rounded-2xl p-3">
           {sections.map((section) => {
