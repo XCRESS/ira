@@ -9,6 +9,7 @@ const ALLOWED_USERS = [
   { email: "jaydeep@cosmosfin.com", role: "ASSESSOR" },
   { email: "piyush@cosmosfin.com", role: "REVIEWER" },
   { email: "veshant@cosmosfin.com", role: "REVIEWER" },
+  { email: "sonali@cosmosfin.com", role: "ASSESSOR" },
 ] as const
 
 export const auth = betterAuth({
