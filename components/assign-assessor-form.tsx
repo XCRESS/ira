@@ -14,9 +14,10 @@ type Props = {
   leadId: string
   assessors: Assessor[]
   currentAssessorId?: string
+  leadUpdatedAt: Date
 }
 
-export function AssignAssessorForm({ leadId, assessors, currentAssessorId }: Props) {
+export function AssignAssessorForm({ leadId, assessors, currentAssessorId, leadUpdatedAt }: Props) {
   const router = useRouter()
   const [selectedAssessorId, setSelectedAssessorId] = useState(currentAssessorId || "")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -29,7 +30,7 @@ export function AssignAssessorForm({ leadId, assessors, currentAssessorId }: Pro
     setIsSubmitting(true)
     setError(null)
 
-    const result = await assignAssessor(leadId, { assessorId: selectedAssessorId })
+    const result = await assignAssessor(leadId, { assessorId: selectedAssessorId }, leadUpdatedAt.toISOString())
 
     if (result.success) {
       router.refresh()

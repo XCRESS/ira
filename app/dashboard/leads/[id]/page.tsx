@@ -187,6 +187,7 @@ export default async function LeadDetailPage(props: Props) {
                           leadId={lead.id}
                           assessors={assessors}
                           currentAssessorId={lead.assignedAssessor.id}
+                          leadUpdatedAt={lead.updatedAt}
                         />
                       </div>
                     </details>
@@ -203,6 +204,7 @@ export default async function LeadDetailPage(props: Props) {
                         <AssignAssessorForm
                           leadId={lead.id}
                           assessors={assessors}
+                          leadUpdatedAt={lead.updatedAt}
                         />
                       </div>
                     </>
