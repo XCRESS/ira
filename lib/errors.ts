@@ -28,8 +28,20 @@ export enum ErrorCode {
   ASSESSOR_NOT_ASSIGNED = "ASSESSOR_NOT_ASSIGNED",
   ASSESSMENT_ALREADY_SUBMITTED = "ASSESSMENT_ALREADY_SUBMITTED",
 
+  // Question management errors
+  QUESTION_NOT_FOUND = "QUESTION_NOT_FOUND",
+  NO_ACTIVE_QUESTIONS = "NO_ACTIVE_QUESTIONS",
+  QUESTIONS_OUTDATED = "QUESTIONS_OUTDATED",
+
+  // Assessment errors
+  ELIGIBILITY_NOT_COMPLETED = "ELIGIBILITY_NOT_COMPLETED",
+  ELIGIBILITY_FAILED = "ELIGIBILITY_FAILED",
+  INCOMPLETE_ASSESSMENT = "INCOMPLETE_ASSESSMENT",
+  ASSESSMENT_NOT_SUBMITTED = "ASSESSMENT_NOT_SUBMITTED",
+
   // System errors
   DATABASE_ERROR = "DATABASE_ERROR",
+  EXTERNAL_API_ERROR = "EXTERNAL_API_ERROR",
   UNKNOWN_ERROR = "UNKNOWN_ERROR",
 }
 
@@ -107,6 +119,74 @@ export const Errors = {
       500
     ),
 
+  assessmentNotFound: (assessmentId?: string) =>
+    new AppError(
+      ErrorCode.ASSESSMENT_NOT_FOUND,
+      "Assessment not found",
+      404,
+      assessmentId ? { assessmentId } : undefined
+    ),
+
+  questionNotFound: (questionId?: string) =>
+    new AppError(
+      ErrorCode.QUESTION_NOT_FOUND,
+      "Question not found",
+      404,
+      questionId ? { questionId } : undefined
+    ),
+
+  noActiveQuestions: (type?: string) =>
+    new AppError(
+      ErrorCode.NO_ACTIVE_QUESTIONS,
+      type ? `No active ${type} questions found` : "No active questions found",
+      400,
+      type ? { type } : undefined
+    ),
+
+  questionsOutdated: () =>
+    new AppError(
+      ErrorCode.QUESTIONS_OUTDATED,
+      "Questions have been updated since this assessment was started",
+      409
+    ),
+
+  eligibilityNotCompleted: () =>
+    new AppError(
+      ErrorCode.ELIGIBILITY_NOT_COMPLETED,
+      "Please complete eligibility check before proceeding to main assessment",
+      400
+    ),
+
+  eligibilityFailed: (failedQuestions: string[]) =>
+    new AppError(
+      ErrorCode.ELIGIBILITY_FAILED,
+      "Company is not eligible for IPO assessment",
+      400,
+      { failedQuestions }
+    ),
+
+  incompleteAssessment: (missingSections: string[]) =>
+    new AppError(
+      ErrorCode.INCOMPLETE_ASSESSMENT,
+      "Please complete all sections before submitting",
+      400,
+      { missingSections }
+    ),
+
+  assessmentNotSubmitted: () =>
+    new AppError(
+      ErrorCode.ASSESSMENT_NOT_SUBMITTED,
+      "Assessment must be submitted before review",
+      400
+    ),
+
+  EXTERNAL_API_ERROR: (details: string) =>
+    new AppError(
+      ErrorCode.EXTERNAL_API_ERROR,
+      details || "External API error occurred",
+      502
+    ),
+
   unknown: (error: unknown) => {
     if (error instanceof AppError) return error
     if (error instanceof Error) {
@@ -137,7 +217,15 @@ export function getErrorMessage(error: AppError | ErrorCode | string): string {
     [ErrorCode.INVALID_STATUS_TRANSITION]: "Invalid status change",
     [ErrorCode.ASSESSOR_NOT_ASSIGNED]: "No assessor assigned to this lead",
     [ErrorCode.ASSESSMENT_ALREADY_SUBMITTED]: "Assessment has already been submitted",
+    [ErrorCode.QUESTION_NOT_FOUND]: "Question not found",
+    [ErrorCode.NO_ACTIVE_QUESTIONS]: "No active questions found",
+    [ErrorCode.QUESTIONS_OUTDATED]: "Questions have been updated",
+    [ErrorCode.ELIGIBILITY_NOT_COMPLETED]: "Complete eligibility check first",
+    [ErrorCode.ELIGIBILITY_FAILED]: "Company is not eligible",
+    [ErrorCode.INCOMPLETE_ASSESSMENT]: "Complete all sections first",
+    [ErrorCode.ASSESSMENT_NOT_SUBMITTED]: "Assessment must be submitted first",
     [ErrorCode.DATABASE_ERROR]: "A database error occurred",
+    [ErrorCode.EXTERNAL_API_ERROR]: "External API error occurred",
     [ErrorCode.UNKNOWN_ERROR]: "An unexpected error occurred",
   }
 

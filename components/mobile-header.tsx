@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, MoreVertical } from 'lucide-react'
-import { useState } from 'react'
 
 type Props = {
   title: string
@@ -15,7 +14,7 @@ export function MobileHeader({ title, showBack = false, onMenuClick }: Props) {
 
   return (
     <header className="sticky top-0 z-40 md:hidden glass border-b border-foreground/10 pt-safe">
-      <div className="flex items-center justify-between h-14 px-4">
+      <div className="flex items-center justify-between h-16 px-4">
         {/* Left: Back button or empty */}
         <div className="w-10">
           {showBack && (

@@ -58,7 +58,7 @@ export default async function LeadDetailPage(props: Props) {
     <div className="p-4 md:p-6">
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{lead.companyName}</h1>
+        <div className="text-2xl font-bold">{lead.companyName}</div>
         <span
           className={`inline-flex rounded-full px-4 py-1.5 text-sm font-medium ${status.color}`}
         >
@@ -101,13 +101,13 @@ export default async function LeadDetailPage(props: Props) {
             {/* Assessment Status */}
             {lead.assessment && (
               <div className="glass space-y-4 rounded-2xl p-6">
-                <h2 className="text-lg font-semibold">Assessment Status</h2>
+                <h2 className="text-lg font-semibold">Assessment</h2>
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div>
                     <p className="text-sm text-foreground/70">Status</p>
-                    <p className="mt-1 text-sm font-medium">
-                      {lead.assessment.status}
+                    <p className="mt-1 text-sm font-medium capitalize">
+                      {lead.assessment.status.toLowerCase()}
                     </p>
                   </div>
                   <div>
@@ -122,21 +122,70 @@ export default async function LeadDetailPage(props: Props) {
                     <p className="text-sm text-foreground/70">Rating</p>
                     <p className="mt-1 text-sm font-medium">
                       {lead.assessment.rating
-                        ? lead.assessment.rating.replace(/_/g, " ")
+                        ? lead.assessment.rating.replace(/_/g, " ").toLowerCase()
                         : "Not rated"}
                     </p>
                   </div>
                 </div>
 
+                {/* Actions for Assessor */}
                 {session.user.role === "ASSESSOR" &&
                   lead.assignedAssessor?.id === session.user.id && (
-                    <Link
-                      href={`/dashboard/assessment/${lead.assessment.id}`}
-                      className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                    >
-                      Open Assessment →
-                    </Link>
+                    <div className="flex flex-col gap-2">
+                      {lead.assessment.status === "DRAFT" && (
+                        <>
+                          {!lead.assessment.percentage && (
+                            <Link
+                              href={`/dashboard/leads/${lead.id}/eligibility`}
+                              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 h-10 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
+                            >
+                              Start Eligibility Check
+                            </Link>
+                          )}
+                          {lead.assessment.percentage && (
+                            <Link
+                              href={`/dashboard/leads/${lead.id}/assessment`}
+                              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 h-10 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
+                            >
+                              Continue Assessment
+                            </Link>
+                          )}
+                        </>
+                      )}
+                      {lead.assessment.status === "SUBMITTED" && (
+                        <div className="text-sm text-foreground/70">
+                          Waiting for reviewer approval
+                        </div>
+                      )}
+                      {lead.assessment.status === "REJECTED" && (
+                        <Link
+                          href={`/dashboard/leads/${lead.id}/assessment`}
+                          className="inline-flex items-center justify-center rounded-lg bg-yellow-500 px-4 h-10 text-sm font-medium text-black hover:bg-yellow-500/90 active:scale-95 transition-transform"
+                        >
+                          Revise Assessment
+                        </Link>
+                      )}
+                    </div>
                   )}
+
+                {/* Actions for Reviewer */}
+                {isReviewer && (
+                  <div className="flex flex-col gap-2">
+                    {lead.assessment.status === "SUBMITTED" && (
+                      <Link
+                        href={`/dashboard/leads/${lead.id}/review`}
+                        className="inline-flex items-center justify-center rounded-lg bg-primary px-4 h-10 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
+                      >
+                        Review Assessment
+                      </Link>
+                    )}
+                    {lead.assessment.status === "APPROVED" && (
+                      <div className="text-sm text-green-500 font-medium">
+                        ✓ Assessment Approved
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

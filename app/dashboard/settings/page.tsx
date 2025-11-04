@@ -1,124 +1,33 @@
-"use client"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+import { redirect } from "next/navigation"
+import { SettingsTabs } from "@/components/settings-tabs"
+import { getQuestions } from "@/actions/question"
 
-import { useState } from "react"
-import { ThemeSwitcher } from "@/components/theme-switcher"
-import { User, Palette, Bell, Shield } from "lucide-react"
+export default async function SettingsPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
 
-type SettingsSection = "general" | "appearance" | "notifications" | "security"
+  if (!session) {
+    redirect("/login")
+  }
 
-export default function SettingsPage() {
-  const [activeSection, setActiveSection] = useState<SettingsSection>("appearance")
-
-  const sections = [
-    {
-      id: "general" as SettingsSection,
-      name: "General",
-      icon: User,
-      description: "Manage your account settings",
-    },
-    {
-      id: "appearance" as SettingsSection,
-      name: "Appearance",
-      icon: Palette,
-      description: "Customize theme and display",
-    },
-    {
-      id: "notifications" as SettingsSection,
-      name: "Notifications",
-      icon: Bell,
-      description: "Configure notification preferences",
-    },
-    {
-      id: "security" as SettingsSection,
-      name: "Security",
-      icon: Shield,
-      description: "Security and privacy settings",
-    },
-  ]
+  // Fetch questions if reviewer
+  let questions = null
+  if (session.user.role === "REVIEWER") {
+    const result = await getQuestions(true)
+    if (result.success) {
+      questions = result.data
+    }
+  }
 
   return (
     <div className="p-4 md:p-6">
-      {/* Settings Layout */}
-      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-        {/* Sidebar Navigation */}
-        <nav className="glass space-y-1 rounded-2xl p-3">
-          {sections.map((section) => {
-            const Icon = section.icon
-            const isActive = activeSection === section.id
-
-            return (
-              <button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-foreground/5"
-                }`}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span className="font-medium">{section.name}</span>
-              </button>
-            )
-          })}
-        </nav>
-
-        {/* Content Area */}
-        <div>
-          {/* General Section */}
-          {activeSection === "general" && (
-            <div className="glass rounded-2xl p-8">
-              <h2 className="mb-6 text-lg font-semibold">General</h2>
-
-              <div className="space-y-4">
-                <div className="rounded-lg border border-foreground/10 bg-foreground/2 p-6 text-center">
-                  <p className="text-sm text-foreground/60">
-                    Account settings coming soon
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Appearance Section */}
-          {activeSection === "appearance" && (
-            <div className="glass rounded-2xl p-8">
-              <h2 className="mb-6 text-lg font-semibold">Theme</h2>
-              <ThemeSwitcher />
-            </div>
-          )}
-
-          {/* Notifications Section */}
-          {activeSection === "notifications" && (
-            <div className="glass rounded-2xl p-8">
-              <h2 className="mb-6 text-lg font-semibold">Notifications</h2>
-
-              <div className="space-y-4">
-                <div className="rounded-lg border border-foreground/10 bg-foreground/2 p-6 text-center">
-                  <p className="text-sm text-foreground/60">
-                    Notification settings coming soon
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Security Section */}
-          {activeSection === "security" && (
-            <div className="glass rounded-2xl p-8">
-              <h2 className="mb-6 text-lg font-semibold">Security & Privacy</h2>
-
-              <div className="space-y-4">
-                <div className="rounded-lg border border-foreground/10 bg-foreground/2 p-6 text-center">
-                  <p className="text-sm text-foreground/60">
-                    Security settings coming soon
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <SettingsTabs
+        userRole={session.user.role as "ASSESSOR" | "REVIEWER"}
+        questions={questions}
+      />
     </div>
   )
 }

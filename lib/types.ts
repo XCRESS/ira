@@ -36,6 +36,98 @@ export const UpdateLeadStatusSchema = z.object({
 })
 
 // ============================================
+// QUESTION SCHEMAS
+// ============================================
+
+// Question snapshot schema for validation
+export const QuestionItemSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  helpText: z.string().nullable(),
+  order: z.number(),
+})
+
+export const QuestionSnapshotSchema = z.object({
+  eligibility: z.array(QuestionItemSchema),
+  company: z.array(QuestionItemSchema),
+  financial: z.array(QuestionItemSchema),
+  sector: z.array(QuestionItemSchema),
+})
+
+export const CreateQuestionSchema = z.object({
+  type: z.enum(["ELIGIBILITY", "COMPANY", "FINANCIAL", "SECTOR"]),
+  text: z.string().min(10, "Question text must be at least 10 characters").max(1000),
+  helpText: z.string().max(1000).optional(),
+  order: z.number().int().positive().optional(),
+})
+
+export const UpdateQuestionSchema = z.object({
+  text: z.string().min(10).max(1000).optional(),
+  helpText: z.string().max(1000).optional().nullable(),
+  order: z.number().int().positive().optional(),
+  isActive: z.boolean().optional(),
+})
+
+export const ReorderQuestionsSchema = z.object({
+  questionIds: z.array(z.string()).min(1, "At least one question ID required"),
+})
+
+// ============================================
+// ASSESSMENT SCHEMAS
+// ============================================
+
+// Eligibility answer schema
+export const EligibilityAnswerSchema = z.object({
+  checked: z.boolean(),
+  remark: z.string().max(500).optional(),
+})
+
+export const UpdateEligibilityAnswersSchema = z.record(
+  z.string(),
+  EligibilityAnswerSchema
+)
+
+// Main assessment answer schema
+export const AssessmentAnswerSchema = z.object({
+  score: z.number().int().min(-1).max(2),
+  remark: z.string().max(1000).optional(),
+  evidenceLink: z.string().url().optional().or(z.literal("")),
+})
+
+export const UpdateAssessmentAnswersSchema = z.record(
+  z.string(),
+  AssessmentAnswerSchema
+)
+
+// Unified update schema for auto-save (prevents race conditions)
+export const UpdateAllAssessmentAnswersSchema = z.object({
+  companyAnswers: z.record(z.string(), AssessmentAnswerSchema).optional(),
+  financialAnswers: z.record(z.string(), AssessmentAnswerSchema).optional(),
+  sectorAnswers: z.record(z.string(), AssessmentAnswerSchema).optional(),
+})
+
+// Review schemas
+export const ApproveAssessmentSchema = z.object({
+  comments: z.string().max(2000).optional(),
+  confirmOldQuestions: z.boolean().optional(),
+})
+
+export const RejectAssessmentSchema = z.object({
+  comments: z.string().min(10, "Please provide detailed feedback").max(2000),
+})
+
+// Review history entry schema
+export const ReviewHistoryEntrySchema = z.object({
+  reviewedAt: z.string(),
+  action: z.enum(["APPROVED", "REJECTED"]),
+  comments: z.string(),
+  reviewerId: z.string(),
+  reviewerName: z.string(),
+})
+
+export const ReviewHistorySchema = z.array(ReviewHistoryEntrySchema)
+
+// ============================================
 // TYPE EXPORTS (from Zod schemas)
 // ============================================
 
@@ -43,6 +135,50 @@ export type CreateLeadInput = z.infer<typeof CreateLeadSchema>
 export type UpdateLeadInput = z.infer<typeof UpdateLeadSchema>
 export type AssignAssessorInput = z.infer<typeof AssignAssessorSchema>
 export type UpdateLeadStatusInput = z.infer<typeof UpdateLeadStatusSchema>
+
+export type QuestionItem = z.infer<typeof QuestionItemSchema>
+export type QuestionSnapshot = z.infer<typeof QuestionSnapshotSchema>
+export type CreateQuestionInput = z.infer<typeof CreateQuestionSchema>
+export type UpdateQuestionInput = z.infer<typeof UpdateQuestionSchema>
+export type ReorderQuestionsInput = z.infer<typeof ReorderQuestionsSchema>
+
+export type EligibilityAnswer = z.infer<typeof EligibilityAnswerSchema>
+export type UpdateEligibilityAnswersInput = z.infer<typeof UpdateEligibilityAnswersSchema>
+export type AssessmentAnswer = z.infer<typeof AssessmentAnswerSchema>
+export type UpdateAssessmentAnswersInput = z.infer<typeof UpdateAssessmentAnswersSchema>
+export type UpdateAllAssessmentAnswersInput = z.infer<typeof UpdateAllAssessmentAnswersSchema>
+
+export type ApproveAssessmentInput = z.infer<typeof ApproveAssessmentSchema>
+export type RejectAssessmentInput = z.infer<typeof RejectAssessmentSchema>
+export type ReviewHistoryEntry = z.infer<typeof ReviewHistoryEntrySchema>
+export type ReviewHistory = z.infer<typeof ReviewHistorySchema>
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Safely parse question snapshot with fallback to empty arrays
+ * Prevents runtime crashes from corrupted JSON data
+ */
+export function parseQuestionSnapshot(snapshot: unknown): QuestionSnapshot {
+  const result = QuestionSnapshotSchema.safeParse(snapshot)
+
+  if (result.success) {
+    return result.data
+  }
+
+  // Log error for debugging but don't crash
+  console.error("Invalid question snapshot:", result.error)
+
+  // Return safe default
+  return {
+    eligibility: [],
+    company: [],
+    financial: [],
+    sector: [],
+  }
+}
 
 // ============================================
 // SERVER ACTION RETURN TYPES

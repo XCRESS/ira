@@ -323,7 +323,28 @@ export async function assignAssessor(
 
     checkOptimisticLock(lead.updatedAt, new Date(expectedUpdatedAt))
 
-    // 5. Transaction: Update lead + create/update assessment
+    // 5. Create question snapshot for assessment
+    const questions = await prisma.question.findMany({
+      where: { isActive: true },
+      orderBy: [{ type: "asc" }, { order: "asc" }],
+    })
+
+    const questionSnapshot = {
+      eligibility: questions.filter((q) => q.type === "ELIGIBILITY"),
+      company: questions.filter((q) => q.type === "COMPANY"),
+      financial: questions.filter((q) => q.type === "FINANCIAL"),
+      sector: questions.filter((q) => q.type === "SECTOR"),
+    }
+
+    const totalQuestionCount =
+      questionSnapshot.eligibility.length +
+      questionSnapshot.company.length +
+      questionSnapshot.financial.length +
+      questionSnapshot.sector.length
+
+    const snapshotVersion = `${Date.now()}-${totalQuestionCount}`
+
+    // 6. Transaction: Update lead + create/update assessment
     const updated = await prisma.$transaction(async (tx) => {
       // Update lead status and assignment
       const updatedLead = await tx.lead.update({
@@ -345,26 +366,47 @@ export async function assignAssessor(
             leadId,
             assessorId: validatedData.assessorId,
             status: "DRAFT",
+            questionSnapshot: questionSnapshot as any,
+            questionSnapshotVersion: snapshotVersion,
           },
         })
       } else {
-        // Update existing assessment's assessor
+        // Update existing assessment's assessor and refresh snapshot
         await tx.assessment.update({
           where: { id: lead.assessment.id },
-          data: { assessorId: validatedData.assessorId },
+          data: {
+            assessorId: validatedData.assessorId,
+            questionSnapshot: questionSnapshot as any,
+            questionSnapshotVersion: snapshotVersion,
+            // Reset if reassigning to different assessor
+            status: "DRAFT",
+            eligibilityAnswers: {},
+            companyAnswers: {},
+            financialAnswers: {},
+            sectorAnswers: {},
+            isEligible: null,
+            eligibilityCompletedAt: null,
+            totalScore: null,
+            percentage: null,
+            rating: null,
+            submittedAt: null,
+            reviewedAt: null,
+            usesOldQuestions: false,
+          },
         })
       }
 
       return updatedLead
     })
 
-    // 6. Create audit log
+    // 7. Create audit log
     await createAuditLog(session.user.id, "LEAD_ASSIGNED", lead.id, {
       assessorId: validatedData.assessorId,
       assessorName: assessor.name,
+      totalQuestions: totalQuestionCount,
     })
 
-    // 7. Revalidate paths
+    // 8. Revalidate paths
     revalidatePath("/dashboard/leads")
     revalidatePath(`/dashboard/leads/${leadId}`)
 

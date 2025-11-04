@@ -169,6 +169,11 @@ model Assessment {
   assessorId String
   assessor   User    @relation("AssessorAssessments", fields: [assessorId], references: [id])
 
+  // Question versioning (snapshot when assessment created)
+  questionSnapshot         Json?     // Stores {eligibility: [...], company: [...], financial: [...], sector: [...]}
+  questionSnapshotVersion  String?   // Hash/timestamp to detect changes
+  usesOldQuestions         Boolean   @default(false) // True if submitted with outdated questions
+
   // Step 1: Eligibility (JSON: questionId -> {checked, remark})
   eligibilityAnswers      Json     @default("{}")
   isEligible              Boolean?
@@ -193,13 +198,16 @@ model Assessment {
   status             AssessmentStatus  @default(DRAFT)
   submittedAt        DateTime?
   reviewedAt         DateTime?
-  reviewerComments   String?           @db.Text
+  reviewHistory      Json             @default("[]") // Array of {reviewedAt, action, comments}
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([assessorId])
   @@index([status])
+  @@index([status, submittedAt])
+  @@index([status, usesOldQuestions])
+  @@index([leadId, status])
   @@map("assessment")
 }
 

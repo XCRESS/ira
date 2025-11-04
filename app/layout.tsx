@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { Toaster } from "@/components/toaster";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,6 +17,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "IRA - IPO Readiness Assessment",
   description: "Internal tool for calculating IPO readiness scores",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "IRA",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#265eb5",
 };
 
 export default function RootLayout({
@@ -35,6 +48,7 @@ export default function RootLayout({
           storageKey="ira-theme"
         >
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

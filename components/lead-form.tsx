@@ -4,8 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createLead } from "@/actions/lead"
 import type { CreateLeadInput } from "@/lib/types"
+import type { LeadFormData } from "@/actions/probe42"
 
-export function LeadForm() {
+interface LeadFormProps {
+  initialData?: Partial<LeadFormData>
+  onCancel?: () => void
+}
+
+export function LeadForm({ initialData, onCancel }: LeadFormProps = {}) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,7 +60,8 @@ export function LeadForm() {
           name="companyName"
           type="text"
           required
-          className="glass w-full rounded-lg px-4 py-2.5 text-sm outline-none ring-1 ring-foreground/10 focus:ring-2 focus:ring-primary"
+          defaultValue={initialData?.companyName || ''}
+          className="glass w-full rounded-md px-4 py-3 text-base outline-none ring-1 ring-foreground/10 transition-all duration-75 focus:ring-2 focus:ring-primary md:py-2.5 md:text-sm"
           placeholder="TechCorp Pvt Ltd"
         />
       </div>
@@ -69,7 +76,8 @@ export function LeadForm() {
           name="contactPerson"
           type="text"
           required
-          className="glass w-full rounded-lg px-4 py-2.5 text-sm outline-none ring-1 ring-foreground/10 focus:ring-2 focus:ring-primary"
+          defaultValue={initialData?.contactPerson || ''}
+          className="glass w-full rounded-md px-4 py-3 text-base outline-none ring-1 ring-foreground/10 transition-all duration-75 focus:ring-2 focus:ring-primary md:py-2.5 md:text-sm"
           placeholder="Amit Kumar"
         />
       </div>
@@ -86,7 +94,8 @@ export function LeadForm() {
             type="tel"
             required
             pattern="\+91-[0-9]{10}"
-            className="glass w-full rounded-lg px-4 py-2.5 text-sm outline-none ring-1 ring-foreground/10 focus:ring-2 focus:ring-primary"
+            defaultValue={initialData?.contactPhone || ''}
+            className="glass w-full rounded-md px-4 py-3 text-base font-mono outline-none ring-1 ring-foreground/10 transition-all duration-75 focus:ring-2 focus:ring-primary md:py-2.5 md:text-sm"
             placeholder="+91-9876543210"
           />
           <p className="text-xs text-foreground/60">Format: +91-XXXXXXXXXX</p>
@@ -101,7 +110,8 @@ export function LeadForm() {
             name="email"
             type="email"
             required
-            className="glass w-full rounded-lg px-4 py-2.5 text-sm outline-none ring-1 ring-foreground/10 focus:ring-2 focus:ring-primary"
+            defaultValue={initialData?.contactEmail || ''}
+            className="glass w-full rounded-md px-4 py-3 text-base outline-none ring-1 ring-foreground/10 transition-all duration-75 focus:ring-2 focus:ring-primary md:py-2.5 md:text-sm"
             placeholder="contact@techcorp.com"
           />
         </div>
@@ -118,7 +128,8 @@ export function LeadForm() {
           type="text"
           required
           pattern="[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}"
-          className="glass w-full rounded-lg px-4 py-2.5 text-sm font-mono outline-none ring-1 ring-foreground/10 focus:ring-2 focus:ring-primary"
+          defaultValue={initialData?.cin || ''}
+          className="glass w-full rounded-md px-4 py-3 text-base font-mono uppercase tracking-wider outline-none ring-1 ring-foreground/10 transition-all duration-75 focus:ring-2 focus:ring-primary md:py-2.5 md:text-sm"
           placeholder="U12345MH2020PTC123456"
         />
         <p className="text-xs text-foreground/60">
@@ -136,7 +147,8 @@ export function LeadForm() {
           name="address"
           required
           rows={3}
-          className="glass w-full rounded-lg px-4 py-2.5 text-sm outline-none ring-1 ring-foreground/10 focus:ring-2 focus:ring-primary"
+          defaultValue={initialData?.address || ''}
+          className="glass w-full rounded-md px-4 py-3 text-base outline-none ring-1 ring-foreground/10 transition-all duration-75 focus:ring-2 focus:ring-primary md:py-2.5 md:text-sm"
           placeholder="Full registered address of the company"
         />
       </div>
@@ -145,16 +157,16 @@ export function LeadForm() {
       <div className="flex items-center justify-end gap-3 pt-4">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={onCancel || (() => router.back())}
           disabled={isSubmitting}
-          className="rounded-lg bg-foreground/5 px-6 py-2.5 text-sm font-medium hover:bg-foreground/10 disabled:opacity-50"
+          className="h-12 rounded-md bg-foreground/5 px-6 text-base font-medium transition-all duration-75 hover:bg-foreground/10 active:scale-[0.98] disabled:opacity-50 md:h-10 md:text-sm"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="h-12 rounded-md bg-primary px-6 text-base font-medium text-primary-foreground transition-all duration-75 hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 md:h-10 md:text-sm"
         >
           {isSubmitting ? "Creating..." : "Create Lead"}
         </button>

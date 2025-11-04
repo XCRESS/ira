@@ -56,7 +56,7 @@ export function AssignAssessorForm({ leadId, assessors, currentAssessorId, leadU
           value={selectedAssessorId}
           onChange={(e) => setSelectedAssessorId(e.target.value)}
           required
-          className="glass w-full rounded-lg px-4 py-2.5 text-sm outline-none ring-1 ring-foreground/10 focus:ring-2 focus:ring-primary"
+          className="glass w-full rounded-md px-4 py-3 text-base outline-none ring-1 ring-foreground/10 transition-all duration-75 focus:ring-2 focus:ring-primary md:py-2.5 md:text-sm"
         >
           <option value="">-- Select an assessor --</option>
           {assessors.map((assessor) => (
@@ -70,7 +70,7 @@ export function AssignAssessorForm({ leadId, assessors, currentAssessorId, leadU
       <button
         type="submit"
         disabled={isSubmitting || !selectedAssessorId}
-        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        className="h-12 w-full rounded-md bg-primary px-4 text-base font-medium text-primary-foreground transition-all duration-75 hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 md:h-10 md:text-sm"
       >
         {isSubmitting
           ? "Assigning..."

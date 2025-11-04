@@ -20,15 +20,13 @@ export function MobileTabBar({ role }: Props) {
 
   const assessorTabs: Tab[] = [
     { id: 'home', label: 'Home', icon: Home, href: '/dashboard' },
-    { id: 'leads', label: 'My Leads', icon: FileText, href: '/dashboard/leads' },
-    { id: 'activity', label: 'Activity', icon: BarChart3, href: '/dashboard/activity' },
+    { id: 'leads', label: 'Leads', icon: FileText, href: '/dashboard/leads' },
     { id: 'profile', label: 'Profile', icon: User, href: '/dashboard/settings' },
   ]
 
   const reviewerTabs: Tab[] = [
     { id: 'home', label: 'Home', icon: Home, href: '/dashboard' },
     { id: 'leads', label: 'Leads', icon: FileText, href: '/dashboard/leads' },
-    { id: 'reviews', label: 'Reviews', icon: BarChart3, href: '/dashboard/reviews' },
     { id: 'profile', label: 'Profile', icon: User, href: '/dashboard/settings' },
   ]
 
@@ -42,8 +40,8 @@ export function MobileTabBar({ role }: Props) {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-strong border-t border-foreground/10">
-      <div className="grid grid-cols-4 h-16 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden glass-strong border-t border-foreground/10 safe-bottom">
+      <div className="grid grid-cols-3 h-16">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const active = isActive(tab.href)
