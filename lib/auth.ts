@@ -22,6 +22,13 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   basePath: "/api/auth",
 
+  // Trusted origins for CORS (production + development)
+  trustedOrigins: [
+    "https://irascore.com",
+    "https://www.irascore.com",
+    "http://localhost:3000",
+  ],
+
   // Google OAuth only
   socialProviders: {
     google: {
