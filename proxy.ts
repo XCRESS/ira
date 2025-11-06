@@ -8,17 +8,23 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Public routes that don't require authentication
-  const publicRoutes = ["/", "/login", "/manifest.webmanifest"]
-  const isPublicRoute = publicRoutes.includes(pathname)
-
   // Get session from cookie
   const sessionToken = request.cookies.get("better-auth.session_token")?.value
+
+  // Redirect root to dashboard (authenticated) or login (unauthenticated)
+  if (pathname === "/") {
+    const destination = sessionToken ? "/dashboard" : "/login"
+    return NextResponse.redirect(new URL(destination, request.url))
+  }
 
   // If user is authenticated and tries to access login, redirect to dashboard
   if (sessionToken && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
+
+  // Public routes that don't require authentication
+  const publicRoutes = ["/login", "/manifest.webmanifest"]
+  const isPublicRoute = publicRoutes.includes(pathname)
 
   // If user is not authenticated and tries to access protected route, redirect to login
   if (!sessionToken && !isPublicRoute) {
