@@ -20,7 +20,7 @@ export const auth = betterAuth({
 
   // Base configuration
   secret: process.env.BETTER_AUTH_SECRET!,
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   basePath: "/api/auth",
 
   // Trusted origins for CORS (production + development)
@@ -89,6 +89,16 @@ export const auth = betterAuth({
           }
         },
       },
+    },
+  },
+
+  // Advanced configuration for production cookies
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
+    defaultCookieAttributes: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      httpOnly: true,
     },
   },
 
