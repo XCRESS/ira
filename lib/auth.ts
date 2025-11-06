@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
+import { nextCookies } from "better-auth/next-js"
 import prisma from "@/lib/prisma"
 
 // Allowed users for IRA platform
@@ -19,7 +20,7 @@ export const auth = betterAuth({
 
   // Base configuration
   secret: process.env.BETTER_AUTH_SECRET!,
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: process.env.BETTER_AUTH_URL,
   basePath: "/api/auth",
 
   // Trusted origins for CORS (production + development)
@@ -90,6 +91,10 @@ export const auth = betterAuth({
       },
     },
   },
+
+  // CRITICAL: nextCookies plugin for production cookie handling
+  // This must be last in the plugins array to intercept Set-Cookie headers
+  plugins: [nextCookies()],
 })
 
 export type Session = typeof auth.$Infer.Session
