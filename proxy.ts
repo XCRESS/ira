@@ -8,8 +8,10 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Get session from cookie
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value
+  // Get session from cookie (check both development and production cookie names)
+  const sessionToken =
+    request.cookies.get("__Secure-better-auth.session_token")?.value ||
+    request.cookies.get("better-auth.session_token")?.value
 
   // Redirect root to dashboard (authenticated) or login (unauthenticated)
   if (pathname === "/") {
