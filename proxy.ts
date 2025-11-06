@@ -3,11 +3,14 @@ import { NextRequest, NextResponse } from "next/server"
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Always allow auth routes (including callbacks) to pass through
+  if (pathname.startsWith("/api/auth")) {
+    return NextResponse.next()
+  }
+
   // Public routes that don't require authentication
-  const publicRoutes = ["/", "/login", "/api/auth", "/manifest.webmanifest"]
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname === route || pathname.startsWith("/api/auth")
-  )
+  const publicRoutes = ["/", "/login", "/manifest.webmanifest"]
+  const isPublicRoute = publicRoutes.includes(pathname)
 
   // Get session from cookie
   const sessionToken = request.cookies.get("better-auth.session_token")?.value
