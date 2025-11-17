@@ -212,6 +212,7 @@ export type LeadWithRelations = {
   assessment: {
     id: string
     status: string
+    isEligible: boolean | null
     percentage: number | null
     rating: string | null
   } | null

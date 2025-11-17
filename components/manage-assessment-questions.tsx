@@ -85,7 +85,9 @@ export function ManageAssessmentQuestions({
         setShowAddForm(null)
         toast.success("Question added")
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         setError(result.error || "Failed to add question")
         toast.error(result.error || "Failed to add question")
       }
@@ -111,7 +113,9 @@ export function ManageAssessmentQuestions({
         }))
         toast.success("Template question added")
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         setError(result.error || "Failed to add template question")
         toast.error(result.error || "Failed to add template question")
       }
@@ -151,7 +155,9 @@ export function ManageAssessmentQuestions({
         setEditingId(null)
         toast.success("Question updated")
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         setError(result.error || "Failed to update question")
         toast.error(result.error || "Failed to update question")
       }
@@ -187,7 +193,9 @@ export function ManageAssessmentQuestions({
         }))
         toast.success("Question removed")
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         setError(result.error || "Failed to delete question")
         toast.error(result.error || "Failed to delete question")
       }
@@ -244,7 +252,9 @@ export function ManageAssessmentQuestions({
 
       if (result.success) {
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         // Revert on error
         setQuestions(questions)
         setError(result.error || "Failed to reorder questions")

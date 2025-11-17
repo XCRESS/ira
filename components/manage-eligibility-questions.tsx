@@ -61,7 +61,9 @@ export function ManageEligibilityQuestions({
         setNewHelpText("")
         setShowAddForm(false)
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         setError(result.error || "Failed to add question")
       }
     })
@@ -81,7 +83,9 @@ export function ManageEligibilityQuestions({
       if (result.success && result.data) {
         setQuestions([...questions, result.data])
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         setError(result.error || "Failed to add template question")
       }
     })
@@ -117,7 +121,9 @@ export function ManageEligibilityQuestions({
         )
         setEditingId(null)
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         setError(result.error || "Failed to update question")
       }
     })
@@ -147,7 +153,9 @@ export function ManageEligibilityQuestions({
       if (result.success) {
         setQuestions(questions.filter((q) => q.id !== questionId))
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         setError(result.error || "Failed to delete question")
       }
     })
@@ -202,7 +210,9 @@ export function ManageEligibilityQuestions({
 
       if (result.success) {
         router.refresh()
-      } else {
+      }
+
+      if (!result.success) {
         // Revert on error
         setQuestions(questions)
         setError(result.error || "Failed to reorder questions")
