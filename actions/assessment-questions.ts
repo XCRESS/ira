@@ -116,8 +116,9 @@ async function verifyEditableAssessment(assessmentId: string, userId: string) {
   // Only the assigned assessor can edit
   if (assessment.assessorId !== userId) {
     throw new AppError(
+      ErrorCode.INSUFFICIENT_PERMISSIONS,
       "You are not authorized to edit this assessment",
-      ErrorCode.UNAUTHORIZED_ACTION,
+      403,
       { assessmentId, userId }
     )
   }
@@ -125,8 +126,9 @@ async function verifyEditableAssessment(assessmentId: string, userId: string) {
   // Only DRAFT assessments can be edited
   if (assessment.status !== "DRAFT") {
     throw new AppError(
+      ErrorCode.ASSESSMENT_ALREADY_SUBMITTED,
       "Cannot edit questions after assessment is submitted",
-      ErrorCode.INVALID_STATE,
+      400,
       { assessmentId, status: assessment.status }
     )
   }
@@ -363,8 +365,9 @@ export async function updateAssessmentQuestion(
 
     if (!found || !updatedQuestion) {
       throw new AppError(
+        ErrorCode.QUESTION_NOT_FOUND,
         "Question not found in assessment",
-        ErrorCode.NOT_FOUND,
+        404,
         { assessmentId: data.assessmentId, questionId: data.questionId }
       )
     }
@@ -429,8 +432,9 @@ export async function deleteAssessmentQuestion(
 
     if (!found) {
       throw new AppError(
+        ErrorCode.QUESTION_NOT_FOUND,
         "Question not found in assessment",
-        ErrorCode.NOT_FOUND,
+        404,
         { assessmentId: data.assessmentId, questionId: data.questionId }
       )
     }
