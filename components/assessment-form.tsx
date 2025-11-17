@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useEffect, useTransition, useMemo, useCallback, useRef } from "react"
 import { AlertTriangle, CheckCircle2 } from "lucide-react"
 import type { Assessment } from "@prisma/client"
 import {
@@ -89,6 +89,9 @@ export function AssessmentForm({
   const [dirtyFields, setDirtyFields] = useState<Set<'company' | 'financial' | 'sector'>>(new Set())
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // ✅ PERFORMANCE: Use ref to track retry timeout
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   // Check question version on mount
   useEffect(() => {
     setIsCheckingVersion(true)
@@ -115,50 +118,46 @@ export function AssessmentForm({
     setDirtyFields(prev => new Set(prev).add('sector'))
   }, [sectorAnswers])
 
+  // ✅ PERFORMANCE: Memoize save function to prevent recreation
+  const attemptSave = useCallback(async (attempt = 0): Promise<void> => {
+    // Build update payload with only dirty fields
+    const updates: any = {}
+    if (dirtyFields.has('company')) updates.companyAnswers = companyAnswers
+    if (dirtyFields.has('financial')) updates.financialAnswers = financialAnswers
+    if (dirtyFields.has('sector')) updates.sectorAnswers = sectorAnswers
+
+    const result = await updateAllAssessmentAnswers(assessment.id, updates)
+
+    if (result.success) {
+      setLastSaved(new Date())
+      setSaveError(null)
+      setRetryCount(0)
+      setDirtyFields(new Set())
+    } else if (attempt < AUTO_SAVE.MAX_RETRY_ATTEMPTS) {
+      const delay = Math.pow(2, attempt) * AUTO_SAVE.RETRY_BASE_DELAY_MS
+      setSaveError(AUTO_SAVE.RETRY_MESSAGE)
+      setRetryCount(attempt + 1)
+      retryTimeoutRef.current = setTimeout(() => attemptSave(attempt + 1), delay)
+    } else {
+      setSaveError(AUTO_SAVE.FAILURE_MESSAGE)
+      toast.error("Auto-save failed. Please try again.")
+      setRetryCount(0)
+    }
+  }, [assessment.id, companyAnswers, financialAnswers, sectorAnswers, dirtyFields])
+
   // Unified auto-save with retry logic (prevents race conditions)
   useEffect(() => {
     if (dirtyFields.size === 0) return
-
-    let retryTimeout: NodeJS.Timeout | null = null
-
-    const attemptSave = async (attempt = 0): Promise<void> => {
-      // Build update payload with only dirty fields
-      const updates: any = {}
-      if (dirtyFields.has('company')) updates.companyAnswers = companyAnswers
-      if (dirtyFields.has('financial')) updates.financialAnswers = financialAnswers
-      if (dirtyFields.has('sector')) updates.sectorAnswers = sectorAnswers
-
-      const result = await updateAllAssessmentAnswers(assessment.id, updates)
-
-      if (result.success) {
-        setLastSaved(new Date())
-        setSaveError(null)
-        setRetryCount(0)
-        setDirtyFields(new Set()) // Clear dirty tracking
-      } else if (attempt < AUTO_SAVE.MAX_RETRY_ATTEMPTS) {
-        // Retry with exponential backoff
-        const delay = Math.pow(2, attempt) * AUTO_SAVE.RETRY_BASE_DELAY_MS
-        setSaveError(AUTO_SAVE.RETRY_MESSAGE)
-        setRetryCount(attempt + 1)
-        retryTimeout = setTimeout(() => attemptSave(attempt + 1), delay)
-      } else {
-        // Final failure
-        setSaveError(AUTO_SAVE.FAILURE_MESSAGE)
-        toast.error("Auto-save failed. Please try again.")
-        setRetryCount(0)
-      }
-    }
 
     const debounceTimeout = setTimeout(() => {
       startTransition(() => attemptSave(0))
     }, AUTO_SAVE.ASSESSMENT_DEBOUNCE_MS)
 
-    // Cleanup function
     return () => {
       clearTimeout(debounceTimeout)
-      if (retryTimeout) clearTimeout(retryTimeout)
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current)
     }
-  }, [dirtyFields, companyAnswers, financialAnswers, sectorAnswers, assessment.id])
+  }, [attemptSave, dirtyFields])
 
   // Warn user before leaving with unsaved changes
   useEffect(() => {
@@ -238,11 +237,19 @@ export function AssessmentForm({
     })
   }
 
-  const totalQuestions = companyQuestions.length + financialQuestions.length + sectorQuestions.length
-  const answeredCount =
-    Object.values(companyAnswers).filter((a) => a.score !== 0).length +
-    Object.values(financialAnswers).filter((a) => a.score !== 0).length +
-    Object.values(sectorAnswers).filter((a) => a.score !== 0).length
+  // ✅ PERFORMANCE: Memoize expensive computations
+  const totalQuestions = useMemo(
+    () => companyQuestions.length + financialQuestions.length + sectorQuestions.length,
+    [companyQuestions.length, financialQuestions.length, sectorQuestions.length]
+  )
+
+  const answeredCount = useMemo(
+    () =>
+      Object.values(companyAnswers).filter((a) => a.score !== 0).length +
+      Object.values(financialAnswers).filter((a) => a.score !== 0).length +
+      Object.values(sectorAnswers).filter((a) => a.score !== 0).length,
+    [companyAnswers, financialAnswers, sectorAnswers]
+  )
 
   return (
     <>

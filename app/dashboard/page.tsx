@@ -202,7 +202,7 @@ export default async function DashboardPage() {
                 return (
                   <Link
                     key={lead.id}
-                    href={`/dashboard/leads/${lead.id}`}
+                    href={`/dashboard/leads/${lead.leadId}`}
                     className="flex items-center justify-between rounded-lg border border-foreground/10 p-4 transition-colors hover:bg-foreground/5"
                   >
                     <div className="flex-1">

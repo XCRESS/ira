@@ -176,7 +176,7 @@ export async function getLeads(filters?: {
 }
 
 /**
- * Get single lead by ID with full details
+ * Get single lead by leadId (LD-2025-001 format) with full details
  * ✅ Access control (assessors can only view assigned leads)
  */
 export async function getLead(
@@ -186,9 +186,9 @@ export async function getLead(
     // 1. Verify auth
     const session = await verifyAuth()
 
-    // 2. Fetch lead
+    // 2. Fetch lead by leadId (LD-2025-001 format)
     const lead = await prisma.lead.findUnique({
-      where: { id: leadId },
+      where: { leadId },
       include: leadInclude,
     })
 
@@ -215,7 +215,7 @@ export async function getLead(
  * ✅ Role-based access control
  */
 export async function updateLead(
-  leadId: string,
+  leadId: string, // LD-2025-001 format
   input: unknown,
   expectedUpdatedAt: string // ISO timestamp for optimistic locking
 ): Promise<ActionResponse<LeadWithRelations>> {
@@ -226,9 +226,9 @@ export async function updateLead(
     // 2. Validate input
     const validatedData = UpdateLeadSchema.parse(input)
 
-    // 3. Fetch lead
+    // 3. Fetch lead by leadId
     const lead = await prisma.lead.findUnique({
-      where: { id: leadId },
+      where: { leadId },
     })
 
     if (!lead) {
@@ -248,7 +248,7 @@ export async function updateLead(
     // 6. Update lead
     const updated = await prisma.lead.update({
       where: {
-        id: leadId,
+        id: lead.id, // Use internal id for update
         updatedAt: lead.updatedAt, // Atomic check-and-set
       },
       data: validatedData,
@@ -313,7 +313,7 @@ export async function assignAssessor(
 
     // 4. Check if lead exists and optimistic lock
     const lead = await prisma.lead.findUnique({
-      where: { id: leadId },
+      where: { leadId },
       include: { assessment: true },
     })
 
@@ -324,16 +324,29 @@ export async function assignAssessor(
     checkOptimisticLock(lead.updatedAt, new Date(expectedUpdatedAt))
 
     // 5. Create question snapshot for assessment
+    // Each assessment gets its own editable question list (initialized from templates)
     const questions = await prisma.question.findMany({
       where: { isActive: true },
       orderBy: [{ type: "asc" }, { order: "asc" }],
     })
 
+    // Transform questions into assessment-specific format
+    const transformQuestion = (q: any) => ({
+      id: `${q.id}_${Date.now()}`, // Unique per assessment
+      sourceQuestionId: q.id, // Reference to template
+      type: q.type,
+      text: q.text,
+      order: q.order,
+      helpText: q.helpText,
+      isCustom: false,
+      isActive: true,
+    })
+
     const questionSnapshot = {
-      eligibility: questions.filter((q) => q.type === "ELIGIBILITY"),
-      company: questions.filter((q) => q.type === "COMPANY"),
-      financial: questions.filter((q) => q.type === "FINANCIAL"),
-      sector: questions.filter((q) => q.type === "SECTOR"),
+      eligibility: questions.filter((q) => q.type === "ELIGIBILITY").map(transformQuestion),
+      company: questions.filter((q) => q.type === "COMPANY").map(transformQuestion),
+      financial: questions.filter((q) => q.type === "FINANCIAL").map(transformQuestion),
+      sector: questions.filter((q) => q.type === "SECTOR").map(transformQuestion),
     }
 
     const totalQuestionCount =
@@ -349,7 +362,7 @@ export async function assignAssessor(
       // Update lead status and assignment
       const updatedLead = await tx.lead.update({
         where: {
-          id: leadId,
+          id: lead.id, // Use internal id for update
           updatedAt: lead.updatedAt, // Atomic check
         },
         data: {
@@ -363,7 +376,7 @@ export async function assignAssessor(
       if (!lead.assessment) {
         await tx.assessment.create({
           data: {
-            leadId,
+            leadId: lead.id, // Use internal id for foreign key
             assessorId: validatedData.assessorId,
             status: "DRAFT",
             questionSnapshot: questionSnapshot as any,
@@ -420,7 +433,7 @@ export async function assignAssessor(
  * Update lead status (REVIEWER only)
  */
 export async function updateLeadStatus(
-  leadId: string,
+  leadId: string, // LD-2025-001 format
   input: unknown
 ): Promise<ActionResponse<void>> {
   try {
@@ -432,7 +445,7 @@ export async function updateLeadStatus(
 
     // 3. Check lead exists
     const lead = await prisma.lead.findUnique({
-      where: { id: leadId },
+      where: { leadId },
     })
 
     if (!lead) {
@@ -441,12 +454,12 @@ export async function updateLeadStatus(
 
     // 4. Update lead
     await prisma.lead.update({
-      where: { id: leadId },
+      where: { id: lead.id }, // Use internal id for update
       data: { status: validatedData.status },
     })
 
     // 5. Create audit log
-    await createAuditLog(session.user.id, "LEAD_STATUS_UPDATED", leadId, {
+    await createAuditLog(session.user.id, "LEAD_STATUS_UPDATED", lead.id, {
       oldStatus: lead.status,
       newStatus: validatedData.status,
     })

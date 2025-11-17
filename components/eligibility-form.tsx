@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useEffect, useTransition, useCallback, useMemo, useRef } from "react"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 import type { Assessment } from "@prisma/client"
 import { updateEligibilityAnswers, completeEligibility } from "@/actions/assessment"
@@ -43,44 +43,43 @@ export function EligibilityForm({ assessment, questions, leadId }: Props) {
   const [retryCount, setRetryCount] = useState(0)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
+  // ✅ PERFORMANCE: Use ref to track retry timeout, preventing re-render cascade
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // ✅ PERFORMANCE: Memoize save function to prevent recreation on every render
+  const attemptSave = useCallback(async (attempt = 0): Promise<void> => {
+    const result = await updateEligibilityAnswers(assessment.id, answers)
+
+    if (result.success) {
+      setLastSaved(new Date())
+      setSaveError(null)
+      setRetryCount(0)
+      setHasUnsavedChanges(false)
+    } else if (attempt < AUTO_SAVE.MAX_RETRY_ATTEMPTS) {
+      const delay = Math.pow(2, attempt) * AUTO_SAVE.RETRY_BASE_DELAY_MS
+      setSaveError(AUTO_SAVE.RETRY_MESSAGE)
+      setRetryCount(attempt + 1)
+      retryTimeoutRef.current = setTimeout(() => attemptSave(attempt + 1), delay)
+    } else {
+      setSaveError(AUTO_SAVE.FAILURE_MESSAGE)
+      setRetryCount(0)
+      toast.error("Auto-save failed. Please try again.")
+    }
+  }, [assessment.id, answers])
+
   // Auto-save with retry logic and proper cleanup
   useEffect(() => {
-    setHasUnsavedChanges(true) // Mark as dirty when answers change
-    let retryTimeout: NodeJS.Timeout | null = null
-
-    const attemptSave = async (attempt = 0): Promise<void> => {
-      const result = await updateEligibilityAnswers(assessment.id, answers)
-
-      if (result.success) {
-        setLastSaved(new Date())
-        setSaveError(null)
-        setRetryCount(0)
-        setHasUnsavedChanges(false) // Clear dirty flag
-      } else if (attempt < AUTO_SAVE.MAX_RETRY_ATTEMPTS) {
-        // Retry with exponential backoff
-        const delay = Math.pow(2, attempt) * AUTO_SAVE.RETRY_BASE_DELAY_MS
-        setSaveError(AUTO_SAVE.RETRY_MESSAGE)
-        setRetryCount(attempt + 1)
-        retryTimeout = setTimeout(() => attemptSave(attempt + 1), delay)
-      } else {
-        // Final failure
-        setSaveError(AUTO_SAVE.FAILURE_MESSAGE)
-        setRetryCount(0)
-        // Only show toast on final failure, not during retries
-        toast.error("Auto-save failed. Please try again.")
-      }
-    }
+    setHasUnsavedChanges(true)
 
     const debounceTimeout = setTimeout(() => {
       startTransition(() => attemptSave(0))
     }, AUTO_SAVE.ELIGIBILITY_DEBOUNCE_MS)
 
-    // Cleanup function - prevents memory leaks
     return () => {
       clearTimeout(debounceTimeout)
-      if (retryTimeout) clearTimeout(retryTimeout)
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current)
     }
-  }, [answers, assessment.id])
+  }, [attemptSave])
 
   // Warn user before leaving with unsaved changes
   useEffect(() => {
@@ -95,19 +94,20 @@ export function EligibilityForm({ assessment, questions, leadId }: Props) {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [hasUnsavedChanges, isPending, saveError])
 
-  const handleCheckChange = (questionId: string, checked: boolean) => {
+  // ✅ PERFORMANCE: Memoize handlers to prevent unnecessary re-renders
+  const handleCheckChange = useCallback((questionId: string, checked: boolean) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: { ...prev[questionId], checked },
     }))
-  }
+  }, [])
 
-  const handleRemarkChange = (questionId: string, remark: string) => {
+  const handleRemarkChange = useCallback((questionId: string, remark: string) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: { ...prev[questionId], remark },
     }))
-  }
+  }, [])
 
   const handleComplete = async () => {
     const allChecked = questions.every((q) => answers[q.id]?.checked)
@@ -137,8 +137,15 @@ export function EligibilityForm({ assessment, questions, leadId }: Props) {
     })
   }
 
-  const allChecked = questions.every((q) => answers[q.id]?.checked)
-  const checkedCount = questions.filter((q) => answers[q.id]?.checked).length
+  // ✅ PERFORMANCE: Memoize expensive computations
+  const allChecked = useMemo(
+    () => questions.every((q) => answers[q.id]?.checked),
+    [questions, answers]
+  )
+  const checkedCount = useMemo(
+    () => questions.filter((q) => answers[q.id]?.checked).length,
+    [questions, answers]
+  )
 
   return (
     <div className="space-y-4 md:space-y-6">

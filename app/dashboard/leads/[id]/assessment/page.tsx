@@ -3,8 +3,8 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { getLead } from "@/actions/lead"
 import { getAssessment } from "@/actions/assessment"
+import { getAssessmentQuestions } from "@/actions/assessment-questions"
 import { AssessmentForm } from "@/components/assessment-form"
-import { parseQuestionSnapshot } from "@/lib/types"
 import Link from "next/link"
 import { ChevronLeft, AlertCircle } from "lucide-react"
 
@@ -22,8 +22,12 @@ export default async function AssessmentPage({ params }: Props) {
     redirect("/login")
   }
 
-  // Fetch lead
-  const leadResult = await getLead(resolvedParams.id)
+  // ✅ PERFORMANCE: Parallelize data fetching
+  const [leadResult, assessmentResult] = await Promise.all([
+    getLead(resolvedParams.id),
+    getAssessment(resolvedParams.id),
+  ])
+
   if (!leadResult.success || !leadResult.data) {
     return (
       <div className="p-4 md:p-6">
@@ -36,8 +40,6 @@ export default async function AssessmentPage({ params }: Props) {
 
   const lead = leadResult.data
 
-  // Fetch assessment
-  const assessmentResult = await getAssessment(lead.id)
   if (!assessmentResult.success || !assessmentResult.data) {
     return (
       <div className="p-4 md:p-6">
@@ -55,7 +57,7 @@ export default async function AssessmentPage({ params }: Props) {
     return (
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <Link
-          href={`/dashboard/leads/${lead.id}`}
+          href={`/dashboard/leads/${lead.leadId}`}
           className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -68,7 +70,7 @@ export default async function AssessmentPage({ params }: Props) {
             Please complete the eligibility check first.
           </p>
           <Link
-            href={`/dashboard/leads/${lead.id}/eligibility`}
+            href={`/dashboard/leads/${lead.leadId}/eligibility`}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 h-12 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
           >
             Go to Eligibility Check
@@ -83,7 +85,7 @@ export default async function AssessmentPage({ params }: Props) {
     return (
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <Link
-          href={`/dashboard/leads/${lead.id}`}
+          href={`/dashboard/leads/${lead.leadId}`}
           className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -104,7 +106,7 @@ export default async function AssessmentPage({ params }: Props) {
     return (
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <Link
-          href={`/dashboard/leads/${lead.id}`}
+          href={`/dashboard/leads/${lead.leadId}`}
           className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -125,11 +127,15 @@ export default async function AssessmentPage({ params }: Props) {
     )
   }
 
-  // Get question snapshot with validation
-  const snapshot = parseQuestionSnapshot(assessment.questionSnapshot)
-  const companyQuestions = snapshot.company
-  const financialQuestions = snapshot.financial
-  const sectorQuestions = snapshot.sector
+  // Get questions from assessment snapshot (per-assessment questions)
+  const questionsResult = await getAssessmentQuestions(assessment.id)
+  const allQuestions = questionsResult.success && !Array.isArray(questionsResult.data)
+    ? questionsResult.data
+    : { company: [], financial: [], sector: [], eligibility: [] }
+
+  const companyQuestions = allQuestions.company || []
+  const financialQuestions = allQuestions.financial || []
+  const sectorQuestions = allQuestions.sector || []
 
   const totalQuestions = companyQuestions.length + financialQuestions.length + sectorQuestions.length
 
@@ -137,7 +143,7 @@ export default async function AssessmentPage({ params }: Props) {
     return (
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <Link
-          href={`/dashboard/leads/${lead.id}`}
+          href={`/dashboard/leads/${lead.leadId}`}
           className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -146,9 +152,17 @@ export default async function AssessmentPage({ params }: Props) {
 
         <div className="glass rounded-xl p-6 text-center">
           <AlertCircle className="h-12 w-12 mx-auto text-foreground/30 mb-4" />
-          <p className="text-sm text-foreground/70">
-            No assessment questions found. Please contact the reviewer.
+          <p className="text-sm text-foreground/70 mb-4">
+            No assessment questions found. You can add questions specific to this company.
           </p>
+          {assessment.status === "DRAFT" && (
+            <Link
+              href={`/dashboard/leads/${lead.leadId}/assessment/manage`}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 h-12 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
+            >
+              Add Assessment Questions
+            </Link>
+          )}
         </div>
       </div>
     )
@@ -159,7 +173,7 @@ export default async function AssessmentPage({ params }: Props) {
       {/* Header */}
       <div>
         <Link
-          href={`/dashboard/leads/${lead.id}`}
+          href={`/dashboard/leads/${lead.leadId}`}
           className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -171,6 +185,26 @@ export default async function AssessmentPage({ params }: Props) {
           <p className="text-sm text-foreground/70 mt-1">{lead.leadId}</p>
         </div>
       </div>
+
+      {/* Manage Questions Link */}
+      {assessment.status === "DRAFT" && (
+        <div className="glass rounded-xl p-4 md:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold mb-1">Assessment Questions</h3>
+              <p className="text-xs text-foreground/60">
+                Company: {companyQuestions.length} • Financial: {financialQuestions.length} • Sector: {sectorQuestions.length}
+              </p>
+            </div>
+            <Link
+              href={`/dashboard/leads/${lead.leadId}/assessment/manage`}
+              className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 px-4 h-10 rounded-lg bg-background/50 hover:bg-background/70"
+            >
+              Manage Questions
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Assessment Form */}
       <AssessmentForm

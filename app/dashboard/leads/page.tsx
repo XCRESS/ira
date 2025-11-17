@@ -147,7 +147,7 @@ export default async function LeadsPage() {
                 {leads.map((lead) => {
                   const status = getStatusDisplay(lead.status)
                   return (
-                    <ClickableRow key={lead.id} href={`/dashboard/leads/${lead.id}`}>
+                    <ClickableRow key={lead.id} href={`/dashboard/leads/${lead.leadId}`}>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                         {lead.leadId}
                       </td>

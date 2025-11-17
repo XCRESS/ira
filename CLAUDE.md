@@ -8,10 +8,10 @@ Internal tool for 5 users to score client companies on 57 questions.
 
 ## What It Does
 
-- 57 questions (Company: 30, Financial: 7, Sector: 20)
+- **Per-Company Customizable Questions**: Each assessment has its own question set (Eligibility, Company, Financial, Sector)
 - Scoring: Yes=2, Maybe=1, No=-1, NA=0
 - Rating: >65% IPO Ready, 45-65% Needs Improvement, <45% Not Ready
-- Workflow: Create Lead → Assign Assessor → Score → Review → Report
+- Workflow: Create Lead → Assign Assessor → Customize Questions → Score → Review → Report
 
 ---
 
@@ -98,6 +98,29 @@ try {
 
 ## Critical Patterns
 
+### Per-Assessment Question System ✨ NEW
+
+**Philosophy**: Every company is unique. Questions must be tailored to each company's context.
+
+**Implementation**:
+- **Global Question Bank** = Template library (managed by reviewers)
+- **Assessment Questions** = Company-specific (managed by assessors)
+- When lead is assigned → templates are **copied** to assessment
+- Assessors can add/edit/remove questions during DRAFT status
+- After submission → questions are locked (immutable audit trail)
+
+**Key Files**:
+- `actions/assessment-questions.ts` - Per-assessment CRUD operations
+- `actions/question.ts` - Global template management (reviewers only)
+- `app/dashboard/leads/[id]/eligibility/manage/page.tsx` - Question management UI
+
+**Example Flow**:
+1. Reviewer adds "Is company incorporated?" to template library
+2. Lead assigned → template copied to assessment with unique ID
+3. Assessor edits to "Is company incorporated in Maharashtra?"
+4. Assessor adds custom question "Does company have mining license?"
+5. Assessment submitted → questions locked, can't be changed
+
 ### Better Auth - User Whitelist
 ```typescript
 // lib/auth.ts - Use databaseHooks.user.create.before
@@ -171,12 +194,18 @@ npx prisma generate         # Regenerate Prisma client
 - Lead management (create, list, detail, assign)
 - Theme system (9 glassmorphism themes)
 - Design system documentation
+- **Per-assessment question management** ✨ NEW
+  - Assessors can add/edit/remove questions per company
+  - Template library for common questions
+  - Question management UI for eligibility
+  - Locked after submission for audit trail
 
 **📋 Next**:
-1. Assessment workflow (eligibility → main questions → scoring)
-2. Document upload system
-3. Probe42 API integration
-4. Report generation
+1. Extend per-assessment questions to Company/Financial/Sector sections
+2. Assessment workflow (answer questions → scoring)
+3. Document upload system
+4. Probe42 API integration
+5. Report generation
 
 ---
 

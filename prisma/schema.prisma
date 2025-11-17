@@ -208,6 +208,7 @@ model Assessment {
   @@index([status, submittedAt])
   @@index([status, usesOldQuestions])
   @@index([leadId, status])
+  @@index([assessorId, status]) // ✅ PERFORMANCE: Composite index for assessor's filtered queries
   @@map("assessment")
 }
 
@@ -242,6 +243,7 @@ model Question {
   updatedAt DateTime @updatedAt
 
   @@index([type, order])
+  @@index([type, isActive]) // ✅ PERFORMANCE: Composite index for filtered queries
   @@map("question")
 }
 

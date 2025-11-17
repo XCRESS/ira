@@ -10,7 +10,7 @@
 ```typescript
 type Lead = {
   id: string;
-  leadId: string;              // Display ID (LD-2024-001)
+  leadId: string;              // Display ID (LD-2025-001)
   companyName: string;
   contactPerson: string;
   phone: string;
@@ -277,6 +277,7 @@ export async function middleware(request: NextRequest) {
 - ✅ Data Access Layer pattern: `verifyAuth()` / `verifyRole()` from [lib/dal.ts](lib/dal.ts)
 - ✅ Input validation with Zod schemas
 - ✅ **Atomic lead ID generation** - No race conditions (uses Counter table)
+- ✅ **User-friendly URLs** - All routes use `leadId` (LD-2025-001) instead of internal CUID
 - ✅ **Optimistic locking** - `updateLead` and `assignAssessor` prevent concurrent modifications
 - ✅ **Structured error handling** - Returns error codes + context
 - ✅ Automatic audit logging for all mutations (typed actions)
@@ -321,7 +322,7 @@ async function getLeads(filters?: {
 // ✅ Auto-filters for assessors (only their assigned leads)
 // ✅ Includes related data (assignedAssessor, createdBy, assessment, document count)
 
-// Get single lead with full details ✅
+// Get single lead with full details ✅ UPDATED
 async function getLead(leadId: string): Promise<{
   success: boolean;
   data?: Lead;
@@ -329,10 +330,11 @@ async function getLead(leadId: string): Promise<{
 }>
 // ✅ Implemented: Returns lead with all relations
 // ✅ Access control: Assessors can only view their assigned leads
+// ✅ Accepts leadId in LD-2025-001 format (user-friendly URL slug)
 
 // Update lead info ✅ REFACTORED
 async function updateLead(
-  leadId: string,
+  leadId: string, // LD-2025-001 format
   input: unknown,
   expectedUpdatedAt: string  // ← NEW: ISO timestamp for optimistic locking
 ): Promise<ActionResponse<Lead>>
@@ -341,10 +343,11 @@ async function updateLead(
 // ✅ Returns CONCURRENT_MODIFICATION error if mismatch
 // ✅ Zod validation, audit log (LEAD_UPDATED), revalidation
 // ✅ Role-based access: Assessors can only update assigned leads
+// ✅ Accepts leadId in LD-2025-001 format (user-friendly URL slug)
 
 // Assign assessor (REVIEWER only) ✅ REFACTORED
 async function assignAssessor(
-  leadId: string,
+  leadId: string, // LD-2025-001 format
   input: unknown,
   expectedUpdatedAt: string  // ← NEW: ISO timestamp for optimistic locking
 ): Promise<ActionResponse<Lead>>
@@ -354,14 +357,16 @@ async function assignAssessor(
 // ✅ Validates assessor exists, has ASSESSOR role, and isActive = true
 // ✅ Optimistic locking check before update
 // ✅ Creates typed audit log (LEAD_ASSIGNED with assessor details)
+// ✅ Accepts leadId in LD-2025-001 format (user-friendly URL slug)
 
-// Update status (REVIEWER only) ✅
+// Update status (REVIEWER only) ✅ UPDATED
 async function updateLeadStatus(leadId: string, input: { status: LeadStatus }): Promise<{
   success: boolean;
   data?: void;
   error?: string;
 }>
 // ✅ Implemented: Updates status with audit log
+// ✅ Accepts leadId in LD-2025-001 format (user-friendly URL slug)
 
 // Get assessors (for dropdown) ✅ REFACTORED
 async function getAssessors(): Promise<ActionResponse<Array<{ id: string; name: string; email: string }>>>
@@ -394,14 +399,16 @@ async function sendPaymentLink(leadId: string): Promise<{
 - ✅ Phone format validation (+91-XXXXXXXXXX)
 - ✅ Redirects to lead detail on success
 
-**`/dashboard/leads/[id]`** - Lead detail
+**`/dashboard/leads/[leadId]`** - Lead detail (formerly `[id]`)
 - ✅ Server Component with full lead data
+- ✅ **User-friendly URLs**: Uses `leadId` (LD-2025-001) instead of internal CUID
 - ✅ Company information display
 - ✅ Assessment status (if exists)
 - ✅ Document count (upload UI coming next)
 - ✅ Assign/change assessor form (Reviewer only)
 - ✅ Client Component for assessor selection
 - ✅ Access control (Assessors only see assigned leads)
+- ✅ URL example: `/dashboard/leads/LD-2025-001` (not `/dashboard/leads/clk1a2b3c...`)
 
 ---
 
@@ -433,13 +440,130 @@ async function deleteDocument(documentId: string): Promise<{
 
 ## 4. Assessment - Eligibility
 
-### `actions/eligibility.ts`
+### Per-Assessment Question Customization ✅ NEW APPROACH (Jan 2025)
+
+**Paradigm Shift**: Each assessment now has its own **editable question list** instead of sharing a global question bank.
+
+**Why?** Every company is unique and may require company-specific questions:
+- Different industries need different eligibility criteria
+- Company size/stage affects question relevance
+- Assessors need flexibility to add context-specific questions
+- One-size-fits-all approach doesn't work for diverse companies
+
+**How It Works**:
+
+#### Question Lifecycle
+1. **Assignment** - When lead is assigned, global question templates are copied to assessment
+2. **Customization (DRAFT)** - Assessor can add/edit/remove questions for this specific company
+3. **Locked (POST-SUBMIT)** - Once submitted, questions freeze for audit trail
+
+#### Question Structure
+Each assessment stores questions in `questionSnapshot` JSON field:
+```json
+{
+  "eligibility": [
+    {
+      "id": "q1_1234567890",           // Unique per assessment
+      "sourceQuestionId": "q1",         // Template ID (null if custom)
+      "type": "ELIGIBILITY",
+      "text": "Is company incorporated in India?",
+      "order": 1,
+      "helpText": "Check MCA records",
+      "isCustom": false,                // true if assessor added it
+      "isActive": true                  // false if soft-deleted
+    }
+  ]
+}
+```
+
+#### Assessor Capabilities (DRAFT Status Only)
+- ✅ **Add custom questions** - Create company-specific questions
+- ✅ **Edit question text** - Adapt template questions to company context
+- ✅ **Add/edit help text** - Provide company-specific guidance
+- ✅ **Remove questions** - Soft-delete irrelevant questions
+- ✅ **Reorder questions** - Organize questions logically
+- ✅ **Use templates** - Quick-add from global question bank
+
+**Files**:
+- [actions/assessment-questions.ts](actions/assessment-questions.ts) - CRUD operations for per-assessment questions
+- [app/dashboard/leads/[id]/eligibility/page.tsx](app/dashboard/leads/[id]/eligibility/page.tsx) - Eligibility assessment page
+- [app/dashboard/leads/[id]/eligibility/manage/page.tsx](app/dashboard/leads/[id]/eligibility/manage/page.tsx) - Question management interface
+- [components/manage-eligibility-questions.tsx](components/manage-eligibility-questions.tsx) - Question management UI
+
+---
+
+### `actions/assessment-questions.ts` ✅ NEW FILE
 
 ```typescript
 'use server';
 
-// Get eligibility questions
-async function getEligibilityQuestions(): Promise<Question[]>
+// Get questions for a specific assessment
+async function getAssessmentQuestions(
+  assessmentId: string,
+  type?: QuestionType
+): Promise<ActionResponse<QuestionSnapshot | AssessmentQuestion[]>>
+// Returns assessment-specific questions (filtered by isActive: true)
+// If type specified, returns just that type's questions
+// Otherwise returns all question types in grouped format
+
+// Add custom question to assessment (ASSESSOR, DRAFT only)
+async function addAssessmentQuestion(input: {
+  assessmentId: string;
+  type: 'ELIGIBILITY' | 'COMPANY' | 'FINANCIAL' | 'SECTOR';
+  text: string;
+  helpText?: string;
+  order?: number;
+}): Promise<ActionResponse<AssessmentQuestion>>
+// Creates new question with isCustom: true
+// Only works on DRAFT status assessments
+// Only assessor assigned to assessment can add
+
+// Update question in assessment (ASSESSOR, DRAFT only)
+async function updateAssessmentQuestion(input: {
+  assessmentId: string;
+  questionId: string;
+  text?: string;
+  helpText?: string | null;
+  order?: number;
+}): Promise<ActionResponse<AssessmentQuestion>>
+// Updates question text, help text, or order
+// Can edit both template-based and custom questions
+// Only works on DRAFT status assessments
+
+// Soft-delete question from assessment (ASSESSOR, DRAFT only)
+async function deleteAssessmentQuestion(input: {
+  assessmentId: string;
+  questionId: string;
+}): Promise<ActionResponse<void>>
+// Sets isActive: false (soft delete)
+// Question remains in snapshot for audit but hidden from UI
+// Only works on DRAFT status assessments
+
+// Reorder questions within a type (ASSESSOR, DRAFT only)
+async function reorderAssessmentQuestions(input: {
+  assessmentId: string;
+  type: QuestionType;
+  questionIds: string[];
+}): Promise<ActionResponse<void>>
+// Updates order field for all questions in the array
+// Only works on DRAFT status assessments
+```
+
+### Legacy Question System ✅ UPDATED ROLE
+
+The global question bank in `actions/question.ts` now serves as **templates** only:
+- **Reviewers** manage the global template library
+- **Assessors** use templates as starting point for per-assessment questions
+- Templates are copied (not referenced) when creating assessments
+
+```typescript
+'use server';
+
+// Get template questions by type ✅ UPDATED ROLE
+async function getQuestionsByType(type: "ELIGIBILITY"): Promise<ActionResponse<Question[]>>
+// Returns active template questions from global bank
+// Used by assessors to quick-add common questions to assessments
+// Any authenticated user can call this
 
 // Get eligibility answers for assessment
 async function getEligibilityAnswers(assessmentId: string): Promise<
@@ -543,47 +667,61 @@ async function rejectAssessment(assessmentId: string, comments: string): Promise
 
 ## 6. Questions Management
 
-### `actions/question.ts`
+### `actions/question.ts` ✅ UPDATED (Jan 2025)
+
+**Implementation Notes**:
+- ✅ All mutations now revalidate `/dashboard/leads/[id]/eligibility` and `/dashboard/leads/[id]/assessment`
+- ✅ DRAFT assessments use live questions; submitted assessments use snapshots
+- ✅ `getQuestionsByType()` is accessible to any authenticated user (assessors can fetch live questions)
 
 ```typescript
 'use server';
 
-// Get all questions (grouped)
-async function getQuestions(includeInactive?: boolean): Promise<{
+// Get all questions (grouped) - REVIEWER only
+async function getQuestions(includeInactive?: boolean): Promise<ActionResponse<{
   eligibility: Question[];
   company: Question[];
   financial: Question[];
   sector: Question[];
-}>
+}>>
 
-// Add question (REVIEWER only)
+// Get questions by type - Any authenticated user ✅
+async function getQuestionsByType(type: QuestionType): Promise<ActionResponse<Question[]>>
+// Used by assessors to fetch live eligibility/company/financial/sector questions
+// Only returns active questions
+// No role restriction (any authenticated user)
+
+// Add question (REVIEWER only) ✅ UPDATED
 async function addQuestion(data: {
   type: 'ELIGIBILITY' | 'COMPANY' | 'FINANCIAL' | 'SECTOR';
   text: string;
   helpText?: string;
   order?: number;
-}): Promise<{ success: boolean; question?: Question; error?: string }>
+}): Promise<ActionResponse<Question>>
+// ✅ Now revalidates: /dashboard/questions, /dashboard/leads, /dashboard/settings
+// ✅ Plus dynamic routes: /dashboard/leads/[id]/eligibility, /dashboard/leads/[id]/assessment
 
-// Update question (REVIEWER only)
+// Update question (REVIEWER only) ✅ UPDATED
 async function updateQuestion(questionId: string, data: {
   text?: string;
   helpText?: string;
   order?: number;
   isActive?: boolean;
-}): Promise<{ success: boolean; error?: string }>
+}): Promise<ActionResponse<Question>>
+// ✅ Revalidates all question-related pages (see addQuestion)
 
-// Delete question (REVIEWER only)
-async function deleteQuestion(questionId: string): Promise<{
-  success: boolean;
-  error?: string;
-}>
+// Delete question (REVIEWER only) ✅ UPDATED
+async function deleteQuestion(questionId: string): Promise<ActionResponse<void>>
 // Soft delete: sets isActive = false
+// ✅ Revalidates all question-related pages
+
+// Restore question (REVIEWER only) ✅ UPDATED
+async function restoreQuestion(questionId: string): Promise<ActionResponse<Question>>
+// Sets isActive = true
+// ✅ Revalidates all question-related pages
 
 // Reorder questions (REVIEWER only)
-async function reorderQuestions(questionIds: string[]): Promise<{
-  success: boolean;
-  error?: string;
-}>
+async function reorderQuestions(input: { questionIds: string[] }): Promise<ActionResponse<void>>
 // Updates order field based on array position
 ```
 

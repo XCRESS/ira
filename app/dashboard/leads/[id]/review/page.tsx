@@ -59,7 +59,7 @@ export default async function ReviewPage({ params }: Props) {
     return (
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <Link
-          href={`/dashboard/leads/${lead.id}`}
+          href={`/dashboard/leads/${lead.leadId}`}
           className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -93,7 +93,7 @@ export default async function ReviewPage({ params }: Props) {
       {/* Header */}
       <div>
         <Link
-          href={`/dashboard/leads/${lead.id}`}
+          href={`/dashboard/leads/${lead.leadId}`}
           className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -113,7 +113,7 @@ export default async function ReviewPage({ params }: Props) {
         companyQuestions={companyQuestions}
         financialQuestions={financialQuestions}
         sectorQuestions={sectorQuestions}
-        leadId={lead.id}
+        leadId={lead.leadId}
       />
     </div>
   )

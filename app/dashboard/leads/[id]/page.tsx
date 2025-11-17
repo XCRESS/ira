@@ -134,21 +134,29 @@ export default async function LeadDetailPage(props: Props) {
                     <div className="flex flex-col gap-2">
                       {lead.assessment.status === "DRAFT" && (
                         <>
-                          {!lead.assessment.percentage && (
+                          {/* Eligibility not completed yet */}
+                          {lead.assessment.isEligible === null && (
                             <Link
-                              href={`/dashboard/leads/${lead.id}/eligibility`}
+                              href={`/dashboard/leads/${lead.leadId}/eligibility`}
                               className="inline-flex items-center justify-center rounded-lg bg-primary px-4 h-10 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
                             >
                               Start Eligibility Check
                             </Link>
                           )}
-                          {lead.assessment.percentage && (
+                          {/* Eligibility passed - show main assessment button */}
+                          {lead.assessment.isEligible === true && (
                             <Link
-                              href={`/dashboard/leads/${lead.id}/assessment`}
+                              href={`/dashboard/leads/${lead.leadId}/assessment`}
                               className="inline-flex items-center justify-center rounded-lg bg-primary px-4 h-10 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
                             >
-                              Continue Assessment
+                              {lead.assessment.percentage ? "Continue Assessment" : "Start Main Assessment"}
                             </Link>
+                          )}
+                          {/* Eligibility failed - show message */}
+                          {lead.assessment.isEligible === false && (
+                            <div className="text-sm text-red-500">
+                              Company is not eligible for IPO assessment
+                            </div>
                           )}
                         </>
                       )}
@@ -159,7 +167,7 @@ export default async function LeadDetailPage(props: Props) {
                       )}
                       {lead.assessment.status === "REJECTED" && (
                         <Link
-                          href={`/dashboard/leads/${lead.id}/assessment`}
+                          href={`/dashboard/leads/${lead.leadId}/assessment`}
                           className="inline-flex items-center justify-center rounded-lg bg-yellow-500 px-4 h-10 text-sm font-medium text-black hover:bg-yellow-500/90 active:scale-95 transition-transform"
                         >
                           Revise Assessment
@@ -173,7 +181,7 @@ export default async function LeadDetailPage(props: Props) {
                   <div className="flex flex-col gap-2">
                     {lead.assessment.status === "SUBMITTED" && (
                       <Link
-                        href={`/dashboard/leads/${lead.id}/review`}
+                        href={`/dashboard/leads/${lead.leadId}/review`}
                         className="inline-flex items-center justify-center rounded-lg bg-primary px-4 h-10 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
                       >
                         Review Assessment
@@ -233,7 +241,7 @@ export default async function LeadDetailPage(props: Props) {
                       </summary>
                       <div className="mt-3">
                         <AssignAssessorForm
-                          leadId={lead.id}
+                          leadId={lead.leadId}
                           assessors={assessors}
                           currentAssessorId={lead.assignedAssessor.id}
                           leadUpdatedAt={lead.updatedAt}
@@ -251,7 +259,7 @@ export default async function LeadDetailPage(props: Props) {
                       </p>
                       <div className="mt-4">
                         <AssignAssessorForm
-                          leadId={lead.id}
+                          leadId={lead.leadId}
                           assessors={assessors}
                           leadUpdatedAt={lead.updatedAt}
                         />

@@ -238,6 +238,7 @@ export const leadInclude = {
     select: {
       id: true,
       status: true,
+      isEligible: true,
       percentage: true,
       rating: true,
     },

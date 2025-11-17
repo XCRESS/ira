@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
@@ -24,10 +25,11 @@ type Props = {
   statusLabel: string
 }
 
-export function LeadCard({ lead, statusColor, statusLabel }: Props) {
+// ✅ PERFORMANCE: Memoize to prevent re-renders when parent updates
+export const LeadCard = memo(function LeadCard({ lead, statusColor, statusLabel }: Props) {
   return (
     <Link
-      href={`/dashboard/leads/${lead.id}`}
+      href={`/dashboard/leads/${lead.leadId}`}
       className="block glass rounded-xl p-4 active:bg-foreground/5 transition-colors"
     >
       {/* Header: Company + Status */}
@@ -78,4 +80,4 @@ export function LeadCard({ lead, statusColor, statusLabel }: Props) {
       </div>
     </Link>
   )
-}
+})

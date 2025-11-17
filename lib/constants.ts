@@ -7,8 +7,9 @@
 
 export const AUTO_SAVE = {
   // Debounce delays (milliseconds)
-  ELIGIBILITY_DEBOUNCE_MS: 1000,
-  ASSESSMENT_DEBOUNCE_MS: 1500,
+  // ✅ OPTIMIZED: Reduced debounce for instant feedback (was 1000ms)
+  ELIGIBILITY_DEBOUNCE_MS: 500, // Save after 0.5s of inactivity
+  ASSESSMENT_DEBOUNCE_MS: 800,  // Save after 0.8s of inactivity
 
   // Retry configuration
   MAX_RETRY_ATTEMPTS: 2, // Total of 3 attempts (initial + 2 retries)

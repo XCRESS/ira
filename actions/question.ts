@@ -226,8 +226,13 @@ export async function addQuestion(
       text: question.text.substring(0, 100),
     })
 
+    // Revalidate pages that use questions
     revalidatePath("/dashboard/questions")
     revalidatePath("/dashboard/leads")
+    revalidatePath("/dashboard/settings")
+    // Revalidate assessment pages (dynamic routes - use layout revalidation)
+    revalidatePath("/dashboard/leads/[id]/eligibility", "page")
+    revalidatePath("/dashboard/leads/[id]/assessment", "page")
 
     return { success: true, data: question }
   } catch (error) {
@@ -281,8 +286,13 @@ export async function updateQuestion(
       newText: question.text.substring(0, 100),
     })
 
+    // Revalidate pages that use questions
     revalidatePath("/dashboard/questions")
     revalidatePath("/dashboard/leads")
+    revalidatePath("/dashboard/settings")
+    // Revalidate assessment pages (dynamic routes)
+    revalidatePath("/dashboard/leads/[id]/eligibility", "page")
+    revalidatePath("/dashboard/leads/[id]/assessment", "page")
 
     return { success: true, data: question }
   } catch (error) {
@@ -327,8 +337,13 @@ export async function deleteQuestion(
       text: existing.text.substring(0, 100),
     })
 
+    // Revalidate pages that use questions
     revalidatePath("/dashboard/questions")
     revalidatePath("/dashboard/leads")
+    revalidatePath("/dashboard/settings")
+    // Revalidate assessment pages (dynamic routes)
+    revalidatePath("/dashboard/leads/[id]/eligibility", "page")
+    revalidatePath("/dashboard/leads/[id]/assessment", "page")
 
     return { success: true, data: undefined }
   } catch (error) {
@@ -355,8 +370,13 @@ export async function restoreQuestion(
       action: "restored",
     })
 
+    // Revalidate pages that use questions
     revalidatePath("/dashboard/questions")
     revalidatePath("/dashboard/leads")
+    revalidatePath("/dashboard/settings")
+    // Revalidate assessment pages (dynamic routes)
+    revalidatePath("/dashboard/leads/[id]/eligibility", "page")
+    revalidatePath("/dashboard/leads/[id]/assessment", "page")
 
     return { success: true, data: question }
   } catch (error) {
