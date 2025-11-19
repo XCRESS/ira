@@ -88,12 +88,12 @@ const SearchResponseSchema = z.object({
 })
 
 const AddressSchema = z.object({
-  full_address: z.string().nullable(),
-  address_line1: z.string().nullable(),
-  address_line2: z.string().nullable(),
-  city: z.string().nullable(),
-  pincode: z.string().nullable(),
-  state: z.string().nullable(),
+  full_address: z.string().nullable().optional(),
+  address_line1: z.string().nullable().optional(),
+  address_line2: z.string().nullable().optional(),
+  city: z.string().nullable().optional(),
+  pincode: z.union([z.string(), z.number()]).nullable().optional(),
+  state: z.string().nullable().optional(),
 })
 
 const AuthorizedSignatorySchema = z.object({

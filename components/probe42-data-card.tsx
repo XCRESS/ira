@@ -168,7 +168,7 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
         {/* Compliance & Governance */}
         <div className="border-t border-border pt-6">
           <h3 className="text-sm font-semibold mb-3 text-foreground/80">Compliance & Governance</h3>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4">
             <div>
               <p className="text-sm text-foreground/70">Compliance Status</p>
               <p className="mt-1 text-sm">
@@ -177,14 +177,6 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
                   {lead.probe42ComplianceStatus || 'N/A'}
                 </span>
               </p>
-            </div>
-            <div>
-              <p className="text-sm text-foreground/70">Active Directors</p>
-              <p className="mt-1 text-2xl font-bold">{lead.probe42DirectorCount ?? 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-foreground/70">GST Registrations</p>
-              <p className="mt-1 text-2xl font-bold">{lead.probe42GstCount ?? 'N/A'}</p>
             </div>
           </div>
         </div>
