@@ -17,6 +17,8 @@ export const CreateLeadSchema = z.object({
     "Invalid CIN format (e.g., U12345MH2020PTC123456)"
   ),
   address: z.string().min(10, "Address must be at least 10 characters").max(500),
+  // Optional Probe42 data from lead creation flow
+  probe42Data: z.any().optional(),
 })
 
 export const UpdateLeadSchema = z.object({

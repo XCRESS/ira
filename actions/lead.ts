@@ -93,7 +93,11 @@ export async function createLead(
     // 4. Generate lead ID atomically (prevents race conditions)
     const leadId = await generateLeadId()
 
-    // 5. Create lead
+    // 5. Parse Probe42 data if provided
+    const probe42Data = validatedData.probe42Data
+    const hasProbe42Data = probe42Data && typeof probe42Data === 'object'
+
+    // 6. Create lead
     const lead = await prisma.lead.create({
       data: {
         leadId,
@@ -105,6 +109,23 @@ export async function createLead(
         address: validatedData.address,
         status: "NEW",
         createdById: session.user.id,
+        // Store Probe42 data if available (from lead creation flow)
+        ...(hasProbe42Data && {
+          probe42Fetched: true,
+          probe42FetchedAt: new Date(),
+          probe42LegalName: (probe42Data as any).legal_name || null,
+          probe42Status: (probe42Data as any).efiling_status || null,
+          probe42Classification: (probe42Data as any).classification || null,
+          probe42PaidUpCapital: (probe42Data as any).paid_up_capital || null,
+          probe42AuthCapital: (probe42Data as any).authorized_capital || null,
+          probe42Pan: (probe42Data as any).pan || null,
+          probe42Website: (probe42Data as any).website || null,
+          probe42IncorpDate: (probe42Data as any).incorporation_date ? new Date((probe42Data as any).incorporation_date) : null,
+          probe42ComplianceStatus: (probe42Data as any).active_compliance || null,
+          probe42DirectorCount: (probe42Data as any).director_count || null,
+          probe42GstCount: (probe42Data as any).gst_count || null,
+          probe42Data: probe42Data,
+        }),
       },
       include: leadInclude,
     })

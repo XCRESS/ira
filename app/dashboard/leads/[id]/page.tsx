@@ -77,15 +77,14 @@ export default async function LeadDetailPage(props: Props) {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-2">
-            {/* Company Information */}
+            {/* Probe42 Company Data */}
+            <Probe42DataCard lead={lead} />
+
+            {/* Contact Information */}
             <div className="glass space-y-4 rounded-2xl p-6">
-              <h2 className="text-lg font-semibold">Company Information</h2>
+              <h2 className="text-lg font-semibold">Contact Information</h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-sm text-foreground/70">CIN</p>
-                  <p className="mt-1 font-mono text-sm">{lead.cin}</p>
-                </div>
                 <div>
                   <p className="text-sm text-foreground/70">Contact Person</p>
                   <p className="mt-1 text-sm font-medium">{lead.contactPerson}</p>
@@ -105,9 +104,6 @@ export default async function LeadDetailPage(props: Props) {
                 <p className="mt-1 text-sm">{lead.address}</p>
               </div>
             </div>
-
-            {/* Probe42 Company Data */}
-            <Probe42DataCard lead={lead} />
 
             {/* Assessment Status */}
             {lead.assessment && (

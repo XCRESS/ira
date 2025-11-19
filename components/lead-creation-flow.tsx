@@ -277,6 +277,7 @@ export function LeadCreationFlow() {
             <div className="glass rounded-2xl p-4 md:p-8">
               <LeadForm
                 initialData={prefilledData}
+                rawCompanyData={rawCompanyData}
                 onCancel={prefilledData ? handleBackToSearch : undefined}
               />
             </div>

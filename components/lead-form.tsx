@@ -8,10 +8,11 @@ import type { LeadFormData } from "@/actions/probe42"
 
 interface LeadFormProps {
   initialData?: Partial<LeadFormData>
+  rawCompanyData?: Record<string, unknown>
   onCancel?: () => void
 }
 
-export function LeadForm({ initialData, onCancel }: LeadFormProps = {}) {
+export function LeadForm({ initialData, rawCompanyData, onCancel }: LeadFormProps = {}) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,12 +30,14 @@ export function LeadForm({ initialData, onCancel }: LeadFormProps = {}) {
       email: formData.get("email") as string,
       cin: formData.get("cin") as string,
       address: formData.get("address") as string,
+      // Include Probe42 data if available (from search flow)
+      probe42Data: rawCompanyData,
     }
 
     const result = await createLead(data)
 
     if (result.success) {
-      router.push(`/dashboard/leads/${result.data.id}`)
+      router.push(`/dashboard/leads/${result.data.leadId}`)
       router.refresh()
     } else {
       setError(result.error)
