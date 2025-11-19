@@ -97,6 +97,23 @@ export async function createLead(
     const probe42Data = validatedData.probe42Data
     const hasProbe42Data = probe42Data && typeof probe42Data === 'object'
 
+    // Type guard for Probe42 data structure
+    interface Probe42RawData {
+      legal_name?: string
+      efiling_status?: string
+      classification?: string
+      paid_up_capital?: number
+      authorized_capital?: number
+      pan?: string
+      website?: string
+      incorporation_date?: string
+      active_compliance?: string
+      director_count?: number
+      gst_count?: number
+    }
+
+    const typedProbe42Data = probe42Data as Probe42RawData | undefined
+
     // 6. Create lead
     const lead = await prisma.lead.create({
       data: {
@@ -110,20 +127,20 @@ export async function createLead(
         status: "NEW",
         createdById: session.user.id,
         // Store Probe42 data if available (from lead creation flow)
-        ...(hasProbe42Data && {
+        ...(hasProbe42Data && typedProbe42Data && {
           probe42Fetched: true,
           probe42FetchedAt: new Date(),
-          probe42LegalName: (probe42Data as any).legal_name || null,
-          probe42Status: (probe42Data as any).efiling_status || null,
-          probe42Classification: (probe42Data as any).classification || null,
-          probe42PaidUpCapital: (probe42Data as any).paid_up_capital || null,
-          probe42AuthCapital: (probe42Data as any).authorized_capital || null,
-          probe42Pan: (probe42Data as any).pan || null,
-          probe42Website: (probe42Data as any).website || null,
-          probe42IncorpDate: (probe42Data as any).incorporation_date ? new Date((probe42Data as any).incorporation_date) : null,
-          probe42ComplianceStatus: (probe42Data as any).active_compliance || null,
-          probe42DirectorCount: (probe42Data as any).director_count || null,
-          probe42GstCount: (probe42Data as any).gst_count || null,
+          probe42LegalName: typedProbe42Data.legal_name || null,
+          probe42Status: typedProbe42Data.efiling_status || null,
+          probe42Classification: typedProbe42Data.classification || null,
+          probe42PaidUpCapital: typedProbe42Data.paid_up_capital || null,
+          probe42AuthCapital: typedProbe42Data.authorized_capital || null,
+          probe42Pan: typedProbe42Data.pan || null,
+          probe42Website: typedProbe42Data.website || null,
+          probe42IncorpDate: typedProbe42Data.incorporation_date ? new Date(typedProbe42Data.incorporation_date) : null,
+          probe42ComplianceStatus: typedProbe42Data.active_compliance || null,
+          probe42DirectorCount: typedProbe42Data.director_count || null,
+          probe42GstCount: typedProbe42Data.gst_count || null,
           probe42Data: probe42Data,
         }),
       },
