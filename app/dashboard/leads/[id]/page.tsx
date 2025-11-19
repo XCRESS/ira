@@ -8,6 +8,7 @@ import { AssignAssessorForm } from "@/components/assign-assessor-form"
 import { getDocuments } from "@/actions/documents"
 import { UploadDocumentButton } from "@/components/documents/upload-document-button"
 import { DocumentList } from "@/components/documents/document-list"
+import { Probe42DataCard } from "@/components/probe42-data-card"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -104,6 +105,9 @@ export default async function LeadDetailPage(props: Props) {
                 <p className="mt-1 text-sm">{lead.address}</p>
               </div>
             </div>
+
+            {/* Probe42 Company Data */}
+            <Probe42DataCard lead={lead} />
 
             {/* Assessment Status */}
             {lead.assessment && (

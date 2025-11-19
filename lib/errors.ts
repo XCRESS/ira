@@ -43,6 +43,9 @@ export enum ErrorCode {
   // System errors
   DATABASE_ERROR = "DATABASE_ERROR",
   EXTERNAL_API_ERROR = "EXTERNAL_API_ERROR",
+  CONFIGURATION_ERROR = "CONFIGURATION_ERROR",
+  RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED",
+  NOT_FOUND = "NOT_FOUND",
   UNKNOWN_ERROR = "UNKNOWN_ERROR",
 }
 
@@ -236,6 +239,9 @@ export function getErrorMessage(error: AppError | ErrorCode | string): string {
     [ErrorCode.ASSESSMENT_NOT_SUBMITTED]: "Assessment must be submitted first",
     [ErrorCode.DATABASE_ERROR]: "A database error occurred",
     [ErrorCode.EXTERNAL_API_ERROR]: "External API error occurred",
+    [ErrorCode.CONFIGURATION_ERROR]: "Configuration error",
+    [ErrorCode.RATE_LIMIT_EXCEEDED]: "Rate limit exceeded. Please try again later",
+    [ErrorCode.NOT_FOUND]: "Resource not found",
     [ErrorCode.UNKNOWN_ERROR]: "An unexpected error occurred",
   }
 

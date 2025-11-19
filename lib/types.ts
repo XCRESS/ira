@@ -219,8 +219,24 @@ export type LeadWithRelations = {
   _count: {
     documents: number
   }
+  // Probe42 fields
+  probe42Fetched: boolean
+  probe42FetchedAt: Date | null
+  probe42LegalName: string | null
+  probe42Status: string | null
+  probe42Classification: string | null
+  probe42PaidUpCapital: bigint | null
+  probe42AuthCapital: bigint | null
+  probe42Pan: string | null
+  probe42Website: string | null
+  probe42IncorpDate: Date | null
+  probe42ComplianceStatus: string | null
+  probe42DirectorCount: number | null
+  probe42GstCount: number | null
+  probe42Data: unknown
   createdAt: Date
   updatedAt: Date
+  createdById: string
 }
 
 // ============================================

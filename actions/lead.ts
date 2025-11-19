@@ -29,6 +29,7 @@ import {
 } from "@/lib/types"
 import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError } from "zod"
+import { fetchCompanyByCIN } from "@/lib/probe42"
 
 // ============================================
 // ERROR HANDLER WRAPPER
@@ -502,5 +503,86 @@ export async function getAssessors(): Promise<
     return { success: true, data: assessors }
   } catch (error) {
     return handleActionError(error)
+  }
+}
+
+/**
+ * Fetch company data from Probe42 API and store in Lead
+ * ✅ Fetches comprehensive company details by CIN
+ * ✅ Stores key fields in Lead model for quick access
+ * ✅ Stores full response in JSON field for reference
+ * ✅ Creates audit log entry
+ */
+export async function fetchProbe42Data(
+  leadId: string
+): Promise<ActionResponse<LeadWithRelations>> {
+  try {
+    // 1. Verify auth
+    const session = await verifyAuth()
+
+    // 2. Fetch lead with CIN
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId },
+      select: {
+        id: true,
+        cin: true,
+        companyName: true,
+        probe42Fetched: true,
+        probe42FetchedAt: true
+      },
+    })
+
+    if (!lead) {
+      throw Errors.leadNotFound(leadId)
+    }
+
+    // 3. Fetch company data from Probe42
+    const companyData = await fetchCompanyByCIN(lead.cin)
+
+    // 4. Update lead with Probe42 data
+    const updatedLead = await prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        probe42Fetched: true,
+        probe42FetchedAt: new Date(),
+        probe42LegalName: companyData.legalName,
+        probe42Status: companyData.status,
+        probe42Classification: companyData.classification,
+        probe42PaidUpCapital: companyData.paidUpCapital,
+        probe42AuthCapital: companyData.authorizedCapital,
+        probe42Pan: companyData.pan,
+        probe42Website: companyData.website,
+        probe42IncorpDate: companyData.incorporationDate ? new Date(companyData.incorporationDate) : null,
+        probe42ComplianceStatus: companyData.activeCompliance,
+        probe42DirectorCount: companyData.activeDirectorsCount,
+        probe42GstCount: companyData.gstRegistrationsCount,
+        probe42Data: JSON.parse(JSON.stringify(companyData)), // Store full response as JSON
+      },
+      include: leadInclude,
+    })
+
+    // 5. Create audit log
+    await createAuditLog(
+      session.user.id,
+      "PROBE42_DATA_FETCHED",
+      leadId,
+      {
+        cin: lead.cin,
+        companyName: companyData.legalName,
+        status: companyData.status,
+        fetchedAt: new Date().toISOString(),
+      }
+    )
+
+    // 6. Revalidate paths
+    revalidatePath("/dashboard/leads")
+    revalidatePath(`/dashboard/leads/${leadId}`)
+
+    return {
+      success: true,
+      data: updatedLead,
+    }
+  } catch (error) {
+    return handleActionError(handlePrismaError(error))
   }
 }

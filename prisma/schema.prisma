@@ -139,6 +139,22 @@ model Lead {
   cin            String  @unique // Company Identification Number
   address        String  @db.Text
 
+  // Probe42 Company Data
+  probe42Fetched        Boolean   @default(false)
+  probe42FetchedAt      DateTime?
+  probe42LegalName      String?
+  probe42Status         String?
+  probe42Classification String?
+  probe42PaidUpCapital  BigInt?
+  probe42AuthCapital    BigInt?
+  probe42Pan            String?
+  probe42Website        String?
+  probe42IncorpDate     DateTime?
+  probe42ComplianceStatus String?
+  probe42DirectorCount  Int?
+  probe42GstCount       Int?
+  probe42Data           Json?     // Full Probe42 response
+
   // Status & assignment
   status               LeadStatus  @default(NEW)
   assignedAssessorId   String?
