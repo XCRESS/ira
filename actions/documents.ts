@@ -301,8 +301,8 @@ export async function downloadAndSaveProbe42Report(
       source: 'probe42_auto_download',
     })
 
-    // 7. Revalidate
-    revalidatePath(`/dashboard/leads/${lead.leadId}`)
+    // Note: No revalidatePath here as this runs in background during page render
+    // The document will be visible on next page load/navigation
 
     return { success: true, data: document }
   } catch (error) {
