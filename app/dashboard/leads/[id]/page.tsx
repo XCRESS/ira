@@ -5,6 +5,9 @@ import Link from "next/link"
 import { getLead, getAssessors } from "@/actions/lead"
 import { getStatusDisplay } from "@/lib/types"
 import { AssignAssessorForm } from "@/components/assign-assessor-form"
+import { getDocuments } from "@/actions/documents"
+import { UploadDocumentButton } from "@/components/documents/upload-document-button"
+import { DocumentList } from "@/components/documents/document-list"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -53,6 +56,10 @@ export default async function LeadDetailPage(props: Props) {
       assessors = assessorsResult.data
     }
   }
+
+  // 4. Fetch documents
+  const documentsResult = await getDocuments(lead.id)
+  const documents = documentsResult.success ? documentsResult.data : []
 
   return (
     <div className="p-4 md:p-6">
@@ -201,20 +208,14 @@ export default async function LeadDetailPage(props: Props) {
             <div className="glass space-y-4 rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Documents</h2>
-                <span className="text-sm text-foreground/70">
-                  {lead._count.documents} file{lead._count.documents !== 1 ? "s" : ""}
-                </span>
+                <UploadDocumentButton leadId={lead.id} />
               </div>
 
-              {lead._count.documents === 0 ? (
-                <p className="text-sm text-foreground/60">No documents uploaded yet</p>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-foreground/60">
-                    Document management coming soon
-                  </p>
-                </div>
-              )}
+              <DocumentList
+                documents={documents}
+                userRole={session.user.role as 'ASSESSOR' | 'REVIEWER'}
+                userId={session.user.id}
+              />
             </div>
           </div>
 

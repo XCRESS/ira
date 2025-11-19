@@ -12,6 +12,7 @@ export enum ErrorCode {
   LEAD_NOT_FOUND = "LEAD_NOT_FOUND",
   ASSESSMENT_NOT_FOUND = "ASSESSMENT_NOT_FOUND",
   USER_NOT_FOUND = "USER_NOT_FOUND",
+  DOCUMENT_NOT_FOUND = "DOCUMENT_NOT_FOUND",
   RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND",
 
   // Validation errors
@@ -135,6 +136,14 @@ export const Errors = {
       questionId ? { questionId } : undefined
     ),
 
+  documentNotFound: (documentId?: string) =>
+    new AppError(
+      ErrorCode.DOCUMENT_NOT_FOUND,
+      "Document not found",
+      404,
+      documentId ? { documentId } : undefined
+    ),
+
   noActiveQuestions: (type?: string) =>
     new AppError(
       ErrorCode.NO_ACTIVE_QUESTIONS,
@@ -208,6 +217,7 @@ export function getErrorMessage(error: AppError | ErrorCode | string): string {
     [ErrorCode.LEAD_NOT_FOUND]: "Lead not found",
     [ErrorCode.ASSESSMENT_NOT_FOUND]: "Assessment not found",
     [ErrorCode.USER_NOT_FOUND]: "User not found",
+    [ErrorCode.DOCUMENT_NOT_FOUND]: "Document not found",
     [ErrorCode.RESOURCE_NOT_FOUND]: "Resource not found",
     [ErrorCode.INVALID_INPUT]: "Invalid input provided",
     [ErrorCode.DUPLICATE_CIN]: "A lead with this CIN already exists",
