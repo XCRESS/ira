@@ -139,18 +139,26 @@ const CompanyDetailsSchema = z.object({
       paid_up_capital: z.number().nullable(),
       sum_of_charges: z.number().nullable(),
       registered_address: AddressSchema,
+      business_address: AddressSchema.nullable().optional(),
       classification: z.string(),
       status: z.enum(['Listed', 'Unlisted', 'Undefined']),
       next_cin: z.string().nullable(),
       last_agm_date: z.string().nullable(),
       last_filing_date: z.string().nullable(),
       email: z.string().nullable(),
+      pan: z.string().nullable(),
+      website: z.string().nullable(),
       lei: z.object({
         number: z.string().nullable(),
         status: z.string().nullable(),
       }),
     }),
     authorized_signatories: z.array(AuthorizedSignatorySchema),
+    gst_details: z.array(z.object({
+      gstin: z.string(),
+      state: z.string(),
+      status: z.string(),
+    })).optional().nullable(),
     open_charges: z.array(
       z.object({
         id: z.number(),
@@ -454,13 +462,13 @@ export async function getCompanyDetails(
 
     switch (validated.type) {
       case 'CIN':
-        endpoint = `${PROBE42_BASE_URL}/companies/${upperIdentifier}/base-details`
+        endpoint = `${PROBE42_BASE_URL}/companies/${upperIdentifier}/comprehensive-details`
         break
       case 'PAN':
-        endpoint = `${PROBE42_BASE_URL}/companies/${upperIdentifier}/base-details?identifier_type=PAN`
+        endpoint = `${PROBE42_BASE_URL}/companies/${upperIdentifier}/comprehensive-details?identifier_type=PAN`
         break
       case 'LLPIN':
-        endpoint = `${PROBE42_BASE_URL}/llps/${upperIdentifier}/base-details`
+        endpoint = `${PROBE42_BASE_URL}/llps/${upperIdentifier}/comprehensive-details`
         break
     }
 
@@ -548,10 +556,24 @@ export async function getCompanyDetails(
         authorizedCapital: company.authorized_capital,
       }
 
+      // Calculate director and GST counts
+      const activeDirectorCount = signatories.filter(
+        (s) => !s.date_of_cessation && s.designation?.toLowerCase().includes('director')
+      ).length
+
+      const gstCount = data.data.gst_details?.length || 0
+
+      // Enhance company object with calculated fields for lead creation
+      const enhancedCompanyData = {
+        ...company,
+        director_count: activeDirectorCount,
+        gst_count: gstCount,
+      }
+
       return {
         success: true,
         data: leadData,
-        rawData: company,
+        rawData: enhancedCompanyData,
         signatories: signatories.slice(0, PROBE42.MAX_SIGNATORIES_DISPLAY),
       }
     }

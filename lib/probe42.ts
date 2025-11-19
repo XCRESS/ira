@@ -329,19 +329,19 @@ export async function downloadProbe42Report(cin: string): Promise<string> {
       )
     }
 
-    const data = await response.json()
+    // The API returns raw base64 string, not JSON
+    const base64String = await response.text()
 
-    // The API returns { data: { pdf: "base64string" } }
-    if (!data?.data?.pdf) {
+    if (!base64String || base64String.trim().length === 0) {
       throw new AppError(
         ErrorCode.EXTERNAL_API_ERROR,
-        'Invalid response from Probe42 Report API',
+        'Empty response from Probe42 Report API',
         502,
         { cin }
       )
     }
 
-    return data.data.pdf
+    return base64String.trim()
   } catch (error) {
     if (error instanceof AppError) {
       throw error
