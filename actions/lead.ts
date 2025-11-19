@@ -30,6 +30,7 @@ import {
 import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError } from "zod"
 import { fetchCompanyByCIN } from "@/lib/probe42"
+import { downloadAndSaveProbe42Report } from "./documents"
 
 // ============================================
 // ERROR HANDLER WRAPPER
@@ -147,14 +148,30 @@ export async function createLead(
       include: leadInclude,
     })
 
-    // 6. Create audit log
+    // 7. Create audit log
     await createAuditLog(session.user.id, "LEAD_CREATED", lead.id, {
       companyName: lead.companyName,
       cin: lead.cin,
       leadId: lead.leadId,
     })
 
-    // 7. Revalidate paths
+    // 8. Download Probe42 PDF report in background (fire-and-forget)
+    // This should NOT block lead creation - if it fails, user can manually upload later
+    if (hasProbe42Data) {
+      downloadAndSaveProbe42Report(lead.id, lead.cin, session.user.id)
+        .then((result) => {
+          if (result.success) {
+            console.log('[Probe42 PDF] Downloaded and saved successfully:', result.data?.fileName)
+          } else {
+            console.error('[Probe42 PDF] Download failed:', result.error)
+          }
+        })
+        .catch((error) => {
+          console.error('[Probe42 PDF] Unexpected error:', error)
+        })
+    }
+
+    // 9. Revalidate paths
     revalidatePath("/dashboard/leads")
 
     return { success: true, data: lead }

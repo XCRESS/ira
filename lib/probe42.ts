@@ -279,3 +279,82 @@ export async function fetchCompanyByCIN(cin: string) {
   const data = await client.getCompanyDetails(cin)
   return client.extractKeyInfo(data)
 }
+
+/**
+ * Download PDF report from Probe42
+ * Returns base64 encoded PDF
+ */
+export async function downloadProbe42Report(cin: string): Promise<string> {
+  const client = getProbe42Client()
+
+  if (!cin || cin.trim().length === 0) {
+    throw new AppError(
+      ErrorCode.INVALID_INPUT,
+      'CIN is required',
+      400,
+      { field: 'cin' }
+    )
+  }
+
+  // Use the probe_reports_sandbox endpoint (different from base URL)
+  const reportsBaseUrl = PROBE42_API_BASE.replace('probe_pro_sandbox', 'probe_reports_sandbox')
+  const url = `${reportsBaseUrl}/companies/${cin}/reports?type=pdf&client_name=IRA&unit=INR&format=base64`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'x-api-key': client['apiKey'],
+        'Accept': 'application/json',
+        'x-api-version': client['apiVersion'],
+      },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new AppError(
+          ErrorCode.NOT_FOUND,
+          `Report for CIN ${cin} not found in Probe42`,
+          404,
+          { cin, status: response.status }
+        )
+      }
+
+      throw new AppError(
+        ErrorCode.EXTERNAL_API_ERROR,
+        `Probe42 Report API error: ${response.statusText}`,
+        502,
+        { status: response.status, cin }
+      )
+    }
+
+    const data = await response.json()
+
+    // The API returns { data: { pdf: "base64string" } }
+    if (!data?.data?.pdf) {
+      throw new AppError(
+        ErrorCode.EXTERNAL_API_ERROR,
+        'Invalid response from Probe42 Report API',
+        502,
+        { cin }
+      )
+    }
+
+    return data.data.pdf
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error
+    }
+
+    throw new AppError(
+      ErrorCode.EXTERNAL_API_ERROR,
+      'Failed to download report from Probe42',
+      502,
+      {
+        originalError: error instanceof Error ? error.message : String(error),
+        cin
+      }
+    )
+  }
+}

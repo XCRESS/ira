@@ -1,13 +1,14 @@
 'use server'
 
 import { verifyAuth, createAuditLog, handlePrismaError } from '@/lib/dal'
-import { uploadToBlob, deleteFromBlob } from '@/lib/storage'
+import { uploadToBlob, deleteFromBlob, uploadBase64ToBlob } from '@/lib/storage'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { z, ZodError } from 'zod'
 import type { ActionResponse } from '@/lib/types'
 import type { Document, DocumentType } from '@prisma/client'
 import { Errors, AppError, ErrorCode } from '@/lib/errors'
+import { downloadProbe42Report } from '@/lib/probe42'
 
 // ============================================
 // Error Handler
@@ -241,5 +242,72 @@ export async function deleteDocument(
   } catch (error) {
     console.error('Delete error:', error)
     return handleActionError(handlePrismaError(error))
+  }
+}
+
+/**
+ * Download Probe42 report and save as document
+ * This runs in background and should NOT block lead creation
+ */
+export async function downloadAndSaveProbe42Report(
+  leadId: string,
+  cin: string,
+  userId: string
+): Promise<ActionResponse<Document>> {
+  try {
+    // NOTE: We don't verify auth here because this is called from server-side
+    // lead creation flow which already verified auth
+
+    // 1. Fetch lead to get leadId (display ID)
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId },
+      select: { leadId: true, companyName: true },
+    })
+
+    if (!lead) {
+      throw Errors.leadNotFound(leadId)
+    }
+
+    // 2. Download PDF from Probe42 (returns base64)
+    const base64Pdf = await downloadProbe42Report(cin)
+
+    // 3. Generate filename
+    const timestamp = new Date().toISOString().split('T')[0]
+    const fileName = `Probe42_Report_${cin}_${timestamp}.pdf`
+
+    // 4. Upload to blob storage
+    const { url, size } = await uploadBase64ToBlob(
+      base64Pdf,
+      fileName,
+      lead.leadId
+    )
+
+    // 5. Create document record
+    const document = await prisma.document.create({
+      data: {
+        leadId,
+        fileName,
+        fileUrl: url,
+        fileSize: size,
+        fileType: 'PDF',
+        uploadedById: userId,
+      },
+    })
+
+    // 6. Audit log
+    await createAuditLog(userId, 'DOCUMENT_UPLOADED', leadId, {
+      documentId: document.id,
+      fileName,
+      source: 'probe42_auto_download',
+    })
+
+    // 7. Revalidate
+    revalidatePath(`/dashboard/leads/${lead.leadId}`)
+
+    return { success: true, data: document }
+  } catch (error) {
+    // Log error but don't throw - this is a background operation
+    console.error('[Probe42 PDF Download] Failed:', error)
+    return handleActionError(error)
   }
 }
