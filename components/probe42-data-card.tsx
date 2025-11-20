@@ -1,9 +1,9 @@
 'use client'
 
+import { Building2, ChevronDown, ChevronUp, RefreshCw, Calendar, DollarSign, Shield, Globe } from 'lucide-react'
 import { useState } from 'react'
 import { fetchProbe42Data } from '@/actions/lead'
 import { toast } from 'sonner'
-import { RefreshCw } from 'lucide-react'
 
 type Probe42DataCardProps = {
   lead: {
@@ -29,6 +29,7 @@ type Probe42DataCardProps = {
 
 export function Probe42DataCard({ lead }: Probe42DataCardProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const handleFetchData = async () => {
     setIsLoading(true)
@@ -36,7 +37,6 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
       const result = await fetchProbe42Data(lead.id)
       if (result.success) {
         toast.success('Company data updated successfully')
-        // Refresh the page to show new data
         window.location.reload()
       } else {
         toast.error(result.error || 'Failed to fetch company data')
@@ -68,137 +68,170 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
 
   // If no data fetched yet, show empty state
   if (!lead.probe42Fetched) {
-    return (
-      <div className="glass space-y-4 rounded-2xl p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Company Information</h2>
-          <button
-            onClick={handleFetchData}
-            disabled={isLoading}
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 h-9 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Loading...' : 'Load Company Data'}
-          </button>
-        </div>
-        <div className="text-center py-12 text-foreground/60">
-          <p className="text-sm">Company data not available</p>
-          <p className="text-xs mt-2">Click &quot;Load Company Data&quot; to fetch details from MCA database</p>
-        </div>
-      </div>
-    )
+    return null
   }
 
-  // Show data in a clean, organized layout
   return (
-    <div className="glass space-y-6 rounded-2xl p-6">
-      {/* Header with refresh */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Company Information</h2>
-          {lead.probe42FetchedAt && (
-            <p className="text-xs text-foreground/50 mt-0.5">
-              Updated {formatDate(lead.probe42FetchedAt)}
-            </p>
+    <div className="glass rounded-xl overflow-hidden">
+      {/* Header - Always Visible */}
+      <div className="p-4 md:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3 flex-1">
+            <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Building2 className="size-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base md:text-lg font-semibold mb-1">Company Details</h2>
+              {lead.probe42FetchedAt && (
+                <p className="text-xs text-foreground/60">
+                  Updated: {formatDate(lead.probe42FetchedAt)}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleFetchData}
+              disabled={isLoading}
+              className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-50"
+              title="Refresh data"
+            >
+              <RefreshCw className={`size-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 hover:bg-foreground/5 rounded-lg transition-colors"
+              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+            >
+              {isExpanded ? (
+                <ChevronUp className="size-5 text-foreground/60" />
+              ) : (
+                <ChevronDown className="size-5 text-foreground/60" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Summary View - Key Metrics (Always Visible) */}
+        <div className="grid gap-3 text-sm mt-4">
+          {/* Legal Name */}
+          <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+            <span className="text-foreground/60">Legal Name</span>
+            <span className="font-medium text-right">{lead.probe42LegalName || 'N/A'}</span>
+          </div>
+
+          {/* Status */}
+          <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+            <span className="text-foreground/60">Company Status</span>
+            <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium">
+              {lead.probe42Status || 'N/A'}
+            </span>
+          </div>
+
+          {/* PAN */}
+          {lead.probe42Pan && (
+            <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+              <span className="text-foreground/60">PAN</span>
+              <span className="font-medium font-mono text-xs">{lead.probe42Pan}</span>
+            </div>
+          )}
+
+          {/* Website */}
+          {lead.probe42Website && (
+            <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+              <span className="text-foreground/60 flex items-center gap-2">
+                <Globe className="size-4" />
+                Website
+              </span>
+              <a
+                href={lead.probe42Website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline"
+              >
+                Visit
+              </a>
+            </div>
           )}
         </div>
-        <button
-          onClick={handleFetchData}
-          disabled={isLoading}
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 h-9 text-sm font-medium hover:bg-muted active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Refresh company data from MCA"
-        >
-          <RefreshCw className={`size-4 ${isLoading ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline">Refresh</span>
-        </button>
       </div>
 
-      {/* Company Details Grid */}
-      <div className="space-y-6">
-        {/* Basic Information */}
-        <div>
-          <h3 className="text-sm font-semibold mb-3 text-foreground/80">Basic Details</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-sm text-foreground/70">Legal Name</p>
-              <p className="mt-1 text-sm font-medium">{lead.probe42LegalName || 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-foreground/70">Status</p>
-              <p className="mt-1 text-sm font-medium">
-                <span className={`inline-flex items-center gap-1.5 ${lead.probe42Status === 'Active' ? 'text-success' : 'text-danger'}`}>
-                  <span className={`size-1.5 rounded-full ${lead.probe42Status === 'Active' ? 'bg-success' : 'bg-danger'}`}></span>
-                  {lead.probe42Status || 'N/A'}
+      {/* Expanded Details */}
+      {isExpanded && (
+        <div className="border-t border-foreground/10 p-4 md:p-6 space-y-6">
+          {/* Classification & Incorporation */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Building2 className="size-4" />
+              Company Information
+            </h3>
+            <div className="grid gap-3 text-sm">
+              <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                <span className="text-foreground/60">Classification</span>
+                <span className="font-medium text-right">{lead.probe42Classification || 'N/A'}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                <span className="text-foreground/60 flex items-center gap-2">
+                  <Calendar className="size-4" />
+                  Incorporation Date
                 </span>
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-foreground/70">CIN</p>
-              <p className="mt-1 text-sm font-mono">{lead.cin}</p>
-            </div>
-            <div>
-              <p className="text-sm text-foreground/70">PAN</p>
-              <p className="mt-1 text-sm font-mono">{lead.probe42Pan || 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-foreground/70">Classification</p>
-              <p className="mt-1 text-sm">{lead.probe42Classification || 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-foreground/70">Incorporation Date</p>
-              <p className="mt-1 text-sm">{formatDate(lead.probe42IncorpDate)}</p>
+                <span className="font-medium">{formatDate(lead.probe42IncorpDate)}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Financial Information */}
-        <div className="border-t border-border pt-6">
-          <h3 className="text-sm font-semibold mb-3 text-foreground/80">Capital Structure</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-sm text-foreground/70">Paid Up Capital</p>
-              <p className="mt-1 text-base font-semibold text-primary">{formatCurrency(lead.probe42PaidUpCapital)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-foreground/70">Authorized Capital</p>
-              <p className="mt-1 text-base font-semibold text-primary">{formatCurrency(lead.probe42AuthCapital)}</p>
+          {/* Capital Structure */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <DollarSign className="size-4" />
+              Capital Structure
+            </h3>
+            <div className="grid gap-3 text-sm">
+              <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                <span className="text-foreground/60">Authorized Capital</span>
+                <span className="font-medium">{formatCurrency(lead.probe42AuthCapital)}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                <span className="text-foreground/60">Paid-up Capital</span>
+                <span className="font-medium">{formatCurrency(lead.probe42PaidUpCapital)}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Compliance & Governance */}
-        <div className="border-t border-border pt-6">
-          <h3 className="text-sm font-semibold mb-3 text-foreground/80">Compliance & Governance</h3>
-          <div className="grid gap-4">
+          {/* Compliance */}
+          {lead.probe42ComplianceStatus && (
             <div>
-              <p className="text-sm text-foreground/70">Compliance Status</p>
-              <p className="mt-1 text-sm">
-                <span className={`inline-flex items-center gap-1.5 ${lead.probe42ComplianceStatus?.includes('ACTIVE') ? 'text-success' : 'text-warning'}`}>
-                  <span className={`size-1.5 rounded-full ${lead.probe42ComplianceStatus?.includes('ACTIVE') ? 'bg-success' : 'bg-warning'}`}></span>
-                  {lead.probe42ComplianceStatus || 'N/A'}
-                </span>
-              </p>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Shield className="size-4" />
+                Compliance
+              </h3>
+              <div className="grid gap-3 text-sm">
+                <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                  <span className="text-foreground/60">Compliance Status</span>
+                  <span className={`inline-flex items-center gap-1.5 text-xs ${lead.probe42ComplianceStatus?.includes('ACTIVE') ? 'text-green-500' : 'text-yellow-500'}`}>
+                    <span className={`size-1.5 rounded-full ${lead.probe42ComplianceStatus?.includes('ACTIVE') ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
+                    {lead.probe42ComplianceStatus}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
+      )}
 
-        {/* Website */}
-        {lead.probe42Website && (
-          <div className="border-t border-border pt-6">
-            <p className="text-sm text-foreground/70 mb-2">Website</p>
-            <a
-              href={lead.probe42Website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline inline-flex items-center gap-1"
-            >
-              {lead.probe42Website.replace(/^https?:\/\//, '')}
-              <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          </div>
-        )}
-      </div>
+      {/* Expand Hint */}
+      {!isExpanded && (
+        <div className="px-4 md:px-6 pb-4">
+          <button
+            onClick={() => setIsExpanded(true)}
+            className="w-full text-xs text-foreground/60 hover:text-foreground flex items-center justify-center gap-1 py-2"
+          >
+            <ChevronDown className="size-4" />
+            View detailed company information
+          </button>
+        </div>
+      )}
     </div>
   )
 }

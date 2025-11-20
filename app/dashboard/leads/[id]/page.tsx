@@ -77,32 +77,103 @@ export default async function LeadDetailPage(props: Props) {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-2">
-            {/* Probe42 Company Data */}
-            <Probe42DataCard lead={lead} />
-
-            {/* Contact Information */}
+            {/* Contact & Key Information */}
             <div className="glass space-y-4 rounded-2xl p-6">
-              <h2 className="text-lg font-semibold">Contact Information</h2>
+              <h2 className="text-lg font-semibold">Contact & Key Information</h2>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-sm text-foreground/70">Contact Person</p>
-                  <p className="mt-1 text-sm font-medium">{lead.contactPerson}</p>
+              <div className="grid gap-3 text-sm">
+                {/* Contact Person */}
+                <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                  <span className="text-foreground/60">Contact Person</span>
+                  <span className="font-medium">{lead.contactPerson || 'N/A'}</span>
                 </div>
-                <div>
-                  <p className="text-sm text-foreground/70">Email</p>
-                  <p className="mt-1 text-sm">{lead.email}</p>
+
+                {/* Email */}
+                <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                  <span className="text-foreground/60">Email</span>
+                  <span className="font-medium text-xs">{lead.email || 'N/A'}</span>
                 </div>
-                <div>
-                  <p className="text-sm text-foreground/70">Phone</p>
-                  <p className="mt-1 text-sm">{lead.phone}</p>
+
+                {/* Phone */}
+                <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                  <span className="text-foreground/60">Phone</span>
+                  <span className="font-medium font-mono">{lead.phone || 'N/A'}</span>
                 </div>
+
+                {/* CIN */}
+                <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                  <span className="text-foreground/60">CIN</span>
+                  <span className="font-medium font-mono text-xs">{lead.cin}</span>
+                </div>
+
+                {/* Status */}
+                {lead.probe42Status && (
+                  <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                    <span className="text-foreground/60">Status</span>
+                    <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium">
+                      {lead.probe42Status}
+                    </span>
+                  </div>
+                )}
+
+                {/* Classification */}
+                {lead.probe42Classification && (
+                  <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                    <span className="text-foreground/60">Classification</span>
+                    <span className="font-medium text-right">{lead.probe42Classification}</span>
+                  </div>
+                )}
+
+                {/* Paid-up Capital */}
+                {lead.probe42PaidUpCapital && (
+                  <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                    <span className="text-foreground/60">Paid-up Capital</span>
+                    <span className="font-medium">
+                      {new Intl.NumberFormat('en-IN', {
+                        style: 'currency',
+                        currency: 'INR',
+                        maximumFractionDigits: 0,
+                      }).format(Number(lead.probe42PaidUpCapital))}
+                    </span>
+                  </div>
+                )}
+
+                {/* Authorized Capital */}
+                {lead.probe42AuthCapital && (
+                  <div className="flex items-center justify-between py-2 border-t border-foreground/10">
+                    <span className="text-foreground/60">Authorized Capital</span>
+                    <span className="font-medium">
+                      {new Intl.NumberFormat('en-IN', {
+                        style: 'currency',
+                        currency: 'INR',
+                        maximumFractionDigits: 0,
+                      }).format(Number(lead.probe42AuthCapital))}
+                    </span>
+                  </div>
+                )}
+
+                {/* Registered Address */}
+                {lead.address && (
+                  <div className="py-2 border-t border-foreground/10">
+                    <span className="text-foreground/60 text-sm block mb-1">Registered Address</span>
+                    <span className="text-sm text-foreground/70 leading-relaxed">{lead.address}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Documents */}
+            <div className="glass space-y-4 rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Documents</h2>
+                <UploadDocumentButton leadId={lead.id} />
               </div>
 
-              <div>
-                <p className="text-sm text-foreground/70">Registered Address</p>
-                <p className="mt-1 text-sm">{lead.address}</p>
-              </div>
+              <DocumentList
+                documents={documents}
+                userRole={session.user.role as 'ASSESSOR' | 'REVIEWER'}
+                userId={session.user.id}
+              />
             </div>
 
             {/* Assessment Status */}
@@ -204,19 +275,8 @@ export default async function LeadDetailPage(props: Props) {
               </div>
             )}
 
-            {/* Documents */}
-            <div className="glass space-y-4 rounded-2xl p-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Documents</h2>
-                <UploadDocumentButton leadId={lead.id} />
-              </div>
-
-              <DocumentList
-                documents={documents}
-                userRole={session.user.role as 'ASSESSOR' | 'REVIEWER'}
-                userId={session.user.id}
-              />
-            </div>
+            {/* Probe42 Company Details - Collapsible */}
+            <Probe42DataCard lead={lead} />
           </div>
 
           {/* Sidebar */}
