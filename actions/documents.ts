@@ -282,16 +282,30 @@ export async function downloadAndSaveProbe42Report(
       lead.leadId
     )
 
-    // 5. Create document record
-    const document = await prisma.document.create({
-      data: {
-        leadId,
-        fileName,
-        fileUrl: url,
-        fileSize: size,
-        fileType: 'PDF',
-        uploadedById: userId,
-      },
+    // 5. Create document record and update lead status
+    const document = await prisma.$transaction(async (tx) => {
+      const doc = await tx.document.create({
+        data: {
+          leadId,
+          fileName,
+          fileUrl: url,
+          fileSize: size,
+          fileType: 'PDF',
+          uploadedById: userId,
+        },
+      })
+
+      // Update lead to mark report as downloaded
+      await tx.lead.update({
+        where: { id: leadId },
+        data: {
+          probe42ReportDownloaded: true,
+          probe42ReportDownloadedAt: new Date(),
+          probe42ReportFailedAt: null, // Clear any previous failure
+        },
+      })
+
+      return doc
     })
 
     // 6. Audit log
@@ -308,6 +322,20 @@ export async function downloadAndSaveProbe42Report(
   } catch (error) {
     // Log error but don't throw - this is a background operation
     console.error('[Probe42 PDF Download] Failed:', error)
+
+    // Mark download as failed in database
+    try {
+      await prisma.lead.update({
+        where: { id: leadId },
+        data: {
+          probe42ReportDownloaded: false,
+          probe42ReportFailedAt: new Date(),
+        },
+      })
+    } catch (updateError) {
+      console.error('[Probe42 PDF Download] Failed to update lead status:', updateError)
+    }
+
     return handleActionError(error)
   }
 }

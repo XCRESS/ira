@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 export default async function proxy(request: NextRequest) {
+  const startTime = Date.now()
   const { pathname } = request.nextUrl
 
   // Always allow auth routes (including callbacks) to pass through
@@ -33,7 +34,15 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+
+  // Log slow proxy executions
+  const duration = Date.now() - startTime
+  if (duration > 10) {
+    console.log(`⚠️ SLOW PROXY: ${pathname} took ${duration}ms`)
+  }
+
+  return response
 }
 
 export const config = {

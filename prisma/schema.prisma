@@ -155,6 +155,11 @@ model Lead {
   probe42GstCount       Int?
   probe42Data           Json?     // Full Probe42 response
 
+  // Probe42 Report Download Status
+  probe42ReportDownloaded  Boolean   @default(false)
+  probe42ReportDownloadedAt DateTime?
+  probe42ReportFailedAt    DateTime?
+
   // Status & assignment
   status               LeadStatus  @default(NEW)
   assignedAssessorId   String?
@@ -174,6 +179,7 @@ model Lead {
   @@index([status])
   @@index([assignedAssessorId])
   @@index([createdById])
+  @@index([leadId]) // ✅ PERFORMANCE: Index for search-by-display-ID queries
   @@map("lead")
 }
 

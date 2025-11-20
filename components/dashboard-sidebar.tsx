@@ -1,6 +1,5 @@
-"use client"
+'use client'
 
-import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -8,8 +7,6 @@ import {
   FileText,
   BarChart3,
   Settings,
-  ChevronLeft,
-  ChevronRight,
   Plus,
 } from "lucide-react"
 
@@ -26,7 +23,6 @@ type Props = {
 }
 
 export function DashboardSidebar({ userRole }: Props) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
 
   const navItems: NavItem[] = [
@@ -39,6 +35,12 @@ export function DashboardSidebar({ userRole }: Props) {
       name: "Leads",
       href: "/dashboard/leads",
       icon: FileText,
+    },
+    {
+      name: "Reviews",
+      href: "/dashboard/reviews",
+      icon: BarChart3,
+      roles: ["REVIEWER"],
     },
     {
       name: "Settings",
@@ -59,28 +61,15 @@ export function DashboardSidebar({ userRole }: Props) {
   }
 
   return (
-    <aside
-      className={`glass relative flex h-screen flex-col border-r border-foreground/10 transition-[width] duration-300 ${
-        isCollapsed ? "w-16" : "w-64"
-      }`}
-    >
+    <aside className="glass relative flex h-screen w-64 flex-col border-r border-foreground/10">
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-foreground/10 px-4">
-        {!isCollapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-sm font-bold">IRA</span>
-            </div>
-            <span className="text-lg font-bold text-foreground transition-colors">IPO Ready</span>
-          </Link>
-        )}
-        {isCollapsed && (
-          <Link href="/dashboard" className="mx-auto">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-sm font-bold">IRA</span>
-            </div>
-          </Link>
-        )}
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <span className="text-sm font-bold">IRA</span>
+          </div>
+          <span className="text-lg font-bold text-foreground transition-colors">IPO Ready</span>
+        </Link>
       </div>
 
       {/* Navigation */}
@@ -97,55 +86,35 @@ export function DashboardSidebar({ userRole }: Props) {
                 active
                   ? "bg-primary text-primary-foreground"
                   : "text-foreground/90 hover:text-foreground hover:bg-foreground/5"
-              } ${isCollapsed ? "justify-center" : ""}`}
-              title={isCollapsed ? item.name : undefined}
+              }`}
             >
               <Icon className="h-5 w-5 shrink-0" />
-              {!isCollapsed && (
-                <>
-                  <span className="flex-1">{item.name}</span>
-                  {item.badge && (
-                    <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs">
-                      {item.badge}
-                    </span>
-                  )}
-                </>
+              <span className="flex-1">{item.name}</span>
+              {item.badge && (
+                <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs">
+                  {item.badge}
+                </span>
               )}
             </Link>
           )
         })}
 
         {/* Quick Actions */}
-        {!isCollapsed && (
-          <div className="mt-6 space-y-2 border-t border-foreground/10 pt-4">
-            <p className="px-3 text-xs font-semibold uppercase tracking-wider text-foreground/50 transition-colors">
-              Quick Actions
-            </p>
-            {userRole === "REVIEWER" && (
-              <Link
-                href="/dashboard/leads/new"
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
-              >
-                <Plus className="h-5 w-5 shrink-0" />
-                <span>New Lead</span>
-              </Link>
-            )}
-          </div>
-        )}
+        <div className="mt-6 space-y-2 border-t border-foreground/10 pt-4">
+          <p className="px-3 text-xs font-semibold uppercase tracking-wider text-foreground/50 transition-colors">
+            Quick Actions
+          </p>
+          {userRole === "REVIEWER" && (
+            <Link
+              href="/dashboard/leads/new"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
+            >
+              <Plus className="h-5 w-5 shrink-0" />
+              <span>New Lead</span>
+            </Link>
+          )}
+        </div>
       </nav>
-
-      {/* Collapse Toggle */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="flex h-12 items-center justify-center border-t border-foreground/10 hover:bg-foreground/5"
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {isCollapsed ? (
-          <ChevronRight className="h-5 w-5" />
-        ) : (
-          <ChevronLeft className="h-5 w-5" />
-        )}
-      </button>
     </aside>
   )
 }

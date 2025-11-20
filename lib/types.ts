@@ -236,6 +236,9 @@ export type LeadWithRelations = {
   probe42DirectorCount: number | null
   probe42GstCount: number | null
   probe42Data: unknown
+  probe42ReportDownloaded: boolean
+  probe42ReportDownloadedAt: Date | null
+  probe42ReportFailedAt: Date | null
   createdAt: Date
   updatedAt: Date
   createdById: string

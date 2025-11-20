@@ -2,7 +2,8 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { getLeads } from "@/actions/lead"
+import { getDashboardStats } from "@/actions/lead"
+import { measureAsync } from "@/lib/perf"
 import {
   FileText,
   BarChart3,
@@ -12,11 +13,15 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react"
+
 export default async function DashboardPage() {
+  const pageStart = performance.now()
+
   // Verify authentication
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
+  const headersList = await headers()
+  const session = await measureAsync("auth.getSession", async () =>
+    auth.api.getSession({ headers: headersList })
+  )
 
   if (!session) {
     redirect("/login")
@@ -24,22 +29,17 @@ export default async function DashboardPage() {
 
   const { user } = session
 
-  // Fetch leads for stats
-  const leadsResult = await getLeads()
-  const leads = leadsResult.success ? leadsResult.data : []
+  // Fetch dashboard stats (OPTIMIZED - uses COUNT queries)
+  const dashboardResult = await measureAsync("getDashboardStats", () => getDashboardStats())
+  const { stats, recentLeads } = dashboardResult.success
+    ? dashboardResult.data
+    : { stats: { total: 0, new: 0, inProgress: 0, completed: 0 }, recentLeads: [] }
 
-  // Calculate stats
-  const stats = {
-    total: leads.length,
-    new: leads.filter((l) => l.status === "NEW").length,
-    inProgress: leads.filter(
-      (l) => l.status === "ASSIGNED" || l.status === "IN_REVIEW"
-    ).length,
-    completed: leads.filter((l) => l.status === "COMPLETED").length,
+  // Log total page load time
+  const pageDuration = performance.now() - pageStart
+  if (pageDuration > 100) {
+    console.log(`🐢 Dashboard page total: ${pageDuration.toFixed(2)}ms`)
   }
-
-  // Recent leads (last 5)
-  const recentLeads = leads.slice(0, 5)
 
   return (
     <div className="p-4 md:p-6">

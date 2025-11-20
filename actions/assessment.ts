@@ -18,13 +18,11 @@ import {
 } from "@/lib/dal"
 import {
   UpdateEligibilityAnswersSchema,
-  UpdateAssessmentAnswersSchema,
   UpdateAllAssessmentAnswersSchema,
   ApproveAssessmentSchema,
   RejectAssessmentSchema,
   type ActionResponse,
   type UpdateEligibilityAnswersInput,
-  type UpdateAssessmentAnswersInput,
   type UpdateAllAssessmentAnswersInput,
   type ApproveAssessmentInput,
   type RejectAssessmentInput,
@@ -33,7 +31,7 @@ import {
 } from "@/lib/types"
 import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError } from "zod"
-import type { Assessment, AssessmentStatus } from "@prisma/client"
+import type { Assessment } from "@prisma/client"
 
 // ============================================
 // ERROR HANDLER WRAPPER
@@ -473,171 +471,6 @@ export async function updateAllAssessmentAnswers(
   }
 }
 
-/**
- * Update company answers (ASSESSOR only, auto-save)
- * @deprecated Use updateAllAssessmentAnswers for better performance
- */
-export async function updateCompanyAnswers(
-  assessmentId: string,
-  input: unknown
-): Promise<ActionResponse<Assessment>> {
-  try {
-    const session = await verifyAuth()
-
-    const validatedData = UpdateAssessmentAnswersSchema.parse(
-      input
-    ) as UpdateAssessmentAnswersInput
-
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-      include: { lead: true },
-    })
-
-    if (!assessment) {
-      throw Errors.assessmentNotFound(assessmentId)
-    }
-
-    // Access control
-    if (
-      session.user.role === "ASSESSOR" &&
-      assessment.assessorId !== session.user.id
-    ) {
-      throw Errors.insufficientPermissions()
-    }
-
-    // Can only update if DRAFT
-    if (assessment.status !== "DRAFT") {
-      throw Errors.invalidStatusTransition(assessment.status, "DRAFT")
-    }
-
-    // Must complete eligibility first
-    if (!assessment.isEligible) {
-      throw Errors.eligibilityNotCompleted()
-    }
-
-    const updated = await prisma.assessment.update({
-      where: { id: assessmentId },
-      data: {
-        companyAnswers: validatedData as any,
-        updatedAt: new Date(),
-      },
-    })
-
-    revalidatePath(`/dashboard/leads/${assessment.leadId}`)
-
-    return { success: true, data: updated }
-  } catch (error) {
-    return handleActionError(handlePrismaError(error))
-  }
-}
-
-/**
- * Update financial answers (ASSESSOR only, auto-save)
- */
-export async function updateFinancialAnswers(
-  assessmentId: string,
-  input: unknown
-): Promise<ActionResponse<Assessment>> {
-  try {
-    const session = await verifyAuth()
-
-    const validatedData = UpdateAssessmentAnswersSchema.parse(
-      input
-    ) as UpdateAssessmentAnswersInput
-
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-      include: { lead: true },
-    })
-
-    if (!assessment) {
-      throw Errors.assessmentNotFound(assessmentId)
-    }
-
-    if (
-      session.user.role === "ASSESSOR" &&
-      assessment.assessorId !== session.user.id
-    ) {
-      throw Errors.insufficientPermissions()
-    }
-
-    if (assessment.status !== "DRAFT") {
-      throw Errors.invalidStatusTransition(assessment.status, "DRAFT")
-    }
-
-    if (!assessment.isEligible) {
-      throw Errors.eligibilityNotCompleted()
-    }
-
-    const updated = await prisma.assessment.update({
-      where: { id: assessmentId },
-      data: {
-        financialAnswers: validatedData as any,
-        updatedAt: new Date(),
-      },
-    })
-
-    revalidatePath(`/dashboard/leads/${assessment.leadId}`)
-
-    return { success: true, data: updated }
-  } catch (error) {
-    return handleActionError(handlePrismaError(error))
-  }
-}
-
-/**
- * Update sector answers (ASSESSOR only, auto-save)
- */
-export async function updateSectorAnswers(
-  assessmentId: string,
-  input: unknown
-): Promise<ActionResponse<Assessment>> {
-  try {
-    const session = await verifyAuth()
-
-    const validatedData = UpdateAssessmentAnswersSchema.parse(
-      input
-    ) as UpdateAssessmentAnswersInput
-
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-      include: { lead: true },
-    })
-
-    if (!assessment) {
-      throw Errors.assessmentNotFound(assessmentId)
-    }
-
-    if (
-      session.user.role === "ASSESSOR" &&
-      assessment.assessorId !== session.user.id
-    ) {
-      throw Errors.insufficientPermissions()
-    }
-
-    if (assessment.status !== "DRAFT") {
-      throw Errors.invalidStatusTransition(assessment.status, "DRAFT")
-    }
-
-    if (!assessment.isEligible) {
-      throw Errors.eligibilityNotCompleted()
-    }
-
-    const updated = await prisma.assessment.update({
-      where: { id: assessmentId },
-      data: {
-        sectorAnswers: validatedData as any,
-        updatedAt: new Date(),
-      },
-    })
-
-    revalidatePath(`/dashboard/leads/${assessment.leadId}`)
-
-    return { success: true, data: updated }
-  } catch (error) {
-    return handleActionError(handlePrismaError(error))
-  }
-}
 
 // ============================================
 // SCORING & SUBMISSION

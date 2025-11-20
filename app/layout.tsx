@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/lib/theme-provider";
 import { Toaster } from "@/components/toaster";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { PerformanceMonitor } from "@/components/performance-monitor";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,6 +54,7 @@ export default function RootLayout({
           <Toaster />
           <Analytics />
           <SpeedInsights />
+          <PerformanceMonitor />
         </ThemeProvider>
       </body>
     </html>

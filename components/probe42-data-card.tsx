@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, ChevronDown, ChevronUp, RefreshCw, Calendar, DollarSign, Shield, Globe } from 'lucide-react'
+import { Building2, ChevronDown, ChevronUp, RefreshCw, Calendar, DollarSign, Shield, Globe, FileText, Download, AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 import { fetchProbe42Data } from '@/actions/lead'
 import { toast } from 'sonner'
@@ -24,6 +24,9 @@ type Probe42DataCardProps = {
     probe42DirectorCount: number | null
     probe42GstCount: number | null
     probe42Data: unknown
+    probe42ReportDownloaded: boolean
+    probe42ReportDownloadedAt: Date | null
+    probe42ReportFailedAt: Date | null
   }
 }
 
@@ -112,6 +115,47 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
             </button>
           </div>
         </div>
+
+        {/* PDF Report Status */}
+        {lead.probe42Fetched && (
+          <div className="mt-4 p-3 rounded-lg bg-foreground/5">
+            <div className="flex items-center gap-2">
+              {lead.probe42ReportDownloaded ? (
+                <>
+                  <FileText className="size-4 text-green-500" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-green-500">Report Downloaded</p>
+                    {lead.probe42ReportDownloadedAt && (
+                      <p className="text-xs text-foreground/60">
+                        {formatDate(lead.probe42ReportDownloadedAt)}
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : lead.probe42ReportFailedAt ? (
+                <>
+                  <AlertCircle className="size-4 text-red-500" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-red-500">Download Failed</p>
+                    <p className="text-xs text-foreground/60">
+                      Check documents section or contact support
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Download className="size-4 text-yellow-500 animate-pulse" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-yellow-500">Downloading Report...</p>
+                    <p className="text-xs text-foreground/60">
+                      This may take a few moments
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Summary View - Key Metrics (Always Visible) */}
         <div className="grid gap-3 text-sm mt-4">

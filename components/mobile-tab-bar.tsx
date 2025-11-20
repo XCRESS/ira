@@ -27,6 +27,7 @@ export function MobileTabBar({ role }: Props) {
   const reviewerTabs: Tab[] = [
     { id: 'home', label: 'Home', icon: Home, href: '/dashboard' },
     { id: 'leads', label: 'Leads', icon: FileText, href: '/dashboard/leads' },
+    { id: 'reviews', label: 'Reviews', icon: BarChart3, href: '/dashboard/reviews' },
     { id: 'profile', label: 'Profile', icon: User, href: '/dashboard/settings' },
   ]
 
@@ -41,7 +42,7 @@ export function MobileTabBar({ role }: Props) {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden glass-strong border-t border-foreground/10 safe-bottom">
-      <div className="grid grid-cols-3 h-16">
+      <div className={`grid h-16 ${role === 'ASSESSOR' ? 'grid-cols-3' : 'grid-cols-4'}`}>
         {tabs.map((tab) => {
           const Icon = tab.icon
           const active = isActive(tab.href)

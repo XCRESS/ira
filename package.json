@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "perf:doctor": "clinic doctor -- node --max-old-space-size=4096 node_modules/.bin/next start",
+    "perf:flame": "clinic flame -- node --max-old-space-size=4096 node_modules/.bin/next start",
+    "perf:bubbleprof": "clinic bubbleprof -- node --max-old-space-size=4096 node_modules/.bin/next start"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
@@ -30,10 +33,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "clinic": "^13.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
     "prisma": "^6.18.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "why-is-node-running": "^3.2.2"
   }
 }

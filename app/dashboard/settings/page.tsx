@@ -1,13 +1,17 @@
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { measureAsync } from "@/lib/perf"
 import { SettingsTabs } from "@/components/settings-tabs"
 import { getQuestions } from "@/actions/question"
 
 export default async function SettingsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
+  const pageStart = performance.now()
+
+  const headersList = await headers()
+  const session = await measureAsync("auth.getSession", async () =>
+    auth.api.getSession({ headers: headersList })
+  )
 
   if (!session) {
     redirect("/login")
@@ -16,10 +20,16 @@ export default async function SettingsPage() {
   // Fetch questions if reviewer
   let questions = null
   if (session.user.role === "REVIEWER") {
-    const result = await getQuestions(true)
+    const result = await measureAsync("getQuestions", () => getQuestions(true))
     if (result.success) {
       questions = result.data
     }
+  }
+
+  // Log page performance
+  const pageDuration = performance.now() - pageStart
+  if (pageDuration > 100) {
+    console.log(`🐢 Settings page total: ${pageDuration.toFixed(2)}ms`)
   }
 
   return (

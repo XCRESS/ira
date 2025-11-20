@@ -11,9 +11,9 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Production optimizations
+  // Production optimizations (2025 approach - Turbopack native)
   experimental: {
-    optimizePackageImports: ['lucide-react'],
+    optimizePackageImports: ['lucide-react', 'next-themes'],
   },
 
   // Ensure proper headers for production
