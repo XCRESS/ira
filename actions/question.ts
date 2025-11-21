@@ -5,7 +5,7 @@
 // ✅ Question versioning support for assessments
 // ✅ Proper validation and error handling
 
-import { revalidatePath } from "next/cache"
+import { revalidateTag, updateTag } from "next/cache"
 import prisma from "@/lib/prisma"
 import {
   verifyRole,
@@ -226,13 +226,10 @@ export async function addQuestion(
       text: question.text.substring(0, 100),
     })
 
-    // Revalidate pages that use questions
-    revalidatePath("/dashboard/questions")
-    revalidatePath("/dashboard/leads")
-    revalidatePath("/dashboard/settings")
-    // Revalidate assessment pages (dynamic routes - use layout revalidation)
-    revalidatePath("/dashboard/leads/[id]/eligibility", "page")
-    revalidatePath("/dashboard/leads/[id]/assessment", "page")
+    // Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`question-${question.id}`)
+    revalidateTag("questions-list", "days") // Template questions change rarely
+    revalidateTag("leads-list", "hours") // Invalidate leads that may show question counts
 
     return { success: true, data: question }
   } catch (error) {
@@ -286,13 +283,10 @@ export async function updateQuestion(
       newText: question.text.substring(0, 100),
     })
 
-    // Revalidate pages that use questions
-    revalidatePath("/dashboard/questions")
-    revalidatePath("/dashboard/leads")
-    revalidatePath("/dashboard/settings")
-    // Revalidate assessment pages (dynamic routes)
-    revalidatePath("/dashboard/leads/[id]/eligibility", "page")
-    revalidatePath("/dashboard/leads/[id]/assessment", "page")
+    // Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`question-${questionId}`)
+    revalidateTag("questions-list", "days")
+    revalidateTag("leads-list", "hours")
 
     return { success: true, data: question }
   } catch (error) {
@@ -337,13 +331,10 @@ export async function deleteQuestion(
       text: existing.text.substring(0, 100),
     })
 
-    // Revalidate pages that use questions
-    revalidatePath("/dashboard/questions")
-    revalidatePath("/dashboard/leads")
-    revalidatePath("/dashboard/settings")
-    // Revalidate assessment pages (dynamic routes)
-    revalidatePath("/dashboard/leads/[id]/eligibility", "page")
-    revalidatePath("/dashboard/leads/[id]/assessment", "page")
+    // Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`question-${questionId}`)
+    revalidateTag("questions-list", "days")
+    revalidateTag("leads-list", "hours")
 
     return { success: true, data: undefined }
   } catch (error) {
@@ -370,13 +361,10 @@ export async function restoreQuestion(
       action: "restored",
     })
 
-    // Revalidate pages that use questions
-    revalidatePath("/dashboard/questions")
-    revalidatePath("/dashboard/leads")
-    revalidatePath("/dashboard/settings")
-    // Revalidate assessment pages (dynamic routes)
-    revalidatePath("/dashboard/leads/[id]/eligibility", "page")
-    revalidatePath("/dashboard/leads/[id]/assessment", "page")
+    // Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`question-${questionId}`)
+    revalidateTag("questions-list", "days")
+    revalidateTag("leads-list", "hours")
 
     return { success: true, data: question }
   } catch (error) {
@@ -417,7 +405,8 @@ export async function reorderQuestions(
       questionCount: validatedData.questionIds.length,
     })
 
-    revalidatePath("/dashboard/questions")
+    // Next.js 16: Use revalidateTag for question list reordering
+    revalidateTag("questions-list", "days")
 
     return { success: true, data: undefined }
   } catch (error) {

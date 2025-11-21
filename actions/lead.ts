@@ -7,7 +7,7 @@
 // ✅ User.isActive verification in DAL
 // ✅ Proper transaction management
 
-import { revalidatePath } from "next/cache"
+import { revalidateTag, updateTag } from "next/cache"
 import prisma from "@/lib/prisma"
 import {
   verifyAuth,
@@ -171,8 +171,9 @@ export async function createLead(
         })
     }
 
-    // 9. Revalidate paths
-    revalidatePath("/dashboard/leads")
+    // 9. Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`lead-${lead.id}`)
+    revalidateTag("leads-list", "hours") // SWR for list pages
 
     return { success: true, data: lead }
   } catch (error) {
@@ -394,9 +395,9 @@ export async function updateLead(
       changes: validatedData,
     })
 
-    // 8. Revalidate paths
-    revalidatePath("/dashboard/leads")
-    revalidatePath(`/dashboard/leads/${leadId}`)
+    // 8. Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`lead-${leadId}`)
+    revalidateTag("leads-list", "hours")
 
     return { success: true, data: updated }
   } catch (error) {
@@ -553,9 +554,10 @@ export async function assignAssessor(
       totalQuestions: totalQuestionCount,
     })
 
-    // 8. Revalidate paths
-    revalidatePath("/dashboard/leads")
-    revalidatePath(`/dashboard/leads/${leadId}`)
+    // 8. Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`lead-${leadId}`)
+    // Assessment cache will be refreshed when assessor accesses it
+    revalidateTag("leads-list", "hours")
 
     return { success: true, data: updated }
   } catch (error) {
@@ -598,9 +600,9 @@ export async function updateLeadStatus(
       newStatus: validatedData.status,
     })
 
-    // 6. Revalidate paths
-    revalidatePath("/dashboard/leads")
-    revalidatePath(`/dashboard/leads/${leadId}`)
+    // 6. Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`lead-${leadId}`)
+    revalidateTag("leads-list", "hours")
 
     return { success: true, data: undefined }
   } catch (error) {
@@ -707,9 +709,9 @@ export async function fetchProbe42Data(
       }
     )
 
-    // 6. Revalidate paths
-    revalidatePath("/dashboard/leads")
-    revalidatePath(`/dashboard/leads/${leadId}`)
+    // 6. Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`lead-${leadId}`)
+    revalidateTag("leads-list", "hours")
 
     return {
       success: true,

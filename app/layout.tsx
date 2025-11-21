@@ -52,8 +52,13 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
-          <Analytics />
-          <SpeedInsights />
+          {/* Only load analytics in production (Vercel deployment) */}
+          {process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' && (
+            <>
+              <Analytics />
+              <SpeedInsights />
+            </>
+          )}
           <PerformanceMonitor />
         </ThemeProvider>
       </body>

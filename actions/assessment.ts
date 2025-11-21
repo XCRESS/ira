@@ -8,7 +8,7 @@
 // ✅ Scoring calculation
 // ✅ Submit/review workflow
 
-import { revalidatePath } from "next/cache"
+import { revalidateTag, updateTag } from "next/cache"
 import prisma from "@/lib/prisma"
 import {
   verifyAuth,
@@ -369,8 +369,10 @@ export async function completeEligibility(
       )
     }
 
-    revalidatePath(`/dashboard/leads/${assessment.leadId}`)
-    revalidatePath("/dashboard/leads")
+    // Next.js 16: Use updateTag for immediate cache refresh (read-your-writes)
+    updateTag(`assessment-${assessmentId}`)
+    updateTag(`lead-${assessment.leadId}`)
+    revalidateTag("leads-list", "hours") // SWR for list pages
 
     return {
       success: true,
@@ -663,8 +665,10 @@ export async function submitAssessment(
       }),
     ])
 
-    revalidatePath(`/dashboard/leads/${assessment.leadId}`)
-    revalidatePath("/dashboard/leads")
+    // Next.js 16: Use updateTag for immediate cache refresh after submission
+    updateTag(`assessment-${assessmentId}`)
+    updateTag(`lead-${assessment.leadId}`)
+    revalidateTag("leads-list", "hours") // SWR for list pages
 
     return {
       success: true,
@@ -753,8 +757,10 @@ export async function approveAssessment(
       }),
     ])
 
-    revalidatePath(`/dashboard/leads/${assessment.leadId}`)
-    revalidatePath("/dashboard/leads")
+    // Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`assessment-${assessmentId}`)
+    updateTag(`lead-${assessment.leadId}`)
+    revalidateTag("leads-list", "hours")
 
     return { success: true, data: undefined }
   } catch (error) {
@@ -836,8 +842,10 @@ export async function rejectAssessment(
       }),
     ])
 
-    revalidatePath(`/dashboard/leads/${assessment.leadId}`)
-    revalidatePath("/dashboard/leads")
+    // Next.js 16: Use updateTag for immediate cache refresh
+    updateTag(`assessment-${assessmentId}`)
+    updateTag(`lead-${assessment.leadId}`)
+    revalidateTag("leads-list", "hours")
 
     return { success: true, data: undefined }
   } catch (error) {
@@ -923,7 +931,9 @@ export async function restartAssessmentWithNewQuestions(
       action: "restarted_with_new_questions",
     })
 
-    revalidatePath(`/dashboard/leads/${assessment.leadId}`)
+    // Next.js 16: Use updateTag for immediate refresh
+    updateTag(`assessment-${assessmentId}`)
+    updateTag(`lead-${assessment.leadId}`)
 
     return { success: true, data: updated }
   } catch (error) {
