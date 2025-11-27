@@ -18,8 +18,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IRA - IPO Readiness Assessment",
-  description: "Internal tool for calculating IPO readiness scores",
+  title: "IPO Readiness Assessment - Free Eligibility Test | IRA",
+  description: "Professional IPO readiness assessment for BSE, NSE, NYSE & NASDAQ. Free 90-second eligibility check. Expert financial analysis for companies planning to go public.",
+  icons: {
+    icon: '/ira_logo.png',
+    apple: '/ira_logo.png',
+  },
+  openGraph: {
+    title: "IPO Readiness Assessment - IRA",
+    description: "Expert IPO advisory services. Check your eligibility in 90 seconds - free.",
+    images: ['/ira_logo.png'],
+  },
+  keywords: ['IPO readiness', 'IPO assessment', 'BSE listing', 'NSE listing', 'SEBI compliance', 'IPO advisory'],
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

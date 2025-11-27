@@ -32,6 +32,7 @@ import {
 import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError } from "zod"
 import type { Assessment } from "@prisma/client"
+import { sendAssessmentSubmittedEmail, sendAssessmentRejectedEmail, sendEmailsBatched } from "@/lib/email"
 
 // ============================================
 // ERROR HANDLER WRAPPER
@@ -665,6 +666,50 @@ export async function submitAssessment(
       }),
     ])
 
+    // Send email notification to all active reviewers (fire-and-forget)
+    // Email failure should NOT fail the submission operation
+    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+    const reviewUrl = `${baseUrl}/dashboard/leads/${assessment.lead.leadId}`
+
+    // Get all active reviewers
+    prisma.user.findMany({
+      where: { role: 'REVIEWER', isActive: true },
+      select: { email: true, name: true }
+    }).then(reviewers => {
+      if (reviewers.length === 0) {
+        console.warn('[Assessment Submission] No active reviewers found to notify')
+        return
+      }
+
+      // Send to all reviewers in parallel with rate limiting
+      const emailPromises = reviewers.map(reviewer =>
+        () => sendAssessmentSubmittedEmail({
+          reviewerName: reviewer.name,
+          companyName: assessment.lead.companyName,
+          leadId: assessment.lead.leadId,
+          assessorName: session.user.name,
+          totalScore,
+          percentage,
+          rating,
+          actionUrl: reviewUrl,
+          reviewerEmail: reviewer.email
+        } as any)
+      )
+
+      return sendEmailsBatched(emailPromises, 2, 1000)
+    }).then(results => {
+      if (!results) return
+
+      const failed = results.filter(r => r.status === 'rejected')
+      if (failed.length > 0) {
+        console.error('[Assessment Submission] Some email notifications failed:', failed)
+      } else {
+        console.log('[Assessment Submission] Email notifications sent to all reviewers')
+      }
+    }).catch(err => {
+      console.error('[Assessment Submission] Unexpected error sending notifications:', err)
+    })
+
     // Next.js 16: Use updateTag for immediate cache refresh after submission
     updateTag(`assessment-${assessmentId}`)
     updateTag(`lead-${assessment.leadId}`)
@@ -841,6 +886,42 @@ export async function rejectAssessment(
         },
       }),
     ])
+
+    // Send email notification to assessor (fire-and-forget)
+    // Email failure should NOT fail the rejection operation
+    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+    const revisionUrl = `${baseUrl}/dashboard/leads/${assessment.lead.leadId}`
+
+    // Get assessor details
+    prisma.user.findUnique({
+      where: { id: assessment.assessorId },
+      select: { email: true, name: true }
+    }).then(assessor => {
+      if (!assessor) {
+        console.warn('[Assessment Rejection] Assessor not found:', assessment.assessorId)
+        return
+      }
+
+      return sendAssessmentRejectedEmail({
+        assessorName: assessor.name,
+        companyName: assessment.lead.companyName,
+        leadId: assessment.lead.leadId,
+        reviewerName: session.user.name,
+        comments: validatedData.comments,
+        actionUrl: revisionUrl,
+        assessorEmail: assessor.email
+      } as any)
+    }).then(result => {
+      if (!result) return
+
+      if (result.success) {
+        console.log('[Assessment Rejection] Email notification sent to assessor')
+      } else {
+        console.error('[Assessment Rejection] Failed to send email notification:', result.error)
+      }
+    }).catch(err => {
+      console.error('[Assessment Rejection] Unexpected error sending notification:', err)
+    })
 
     // Next.js 16: Use updateTag for immediate cache refresh
     updateTag(`assessment-${assessmentId}`)
