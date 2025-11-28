@@ -21,7 +21,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ isEligible, missingCri
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in-up relative">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-fade-in-up relative flex flex-col">
         
         {/* Close Button */}
         <button 
@@ -32,7 +32,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ isEligible, missingCri
         </button>
 
         {/* Header Section */}
-        <div className={`p-8 text-center ${isEligible ? 'bg-green-50' : 'bg-red-50'}`}>
+        <div className={`p-8 text-center flex-shrink-0 ${isEligible ? 'bg-green-50' : 'bg-red-50'}`}>
           <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-white shadow-sm">
             {isEligible ? (
               <CheckCircle2 className="w-10 h-10 text-green-600" />
@@ -44,14 +44,14 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ isEligible, missingCri
             {isEligible ? "You Are IPO Ready!" : "Eligibility Gaps Identified"}
           </h2>
           <p className="text-gray-600 max-w-md mx-auto">
-            {isEligible 
-              ? "Your company meets the preliminary criteria for BSE/NSE SME listing." 
+            {isEligible
+              ? "Your company meets the preliminary criteria for BSE/NSE SME listing."
               : "Your company is currently not meeting the standard eligibility criteria for the following reasons:"}
           </p>
         </div>
 
         {/* Content Section */}
-        <div className="p-8">
+        <div className="p-8 overflow-y-auto flex-1">
           
           {!isEligible && (
             <div className="mb-8">
@@ -103,16 +103,16 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ isEligible, missingCri
 
               {submitted ? (
                 <button onClick={onReset} className="text-sm underline text-brand-200 hover:text-white">
-                  Close and Start Over
+                  Done
                 </button>
               ) : (
                 <form onSubmit={handleLeadGen} className="space-y-4">
                   <div>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       required
                       placeholder="Enter work email"
-                      className="w-full px-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                      className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500 border border-brand-700"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />

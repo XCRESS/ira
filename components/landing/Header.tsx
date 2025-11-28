@@ -1,8 +1,13 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { Menu, X, ChevronDown, Globe, Building2, LogIn } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 export const Header = () => {
+  const pathname = usePathname();
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -14,20 +19,45 @@ export const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Smooth scroll to section
+  const scrollToSection = (sectionId: string) => {
+    if (pathname !== '/') {
+      // If not on landing page, navigate there first
+      router.push('/');
+      // Wait for navigation, then scroll
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      // Already on landing page, just scroll
+      const element = document.getElementById(sectionId);
+      element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setMobileMenuOpen(false);
+  };
+
+  // Pages with hero sections should have transparent header at top
+  const pagesWithHero = ['/', '/methodology', '/privacy-policy', '/terms-of-service', '/sme-exchange-rules'];
+  const hasHeroSection = pagesWithHero.includes(pathname);
+
+  // Show solid background when scrolled OR when page doesn't have hero
+  const showSolidBg = isScrolled || !hasHeroSection;
+
   return (
-    <header className={`fixed w-full z-40 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-3' : 'bg-transparent py-5'}`}>
+    <header className={`fixed w-full z-40 transition-all duration-300 ${showSolidBg ? 'bg-white shadow-md py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <span className={`text-2xl font-serif font-bold ${isScrolled ? 'text-brand-900' : 'text-white'}`}>
+          <Link href="/" className="flex items-center">
+            <span className={`text-2xl font-serif font-bold ${showSolidBg ? 'text-brand-900' : 'text-white'}`}>
               IRA<span className="text-gold-500">Score</span>
             </span>
-          </div>
-          
+          </Link>
+
           <nav className="hidden md:flex items-center space-x-8">
             <div className="relative group">
               <button
-                className={`flex items-center text-sm font-medium hover:text-gold-500 transition-colors ${isScrolled ? 'text-gray-700' : 'text-gray-200'}`}
+                className={`flex items-center text-sm font-medium hover:text-gold-500 transition-colors ${showSolidBg ? 'text-gray-700' : 'text-gray-200'}`}
               >
                 Stock Exchanges <ChevronDown className="ml-1 w-4 h-4" />
               </button>
@@ -64,15 +94,24 @@ export const Header = () => {
               </div>
             </div>
 
-            {['How it Works', 'Success Stories', 'Contact'].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(/\s/g, '-')}`}
-                className={`text-sm font-medium hover:text-gold-500 transition-colors ${isScrolled ? 'text-gray-700' : 'text-gray-200'}`}
-              >
-                {item}
-              </a>
-            ))}
+            <button
+              onClick={() => scrollToSection('how-it-works')}
+              className={`text-sm font-medium hover:text-gold-500 transition-colors ${showSolidBg ? 'text-gray-700' : 'text-gray-200'}`}
+            >
+              How it Works
+            </button>
+            <button
+              onClick={() => scrollToSection('success-stories')}
+              className={`text-sm font-medium hover:text-gold-500 transition-colors ${showSolidBg ? 'text-gray-700' : 'text-gray-200'}`}
+            >
+              Success Stories
+            </button>
+            <button
+              onClick={() => scrollToSection('contact')}
+              className={`text-sm font-medium hover:text-gold-500 transition-colors ${showSolidBg ? 'text-gray-700' : 'text-gray-200'}`}
+            >
+              Contact
+            </button>
 
             <Link
               href="/login"
@@ -88,9 +127,9 @@ export const Header = () => {
           </nav>
 
           <div className="md:hidden">
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={isScrolled ? 'text-gray-900' : 'text-white'}
+              className={showSolidBg ? 'text-gray-900' : 'text-white'}
             >
               {mobileMenuOpen ? <X /> : <Menu />}
             </button>
@@ -108,16 +147,24 @@ export const Header = () => {
               <a href="#" className="block text-sm text-gray-800">NASDAQ / NYSE</a>
            </div>
 
-           {['How it Works', 'Success Stories', 'Contact'].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(/\s/g, '-')}`}
-                className="text-gray-800 font-medium py-2 border-t border-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item}
-              </a>
-            ))}
+           <button
+              onClick={() => scrollToSection('how-it-works')}
+              className="text-gray-800 font-medium py-2 border-t border-gray-50 text-left"
+            >
+              How it Works
+            </button>
+            <button
+              onClick={() => scrollToSection('success-stories')}
+              className="text-gray-800 font-medium py-2 border-t border-gray-50 text-left"
+            >
+              Success Stories
+            </button>
+            <button
+              onClick={() => scrollToSection('contact')}
+              className="text-gray-800 font-medium py-2 border-t border-gray-50 text-left"
+            >
+              Contact
+            </button>
 
            <Link
              href="/login"

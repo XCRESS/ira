@@ -21,11 +21,11 @@ export const Testimonials = () => {
               </div>
             </div>
           </div>
-          <div className="relative">
-             <div className="absolute -inset-4 bg-gold-500/20 rounded-2xl transform rotate-3"></div>
-            <img 
-              src="https://picsum.photos/600/400" 
-              alt="Apollo Green Energy Listing Ceremony" 
+          <div className="relative px-4 md:px-0">
+             <div className="absolute inset-0 md:-inset-4 bg-gold-500/20 rounded-2xl transform rotate-3"></div>
+            <img
+              src="https://picsum.photos/600/400"
+              alt="Apollo Green Energy Listing Ceremony"
               className="relative rounded-xl shadow-2xl w-full object-cover h-64 md:h-80 grayscale hover:grayscale-0 transition-all duration-500"
             />
             <div className="absolute bottom-4 left-4 bg-white px-4 py-2 rounded-lg shadow-lg">

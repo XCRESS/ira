@@ -1,4 +1,5 @@
 import { ArrowRight, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 
 interface HeroProps {
   onStartAssessment: () => void;
@@ -28,16 +29,19 @@ export const Hero = ({ onStartAssessment }: HeroProps) => {
               Unlock your company's potential on BSE & NSE. Take the first step with our free AI-powered IRA Score™ eligibility check.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button 
+              <button
                 onClick={onStartAssessment}
                 className="inline-flex items-center justify-center bg-gold-600 hover:bg-gold-500 text-white font-semibold px-8 py-4 rounded-lg transition-all shadow-lg hover:shadow-gold-500/20"
               >
                 Check Eligibility Free
                 <ArrowRight className="ml-2 w-5 h-5" />
               </button>
-              <button className="inline-flex items-center justify-center text-white border border-brand-600 hover:bg-brand-800 font-medium px-8 py-4 rounded-lg transition-all">
+              <Link
+                href="/methodology"
+                className="inline-flex items-center justify-center text-white border border-brand-600 hover:bg-brand-800 font-medium px-8 py-4 rounded-lg transition-all"
+              >
                 Learn about IRA Tool
-              </button>
+              </Link>
             </div>
           </div>
           

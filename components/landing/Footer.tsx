@@ -1,6 +1,23 @@
+'use client'
+
 import { Mail, MapPin, User } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 
 export const Footer = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const scrollToSection = (sectionId: string) => {
+    if (pathname !== '/') {
+      router.push('/');
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <footer className="bg-brand-900 text-white py-16 border-t border-brand-800" id="contact">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,10 +36,26 @@ export const Footer = () => {
           <div className="col-span-1">
             <h4 className="font-bold text-lg mb-6 text-gold-500">Quick Links</h4>
             <ul className="space-y-4 text-sm text-brand-100">
-              <li><a href="#" className="hover:text-white hover:translate-x-1 transition-all inline-block">Eligibility Check</a></li>
-              <li><a href="#" className="hover:text-white hover:translate-x-1 transition-all inline-block">Our Methodology</a></li>
-              <li><a href="#" className="hover:text-white hover:translate-x-1 transition-all inline-block">Client Stories</a></li>
-              <li><a href="#" className="hover:text-white hover:translate-x-1 transition-all inline-block">SME Exchange Rules</a></li>
+              <li>
+                <button onClick={() => router.push('/')} className="hover:text-white hover:translate-x-1 transition-all inline-block text-left">
+                  Eligibility Check
+                </button>
+              </li>
+              <li>
+                <button onClick={() => router.push('/methodology')} className="hover:text-white hover:translate-x-1 transition-all inline-block text-left">
+                  Our Methodology
+                </button>
+              </li>
+              <li>
+                <button onClick={() => scrollToSection('success-stories')} className="hover:text-white hover:translate-x-1 transition-all inline-block text-left">
+                  Client Stories
+                </button>
+              </li>
+              <li>
+                <button onClick={() => router.push('/sme-exchange-rules')} className="hover:text-white hover:translate-x-1 transition-all inline-block text-left">
+                  SME Exchange Rules
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -71,8 +104,8 @@ export const Footer = () => {
         <div className="border-t border-brand-800 mt-16 pt-8 text-center text-xs text-brand-400 flex flex-col md:flex-row justify-between items-center">
           <p>© {new Date().getFullYear()} IRA Score Financial Services. All rights reserved.</p>
           <div className="mt-4 md:mt-0 space-x-6">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <a href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</a>
           </div>
         </div>
       </div>

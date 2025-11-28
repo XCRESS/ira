@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: "IPO Readiness Assessment - Free Eligibility Test | IRA",
   description: "Professional IPO readiness assessment for BSE, NSE, NYSE & NASDAQ. Free 90-second eligibility check. Expert financial analysis for companies planning to go public.",
   icons: {

@@ -163,7 +163,7 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ onComple
                 Analyzing Financials...
               </>
             ) : (
-              'Check My Score'
+              'Check My Eligibility'
             )}
           </button>
         </div>
