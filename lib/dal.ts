@@ -104,7 +104,7 @@ export async function getNextSequence(counterId: string): Promise<number> {
     })
 
     return counter.value
-  } catch (error) {
+  } catch {
     throw Errors.databaseError("Failed to generate sequence")
   }
 }

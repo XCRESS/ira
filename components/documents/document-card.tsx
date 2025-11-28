@@ -29,7 +29,7 @@ export function DocumentCard({
       } else {
         toast.error(result.error)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete document')
     } finally {
       setDeleting(false)

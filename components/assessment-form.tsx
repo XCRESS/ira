@@ -119,9 +119,11 @@ export function AssessmentForm({
   }, [sectorAnswers])
 
   // ✅ PERFORMANCE: Memoize save function to prevent recreation
+  const attemptSaveRef = useRef<((attempt: number) => Promise<void>) | null>(null)
+
   const attemptSave = useCallback(async (attempt = 0): Promise<void> => {
     // Build update payload with only dirty fields
-    const updates: any = {}
+    const updates: Record<string, unknown> = {}
     if (dirtyFields.has('company')) updates.companyAnswers = companyAnswers
     if (dirtyFields.has('financial')) updates.financialAnswers = financialAnswers
     if (dirtyFields.has('sector')) updates.sectorAnswers = sectorAnswers
@@ -137,13 +139,22 @@ export function AssessmentForm({
       const delay = Math.pow(2, attempt) * AUTO_SAVE.RETRY_BASE_DELAY_MS
       setSaveError(AUTO_SAVE.RETRY_MESSAGE)
       setRetryCount(attempt + 1)
-      retryTimeoutRef.current = setTimeout(() => attemptSave(attempt + 1), delay)
+      retryTimeoutRef.current = setTimeout(() => {
+        if (attemptSaveRef.current) {
+          attemptSaveRef.current(attempt + 1)
+        }
+      }, delay)
     } else {
       setSaveError(AUTO_SAVE.FAILURE_MESSAGE)
       toast.error("Auto-save failed. Please try again.")
       setRetryCount(0)
     }
   }, [assessment.id, companyAnswers, financialAnswers, sectorAnswers, dirtyFields])
+
+  // Store the latest attemptSave in ref
+  useEffect(() => {
+    attemptSaveRef.current = attemptSave
+  }, [attemptSave])
 
   // Unified auto-save with retry logic (prevents race conditions)
   useEffect(() => {
@@ -230,7 +241,7 @@ export function AssessmentForm({
           }
           setIsSubmitting(false)
         }
-      } catch (error) {
+      } catch {
         setIsSubmitting(false)
         toast.error("Failed to submit assessment")
       }

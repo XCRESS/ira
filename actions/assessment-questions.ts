@@ -11,7 +11,7 @@ import { verifyAuth, createAuditLog, handlePrismaError } from "@/lib/dal"
 import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError, z } from "zod"
 import type { ActionResponse } from "@/lib/types"
-import type { QuestionType } from "@prisma/client"
+import type { QuestionType, Prisma } from "@prisma/client"
 
 // ============================================
 // TYPE DEFINITIONS
@@ -141,9 +141,9 @@ async function verifyEditableAssessment(assessmentId: string, userId: string) {
  * Handles both old format (without isCustom/isActive) and new format
  */
 function getSnapshotQuestions(
-  assessment: any
+  assessment: { questionSnapshot: Prisma.JsonValue | null }
 ): QuestionSnapshot {
-  const snapshot = assessment.questionSnapshot as any
+  const snapshot = assessment.questionSnapshot
 
   // Handle null or undefined snapshot (new assessment with no questions)
   if (!snapshot) {
@@ -155,7 +155,11 @@ function getSnapshotQuestions(
     }
   }
 
+  // Type assertion for the snapshot structure
+  const typedSnapshot = snapshot as Record<string, unknown>
+
   // Helper to normalize old format questions to new format
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const normalizeQuestion = (q: any): AssessmentQuestion => {
     // If already in new format, return as-is
     if ('isCustom' in q && 'isActive' in q && 'sourceQuestionId' in q) {
@@ -164,7 +168,7 @@ function getSnapshotQuestions(
 
     // Convert old format to new format
     return {
-      id: q.id || `legacy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: q.id || `legacy_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       sourceQuestionId: q.id || null, // Old format used template ID directly
       type: q.type,
       text: q.text,
@@ -176,10 +180,10 @@ function getSnapshotQuestions(
   }
 
   return {
-    eligibility: (snapshot?.eligibility || []).map(normalizeQuestion),
-    company: (snapshot?.company || []).map(normalizeQuestion),
-    financial: (snapshot?.financial || []).map(normalizeQuestion),
-    sector: (snapshot?.sector || []).map(normalizeQuestion),
+    eligibility: ((typedSnapshot.eligibility as unknown[]) || []).map(normalizeQuestion),
+    company: ((typedSnapshot.company as unknown[]) || []).map(normalizeQuestion),
+    financial: ((typedSnapshot.financial as unknown[]) || []).map(normalizeQuestion),
+    sector: ((typedSnapshot.sector as unknown[]) || []).map(normalizeQuestion),
   }
 }
 
@@ -193,7 +197,7 @@ async function updateSnapshot(
   await prisma.assessment.update({
     where: { id: assessmentId },
     data: {
-      questionSnapshot: snapshot as any,
+      questionSnapshot: snapshot as Prisma.InputJsonValue,
       updatedAt: new Date(),
     },
   })
@@ -273,7 +277,7 @@ export async function addAssessmentQuestion(
 
     // Create new question
     const newQuestion: AssessmentQuestion = {
-      id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `custom_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       sourceQuestionId: null,
       type: data.type,
       text: data.text,

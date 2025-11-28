@@ -1,6 +1,5 @@
 import { Header } from '@/components/landing/Header'
 import { Footer } from '@/components/landing/Footer'
-import { Shield, Lock, Eye, FileText } from 'lucide-react'
 
 export default function PrivacyPolicyPage() {
   return (

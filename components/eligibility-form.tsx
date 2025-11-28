@@ -45,6 +45,7 @@ export function EligibilityForm({ assessment, questions, leadId }: Props) {
 
   // ✅ PERFORMANCE: Use ref to track retry timeout, preventing re-render cascade
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const attemptSaveRef = useRef<((attempt: number) => Promise<void>) | null>(null)
 
   // ✅ PERFORMANCE: Memoize save function to prevent recreation on every render
   const attemptSave = useCallback(async (attempt = 0): Promise<void> => {
@@ -59,13 +60,22 @@ export function EligibilityForm({ assessment, questions, leadId }: Props) {
       const delay = Math.pow(2, attempt) * AUTO_SAVE.RETRY_BASE_DELAY_MS
       setSaveError(AUTO_SAVE.RETRY_MESSAGE)
       setRetryCount(attempt + 1)
-      retryTimeoutRef.current = setTimeout(() => attemptSave(attempt + 1), delay)
+      retryTimeoutRef.current = setTimeout(() => {
+        if (attemptSaveRef.current) {
+          attemptSaveRef.current(attempt + 1)
+        }
+      }, delay)
     } else {
       setSaveError(AUTO_SAVE.FAILURE_MESSAGE)
       setRetryCount(0)
       toast.error("Auto-save failed. Please try again.")
     }
   }, [assessment.id, answers])
+
+  // Store the latest attemptSave in ref
+  useEffect(() => {
+    attemptSaveRef.current = attemptSave
+  }, [attemptSave])
 
   // Auto-save with retry logic and proper cleanup
   useEffect(() => {

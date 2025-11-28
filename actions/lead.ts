@@ -9,6 +9,7 @@
 
 import { revalidateTag, updateTag } from "next/cache"
 import prisma from "@/lib/prisma"
+import type { Prisma } from "@prisma/client"
 import {
   verifyAuth,
   verifyRole,
@@ -485,6 +486,7 @@ export async function assignAssessor(
     })
 
     // Transform questions into assessment-specific format
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const transformQuestion = (q: any) => ({
       id: `${q.id}_${Date.now()}`, // Unique per assessment
       sourceQuestionId: q.id, // Reference to template
@@ -533,7 +535,7 @@ export async function assignAssessor(
             leadId: lead.id, // Use internal id for foreign key
             assessorId: validatedData.assessorId,
             status: "DRAFT",
-            questionSnapshot: questionSnapshot as any,
+            questionSnapshot: questionSnapshot as Prisma.InputJsonValue,
             questionSnapshotVersion: snapshotVersion,
           },
         })
@@ -543,7 +545,7 @@ export async function assignAssessor(
           where: { id: lead.assessment.id },
           data: {
             assessorId: validatedData.assessorId,
-            questionSnapshot: questionSnapshot as any,
+            questionSnapshot: questionSnapshot as Prisma.InputJsonValue,
             questionSnapshotVersion: snapshotVersion,
             // Reset if reassigning to different assessor
             status: "DRAFT",

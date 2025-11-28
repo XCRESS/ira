@@ -20,7 +20,7 @@ export default function SMEExchangeRulesPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="max-w-4xl">
             <h1 className="text-4xl md:text-6xl font-serif font-bold leading-tight mb-6">
-              BSE & NSE <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-500 to-amber-300">SME Rules</span>
+              BSE & NSE <span className="text-transparent bg-clip-text bg-linear-to-r from-gold-500 to-amber-300">SME Rules</span>
             </h1>
 
             <p className="text-xl md:text-2xl text-brand-100 leading-relaxed">

@@ -22,7 +22,6 @@ export function ThemeSwitcher() {
   // Set mounted flag after hydration to prevent hydration mismatch
   // This is the standard pattern recommended by next-themes
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

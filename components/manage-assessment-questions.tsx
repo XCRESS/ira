@@ -509,7 +509,7 @@ export function ManageAssessmentQuestions({
                     className="w-full flex items-center justify-between mb-3"
                   >
                     <h4 className="text-sm font-semibold">
-                      Template Questions ({(templateQuestions as any)[section.type.toLowerCase()].length})
+                      Template Questions ({templateQuestions[section.type.toLowerCase() as keyof typeof templateQuestions].length})
                     </h4>
                     <span className="text-sm text-foreground/70">
                       {showTemplates === section.type ? "Hide" : "Show"}
@@ -518,12 +518,12 @@ export function ManageAssessmentQuestions({
 
                   {showTemplates === section.type && (
                     <div className="space-y-2">
-                      {(templateQuestions as any)[section.type.toLowerCase()].length === 0 ? (
+                      {templateQuestions[section.type.toLowerCase() as keyof typeof templateQuestions].length === 0 ? (
                         <p className="text-sm text-foreground/70 text-center py-4">
                           No template questions available
                         </p>
                       ) : (
-                        (templateQuestions as any)[section.type.toLowerCase()].map((template: Question, index: number) => {
+                        templateQuestions[section.type.toLowerCase() as keyof typeof templateQuestions].map((template: Question, index: number) => {
                           const alreadyAdded = isTemplateAdded(template.id, section.type)
                           return (
                             <div

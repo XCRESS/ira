@@ -18,8 +18,12 @@ export function Breadcrumbs({ items }: Props) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
+    // Delay mounting to next tick to avoid hydration mismatch
+    const timer = setTimeout(() => setMounted(true), 0)
+    return () => {
+      clearTimeout(timer)
+      setMounted(false)
+    }
   }, [])
 
   // Only render on client after mount

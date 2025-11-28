@@ -15,8 +15,6 @@ import {
 } from "lucide-react"
 
 export default async function DashboardPage() {
-  const pageStart = performance.now()
-
   // Verify authentication
   const headersList = await headers()
   const session = await measureAsync("auth.getSession", async () =>
@@ -34,12 +32,6 @@ export default async function DashboardPage() {
   const { stats, recentLeads } = dashboardResult.success
     ? dashboardResult.data
     : { stats: { total: 0, new: 0, inProgress: 0, completed: 0 }, recentLeads: [] }
-
-  // Log total page load time
-  const pageDuration = performance.now() - pageStart
-  if (pageDuration > 100) {
-    console.log(`🐢 Dashboard page total: ${pageDuration.toFixed(2)}ms`)
-  }
 
   return (
     <div className="p-4 md:p-6">

@@ -9,8 +9,6 @@ import { ClickableRow } from "@/components/clickable-row"
 import { FileCheck } from "lucide-react"
 
 export default async function ReviewsPage() {
-  const pageStart = performance.now()
-
   // 1. Verify authentication - Reviewers only
   const headersList = await headers()
   const session = await measureAsync("auth.getSession", async () =>
@@ -60,12 +58,6 @@ export default async function ReviewsPage() {
   const avgScore = assessments.length > 0
     ? assessments.reduce((sum, a) => sum + (a.percentage || 0), 0) / assessments.length
     : 0
-
-  // Log page performance
-  const pageDuration = performance.now() - pageStart
-  if (pageDuration > 100) {
-    console.log(`🐢 Reviews page total: ${pageDuration.toFixed(2)}ms`)
-  }
 
   return (
     <div className="p-4 md:p-6">

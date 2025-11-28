@@ -82,6 +82,7 @@ export default async function ReviewPage({ params }: Props) {
   }
 
   // Get question snapshot
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const snapshot = assessment.questionSnapshot as any
   const eligibilityQuestions = snapshot?.eligibility || []
   const companyQuestions = snapshot?.company || []

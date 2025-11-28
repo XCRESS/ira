@@ -6,8 +6,6 @@ import { SettingsTabs } from "@/components/settings-tabs"
 import { getQuestions } from "@/actions/question"
 
 export default async function SettingsPage() {
-  const pageStart = performance.now()
-
   const headersList = await headers()
   const session = await measureAsync("auth.getSession", async () =>
     auth.api.getSession({ headers: headersList })
@@ -24,12 +22,6 @@ export default async function SettingsPage() {
     if (result.success) {
       questions = result.data
     }
-  }
-
-  // Log page performance
-  const pageDuration = performance.now() - pageStart
-  if (pageDuration > 100) {
-    console.log(`🐢 Settings page total: ${pageDuration.toFixed(2)}ms`)
   }
 
   return (

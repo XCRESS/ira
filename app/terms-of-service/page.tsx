@@ -1,7 +1,6 @@
 import { Header } from '@/components/landing/Header'
 import { Footer } from '@/components/landing/Footer'
 import Link from 'next/link'
-import { FileText, Scale, Handshake, AlertCircle } from 'lucide-react'
 
 export default function TermsOfServicePage() {
   return (

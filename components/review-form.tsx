@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { AlertTriangle, CheckCircle2, XCircle, Clock } from "lucide-react"
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
 import type { Assessment } from "@prisma/client"
 import { approveAssessment, rejectAssessment } from "@/actions/assessment"
 import { toast } from "sonner"

@@ -22,7 +22,7 @@ export function UploadDocumentButton({ leadId }: { leadId: string }) {
       } else {
         toast.error(result.error)
       }
-    } catch (error) {
+    } catch {
       toast.error('Upload failed')
     } finally {
       setUploading(false)

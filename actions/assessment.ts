@@ -10,6 +10,7 @@
 
 import { revalidateTag, updateTag } from "next/cache"
 import prisma from "@/lib/prisma"
+import type { Prisma } from "@prisma/client"
 import {
   verifyAuth,
   verifyRole,
@@ -254,7 +255,7 @@ export async function updateEligibilityAnswers(
     const updated = await prisma.assessment.update({
       where: { id: assessmentId },
       data: {
-        eligibilityAnswers: validatedData as any,
+        eligibilityAnswers: validatedData as Prisma.InputJsonValue,
         updatedAt: new Date(),
       },
     })
@@ -314,7 +315,7 @@ export async function completeEligibility(
       EligibilityAnswer
     >
     const failedQuestions = Object.entries(answers)
-      .filter(([_, ans]) => !ans.checked)
+      .filter(([, ans]) => !ans.checked)
       .map(([qId]) => qId)
 
     const isEligible = failedQuestions.length === 0
@@ -444,7 +445,7 @@ export async function updateAllAssessmentAnswers(
     }
 
     // Build update data - only include fields that were provided
-    const updateData: any = {
+    const updateData: Prisma.AssessmentUpdateInput = {
       updatedAt: new Date(),
     }
 
@@ -572,7 +573,7 @@ export async function submitAssessment(
     >
 
     // Get snapshot to validate against
-    const snapshot = assessment.questionSnapshot as any
+    const snapshot = assessment.questionSnapshot as Record<string, unknown> | null
     if (!snapshot) {
       throw Errors.databaseError("Assessment snapshot not found")
     }
@@ -782,7 +783,7 @@ export async function approveAssessment(
         data: {
           status: "APPROVED",
           reviewedAt: new Date(),
-          reviewHistory: [...limitedHistory, newEntry] as any,
+          reviewHistory: [...limitedHistory, newEntry] as Prisma.InputJsonValue,
         },
       }),
       prisma.lead.update({
@@ -862,7 +863,7 @@ export async function rejectAssessment(
         data: {
           status: "DRAFT", // Back to draft for editing
           reviewedAt: new Date(),
-          reviewHistory: [...limitedHistory, newEntry] as any,
+          reviewHistory: [...limitedHistory, newEntry] as Prisma.InputJsonValue,
           // Clear submission data
           totalScore: null,
           percentage: null,
@@ -995,7 +996,7 @@ export async function restartAssessmentWithNewQuestions(
     const updated = await prisma.assessment.update({
       where: { id: assessmentId },
       data: {
-        questionSnapshot: snapshot as any,
+        questionSnapshot: snapshot as Prisma.InputJsonValue,
         questionSnapshotVersion: version,
         eligibilityAnswers: {},
         companyAnswers: {},
