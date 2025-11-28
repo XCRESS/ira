@@ -31,7 +31,7 @@ import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError } from "zod"
 import { fetchCompanyByCIN } from "@/lib/probe42"
 import { downloadAndSaveProbe42Report } from "./documents"
-import { sendLeadAssignmentEmail } from "@/lib/email"
+import { sendLeadAssignmentEmail, getAppBaseUrl } from "@/lib/email"
 
 // ============================================
 // ERROR HANDLER WRAPPER
@@ -575,19 +575,19 @@ export async function assignAssessor(
 
     // 8. Send email notification to assessor (fire-and-forget)
     // Email failure should NOT fail the assignment operation
-    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+    const baseUrl = getAppBaseUrl()
     const assessmentUrl = `${baseUrl}/dashboard/leads/${leadId}`
 
     Promise.allSettled([
       sendLeadAssignmentEmail({
         assessorName: assessor.name,
+        assessorEmail: assessor.email,
         companyName: updated.companyName,
         leadId: updated.leadId,
         cin: updated.cin,
         reviewerName: session.user.name,
-        actionUrl: assessmentUrl,
-        assessorEmail: assessor.email
-      } as any)
+        actionUrl: assessmentUrl
+      })
     ]).then(([emailResult]) => {
       if (emailResult.status === 'rejected') {
         console.error('[Lead Assignment] Failed to send email notification:', emailResult.reason)

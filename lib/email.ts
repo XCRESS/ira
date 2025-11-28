@@ -25,6 +25,21 @@ import {
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'IRA Platform <noreply@irascore.com>'
 
+/**
+ * Get the base URL for email links (environment-aware)
+ * - Production: Uses NEXT_PUBLIC_APP_URL
+ * - Development: Uses BETTER_AUTH_URL or localhost
+ */
+export function getAppBaseUrl(): string {
+  // In production, use the public app URL
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.NEXT_PUBLIC_APP_URL || 'https://irascore.com'
+  }
+
+  // In development, use BETTER_AUTH_URL (localhost)
+  return process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+}
+
 if (!RESEND_API_KEY) {
   console.warn('[Email] RESEND_API_KEY not configured. Email notifications will be disabled.')
 }
@@ -153,14 +168,7 @@ export async function sendLeadAssignmentEmail(
   const html = getLeadAssignmentEmailHTML(data)
   const text = getLeadAssignmentEmailText(data)
 
-  // Extract email from assessor data (could be user object or email string)
-  const assessorEmail = typeof data === 'object' && 'assessorEmail' in data
-    ? (data as any).assessorEmail
-    : data.assessorName.includes('@')
-      ? data.assessorName
-      : null
-
-  if (!assessorEmail) {
+  if (!data.assessorEmail) {
     console.error('[Email] No assessor email provided', { data })
     return {
       success: false,
@@ -168,7 +176,7 @@ export async function sendLeadAssignmentEmail(
     }
   }
 
-  return sendEmail(assessorEmail, subject, html, text)
+  return sendEmail(data.assessorEmail, subject, html, text)
 }
 
 /**
@@ -182,14 +190,7 @@ export async function sendAssessmentSubmittedEmail(
   const html = getAssessmentSubmittedEmailHTML(data)
   const text = getAssessmentSubmittedEmailText(data)
 
-  // Extract email from reviewer data
-  const reviewerEmail = typeof data === 'object' && 'reviewerEmail' in data
-    ? (data as any).reviewerEmail
-    : data.reviewerName.includes('@')
-      ? data.reviewerName
-      : null
-
-  if (!reviewerEmail) {
+  if (!data.reviewerEmail) {
     console.error('[Email] No reviewer email provided', { data })
     return {
       success: false,
@@ -197,7 +198,7 @@ export async function sendAssessmentSubmittedEmail(
     }
   }
 
-  return sendEmail(reviewerEmail, subject, html, text)
+  return sendEmail(data.reviewerEmail, subject, html, text)
 }
 
 /**
@@ -211,14 +212,7 @@ export async function sendAssessmentRejectedEmail(
   const html = getAssessmentRejectedEmailHTML(data)
   const text = getAssessmentRejectedEmailText(data)
 
-  // Extract email from assessor data
-  const assessorEmail = typeof data === 'object' && 'assessorEmail' in data
-    ? (data as any).assessorEmail
-    : data.assessorName.includes('@')
-      ? data.assessorName
-      : null
-
-  if (!assessorEmail) {
+  if (!data.assessorEmail) {
     console.error('[Email] No assessor email provided', { data })
     return {
       success: false,
@@ -226,7 +220,7 @@ export async function sendAssessmentRejectedEmail(
     }
   }
 
-  return sendEmail(assessorEmail, subject, html, text)
+  return sendEmail(data.assessorEmail, subject, html, text)
 }
 
 /**

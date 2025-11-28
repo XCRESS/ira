@@ -4,6 +4,7 @@
 
 export interface LeadAssignmentEmailData {
   assessorName: string
+  assessorEmail: string
   companyName: string
   leadId: string
   cin: string
@@ -13,6 +14,7 @@ export interface LeadAssignmentEmailData {
 
 export interface AssessmentSubmittedEmailData {
   reviewerName: string
+  reviewerEmail: string
   companyName: string
   leadId: string
   assessorName: string
@@ -24,6 +26,7 @@ export interface AssessmentSubmittedEmailData {
 
 export interface AssessmentRejectedEmailData {
   assessorName: string
+  assessorEmail: string
   companyName: string
   leadId: string
   reviewerName: string

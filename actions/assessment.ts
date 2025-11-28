@@ -32,7 +32,7 @@ import {
 import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError } from "zod"
 import type { Assessment } from "@prisma/client"
-import { sendAssessmentSubmittedEmail, sendAssessmentRejectedEmail, sendEmailsBatched } from "@/lib/email"
+import { sendAssessmentSubmittedEmail, sendAssessmentRejectedEmail, sendEmailsBatched, getAppBaseUrl } from "@/lib/email"
 
 // ============================================
 // ERROR HANDLER WRAPPER
@@ -668,7 +668,7 @@ export async function submitAssessment(
 
     // Send email notification to all active reviewers (fire-and-forget)
     // Email failure should NOT fail the submission operation
-    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+    const baseUrl = getAppBaseUrl()
     const reviewUrl = `${baseUrl}/dashboard/leads/${assessment.lead.leadId}`
 
     // Get all active reviewers
@@ -685,15 +685,15 @@ export async function submitAssessment(
       const emailPromises = reviewers.map(reviewer =>
         () => sendAssessmentSubmittedEmail({
           reviewerName: reviewer.name,
+          reviewerEmail: reviewer.email,
           companyName: assessment.lead.companyName,
           leadId: assessment.lead.leadId,
           assessorName: session.user.name,
           totalScore,
           percentage,
           rating,
-          actionUrl: reviewUrl,
-          reviewerEmail: reviewer.email
-        } as any)
+          actionUrl: reviewUrl
+        })
       )
 
       return sendEmailsBatched(emailPromises, 2, 1000)
@@ -889,7 +889,7 @@ export async function rejectAssessment(
 
     // Send email notification to assessor (fire-and-forget)
     // Email failure should NOT fail the rejection operation
-    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+    const baseUrl = getAppBaseUrl()
     const revisionUrl = `${baseUrl}/dashboard/leads/${assessment.lead.leadId}`
 
     // Get assessor details
@@ -904,13 +904,13 @@ export async function rejectAssessment(
 
       return sendAssessmentRejectedEmail({
         assessorName: assessor.name,
+        assessorEmail: assessor.email,
         companyName: assessment.lead.companyName,
         leadId: assessment.lead.leadId,
         reviewerName: session.user.name,
         comments: validatedData.comments,
-        actionUrl: revisionUrl,
-        assessorEmail: assessor.email
-      } as any)
+        actionUrl: revisionUrl
+      })
     }).then(result => {
       if (!result) return
 
