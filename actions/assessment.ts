@@ -573,7 +573,7 @@ export async function submitAssessment(
     >
 
     // Get snapshot to validate against
-    const snapshot = assessment.questionSnapshot as Record<string, unknown> | null
+    const snapshot = assessment.questionSnapshot as Record<string, unknown[]> | null
     if (!snapshot) {
       throw Errors.databaseError("Assessment snapshot not found")
     }

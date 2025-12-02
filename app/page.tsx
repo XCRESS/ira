@@ -9,6 +9,8 @@ import { Testimonials } from '@/components/landing/Testimonials'
 import { Footer } from '@/components/landing/Footer'
 import { EligibilityChecker } from '@/components/landing/EligibilityChecker'
 import { ResultsView } from '@/components/landing/ResultsView'
+import { OrganicLeadForm } from '@/components/landing/OrganicLeadForm'
+import { SuccessView } from '@/components/landing/SuccessView'
 import { Step } from '@/lib/landing-types'
 
 export default function LandingPage() {
@@ -42,6 +44,14 @@ export default function LandingPage() {
     document.body.style.overflow = 'auto'
   }
 
+  const showLeadForm = () => {
+    setCurrentStep(Step.LEAD_FORM)
+  }
+
+  const handleSubmissionSuccess = () => {
+    setCurrentStep(Step.SUCCESS)
+  }
+
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-brand-100 selection:text-brand-900">
       <Header />
@@ -67,7 +77,16 @@ export default function LandingPage() {
           failureReasons={assessmentResult.failureReasons}
           advice={assessmentResult.advice}
           onReset={resetProcess}
+          onProceed={assessmentResult.isEligible ? showLeadForm : undefined}
         />
+      )}
+
+      {currentStep === Step.LEAD_FORM && (
+        <OrganicLeadForm onSuccess={handleSubmissionSuccess} onCancel={resetProcess} />
+      )}
+
+      {currentStep === Step.SUCCESS && (
+        <SuccessView onClose={resetProcess} />
       )}
     </div>
   )

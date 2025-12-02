@@ -37,11 +37,13 @@ model User {
   accounts      Account[]
 
   // Application relations
-  assignedLeads    Lead[]       @relation("AssignedLeads")
-  createdLeads     Lead[]       @relation("CreatedLeads")
-  assessments      Assessment[] @relation("AssessorAssessments")
-  uploadedDocs     Document[]   @relation("UploadedDocuments")
-  auditLogs        AuditLog[]   @relation("UserAuditLogs")
+  assignedLeads         Lead[]               @relation("AssignedLeads")
+  createdLeads          Lead[]               @relation("CreatedLeads")
+  assessments           Assessment[]         @relation("AssessorAssessments")
+  uploadedDocs          Document[]           @relation("UploadedDocuments")
+  auditLogs             AuditLog[]           @relation("UserAuditLogs")
+  convertedSubmissions  OrganicSubmission[]  @relation("ConvertedSubmissions")
+  rejectedSubmissions   OrganicSubmission[]  @relation("RejectedSubmissions")
 
   @@map("user")
 }
@@ -127,6 +129,12 @@ enum DocumentType {
   PNG
 }
 
+enum OrganicSubmissionStatus {
+  PENDING
+  CONVERTED
+  REJECTED
+}
+
 model Lead {
   id        String     @id @default(cuid())
   leadId    String     @unique // Display ID (LD-2024-001)
@@ -166,9 +174,10 @@ model Lead {
   assignedAssessor     User?       @relation("AssignedLeads", fields: [assignedAssessorId], references: [id])
 
   // Relations
-  assessment    Assessment?
-  documents     Document[]
-  auditLogs     AuditLog[]
+  assessment          Assessment?
+  documents           Document[]
+  auditLogs           AuditLog[]
+  organicSubmissions  OrganicSubmission[]  // Reverse relation
 
   // Metadata
   createdById   String
@@ -295,4 +304,40 @@ model Counter {
   value Int    @default(0)
 
   @@map("counter")
+}
+
+// Organic lead submissions from website (pre-lead stage)
+model OrganicSubmission {
+  id              String   @id @default(cuid())
+
+  // Submitted information
+  cin             String
+  companyName     String
+  contactPerson   String
+  email           String
+  phone           String?
+
+  // Status tracking
+  status          OrganicSubmissionStatus  @default(PENDING)
+
+  // If converted to lead
+  convertedToLeadId  String?
+  convertedToLead    Lead?    @relation(fields: [convertedToLeadId], references: [id])
+  convertedById      String?
+  convertedBy        User?    @relation("ConvertedSubmissions", fields: [convertedById], references: [id])
+  convertedAt        DateTime?
+
+  // If rejected
+  rejectedById    String?
+  rejectedBy      User?    @relation("RejectedSubmissions", fields: [rejectedById], references: [id])
+  rejectedAt      DateTime?
+  rejectionReason String?  @db.Text
+
+  // Metadata
+  submittedAt     DateTime @default(now())
+
+  @@unique([cin])
+  @@index([status])
+  @@index([submittedAt])
+  @@map("organic_submission")
 }

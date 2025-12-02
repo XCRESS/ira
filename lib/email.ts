@@ -13,9 +13,12 @@ import {
   getAssessmentSubmittedEmailText,
   getAssessmentRejectedEmailHTML,
   getAssessmentRejectedEmailText,
+  getOrganicSubmissionEmailHTML,
+  getOrganicSubmissionEmailText,
   type LeadAssignmentEmailData,
   type AssessmentSubmittedEmailData,
-  type AssessmentRejectedEmailData
+  type AssessmentRejectedEmailData,
+  type OrganicSubmissionEmailData
 } from './email-templates'
 
 // ============================================
@@ -221,6 +224,28 @@ export async function sendAssessmentRejectedEmail(
   }
 
   return sendEmail(data.assessorEmail, subject, html, text)
+}
+
+/**
+ * Send organic submission notification to reviewer
+ * Called when someone submits their details on the website
+ */
+export async function sendOrganicSubmissionEmail(
+  data: OrganicSubmissionEmailData
+): Promise<EmailResult> {
+  const subject = `New Organic Lead Submission: ${data.companyName}`
+  const html = getOrganicSubmissionEmailHTML(data)
+  const text = getOrganicSubmissionEmailText(data)
+
+  if (!data.reviewerEmail) {
+    console.error('[Email] No reviewer email provided', { data })
+    return {
+      success: false,
+      error: 'Reviewer email not provided'
+    }
+  }
+
+  return sendEmail(data.reviewerEmail, subject, html, text)
 }
 
 /**

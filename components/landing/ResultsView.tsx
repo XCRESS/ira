@@ -7,16 +7,21 @@ interface ResultsViewProps {
   failureReasons?: string[];
   advice?: string;
   onReset: () => void;
+  onProceed?: () => void;
 }
 
-export const ResultsView: React.FC<ResultsViewProps> = ({ isEligible, missingCriteria, failureReasons = [], advice, onReset }) => {
+export const ResultsView: React.FC<ResultsViewProps> = ({ isEligible, missingCriteria, failureReasons = [], advice, onReset, onProceed }) => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const handleLeadGen = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    // Logic to send email to backend would go here
+    if (onProceed) {
+      onProceed();
+    } else {
+      setSubmitted(true);
+      // Fallback: Logic to send email to backend would go here
+    }
   };
 
   return (
@@ -93,12 +98,18 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ isEligible, missingCri
           <div className="bg-brand-900 rounded-xl p-6 text-white relative overflow-hidden">
             <div className="relative z-10">
               <h3 className="text-xl font-bold mb-2">
-                {isEligible ? "Get Your Official IRA Score™" : "Build Your Recovery Plan"}
+                {onProceed
+                  ? (isEligible ? "Get Your Free Assessment" : "Contact Our Team")
+                  : (isEligible ? "Get Your Official IRA Score™" : "Build Your Recovery Plan")
+                }
               </h3>
               <p className="text-brand-100 text-sm mb-6">
-                {submitted 
+                {submitted
                   ? "Thank you! Our financial team will contact you shortly to schedule your deep-dive assessment."
-                  : "Unlock access to our internal IRA tool. Our finance team uses 3 years of financial data to calculate your precise listing probability score."}
+                  : onProceed
+                    ? "Share your company details and our team will contact you within 2-3 business days with a detailed IPO readiness report."
+                    : "Unlock access to our internal IRA tool. Our finance team uses 3 years of financial data to calculate your precise listing probability score."
+                }
               </p>
 
               {submitted ? (
@@ -107,27 +118,32 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ isEligible, missingCri
                 </button>
               ) : (
                 <form onSubmit={handleLeadGen} className="space-y-4">
-                  <div>
-                    <input
-                      type="email"
-                      required
-                      placeholder="Enter work email"
-                      className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500 border border-brand-700"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <button 
+                  {!onProceed && (
+                    <div>
+                      <input
+                        type="email"
+                        required
+                        placeholder="Enter work email"
+                        className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500 border border-brand-700"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <button
                     type="submit"
                     className="w-full bg-gold-600 hover:bg-gold-500 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center transition-colors"
                   >
-                    {isEligible ? "Calculate IRA Score" : "Get Improvement Plan"}
+                    {onProceed
+                      ? "Continue"
+                      : (isEligible ? "Get Your Free Assessment" : "Get Improvement Plan")
+                    }
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </button>
                 </form>
               )}
             </div>
-            
+
             {/* Decorative lock icon background */}
             <Lock className="absolute -bottom-6 -right-6 w-32 h-32 text-brand-800 opacity-50" />
           </div>

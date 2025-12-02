@@ -16,5 +16,7 @@ export interface AssessmentResult {
 export enum Step {
   LANDING = 'LANDING',
   ASSESSMENT = 'ASSESSMENT',
-  RESULTS = 'RESULTS'
+  RESULTS = 'RESULTS',
+  LEAD_FORM = 'LEAD_FORM',
+  SUCCESS = 'SUCCESS'
 }
