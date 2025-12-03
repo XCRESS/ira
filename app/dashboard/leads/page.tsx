@@ -3,11 +3,12 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { getLeads } from "@/actions/lead"
+import { getPendingSubmissionsCount } from "@/actions/organic-submission"
 import { getStatusDisplay } from "@/lib/types"
 import { EmptyState } from "@/components/empty-state"
 import { ClickableRow } from "@/components/clickable-row"
 import { LeadCard } from "@/components/lead-card"
-import { FileText, Plus } from "lucide-react"
+import { FileText, Plus, Inbox } from "lucide-react"
 
 export default async function LeadsPage() {
   // 1. Verify authentication
@@ -35,8 +36,36 @@ export default async function LeadsPage() {
   const leads = result.data
   const isReviewer = session.user.role === "REVIEWER"
 
+  // Fetch pending submissions count for reviewers
+  let pendingSubmissionsCount = 0
+  if (isReviewer) {
+    const pendingResult = await getPendingSubmissionsCount()
+    pendingSubmissionsCount = pendingResult.success ? pendingResult.data : 0
+  }
+
   return (
     <div className="p-4 md:p-6">
+      {/* Pending Approvals Banner */}
+      {isReviewer && pendingSubmissionsCount > 0 && (
+        <div className="glass rounded-xl p-4 border-l-4 border-orange-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3">
+            <Inbox className="h-5 w-5 text-orange-500 shrink-0" />
+            <div>
+              <p className="font-medium text-sm">
+                {pendingSubmissionsCount} organic submission{pendingSubmissionsCount !== 1 ? 's' : ''} pending approval
+              </p>
+              <p className="text-xs text-foreground/60">Review and convert to leads</p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/organic-submissions"
+            className="text-sm text-primary hover:text-primary/80 font-medium whitespace-nowrap"
+          >
+            Review now →
+          </Link>
+        </div>
+      )}
+
       {/* Action Button */}
       {isReviewer && (
         <div className="flex justify-end mb-6">

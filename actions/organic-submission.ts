@@ -135,6 +135,25 @@ export async function createOrganicSubmission(input: unknown): Promise<ActionRes
 // ============================================
 
 /**
+ * Get count of pending submissions (REVIEWER only)
+ * Used for dashboard stats and badges
+ */
+export async function getPendingSubmissionsCount(): Promise<ActionResponse<number>> {
+  try {
+    await verifyRole("REVIEWER")
+
+    const count = await prisma.organicSubmission.count({
+      where: { status: "PENDING" }
+    })
+
+    return { success: true, data: count }
+  } catch (error) {
+    console.error("Get submissions count error:", error)
+    return { success: false, error: "Failed to fetch count" }
+  }
+}
+
+/**
  * Get all pending submissions (REVIEWER only)
  */
 export async function getPendingSubmissions(): Promise<ActionResponse<Array<{

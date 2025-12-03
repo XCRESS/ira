@@ -8,6 +8,7 @@ import {
   BarChart3,
   Settings,
   Plus,
+  Inbox,
 } from "lucide-react"
 
 type NavItem = {
@@ -20,9 +21,10 @@ type NavItem = {
 
 type Props = {
   userRole: "ASSESSOR" | "REVIEWER"
+  pendingSubmissionsCount?: number
 }
 
-export function DashboardSidebar({ userRole }: Props) {
+export function DashboardSidebar({ userRole, pendingSubmissionsCount = 0 }: Props) {
   const pathname = usePathname()
 
   const navItems: NavItem[] = [
@@ -35,6 +37,13 @@ export function DashboardSidebar({ userRole }: Props) {
       name: "Leads",
       href: "/dashboard/leads",
       icon: FileText,
+    },
+    {
+      name: "Approvals",
+      href: "/dashboard/organic-submissions",
+      icon: Inbox,
+      roles: ["REVIEWER"],
+      badge: pendingSubmissionsCount || undefined,
     },
     {
       name: "Reviews",
@@ -87,14 +96,15 @@ export function DashboardSidebar({ userRole }: Props) {
                   ? "bg-primary text-primary-foreground"
                   : "text-foreground/90 hover:text-foreground hover:bg-foreground/5"
               }`}
+              suppressHydrationWarning
             >
               <Icon className="h-5 w-5 shrink-0" />
               <span className="flex-1">{item.name}</span>
-              {item.badge && (
+              {item.badge ? (
                 <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs">
                   {item.badge}
                 </span>
-              )}
+              ) : null}
             </Link>
           )
         })}

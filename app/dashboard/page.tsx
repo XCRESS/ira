@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { getDashboardStats } from "@/actions/lead"
+import { getPendingSubmissionsCount } from "@/actions/organic-submission"
 import { measureAsync } from "@/lib/perf"
 import {
   FileText,
@@ -12,6 +13,7 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  Inbox,
 } from "lucide-react"
 
 export default async function DashboardPage() {
@@ -33,6 +35,15 @@ export default async function DashboardPage() {
     ? dashboardResult.data
     : { stats: { total: 0, new: 0, inProgress: 0, completed: 0 }, recentLeads: [] }
 
+  // Fetch pending organic submissions count (REVIEWER only)
+  let pendingSubmissionsCount = 0
+  if (user.role === "REVIEWER") {
+    const pendingResult = await measureAsync("getPendingSubmissionsCount", () =>
+      getPendingSubmissionsCount()
+    )
+    pendingSubmissionsCount = pendingResult.success ? pendingResult.data : 0
+  }
+
   return (
     <div className="p-4 md:p-6">
       {/* Welcome Section */}
@@ -46,7 +57,22 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mt-6">
+      <div className={`grid gap-4 grid-cols-2 mt-6 ${user.role === "REVIEWER" ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
+        {/* Mobile: Show Pending Approvals first for reviewers */}
+        {user.role === "REVIEWER" && pendingSubmissionsCount > 0 && (
+          <Link
+            href="/dashboard/organic-submissions"
+            className="glass rounded-xl p-4 transition-colors hover:bg-foreground/5 active:bg-foreground/5 lg:order-last"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-foreground/70">Pending Approvals</p>
+              <Inbox className="h-5 w-5 text-orange-500" />
+            </div>
+            <p className="text-2xl font-bold">{pendingSubmissionsCount}</p>
+            <p className="text-xs text-foreground/60 mt-1">Organic submissions</p>
+          </Link>
+        )}
+
         <div className="glass rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-foreground/70">Total</p>
@@ -131,6 +157,23 @@ export default async function DashboardPage() {
                   <p className="font-medium">My Assessments</p>
                   <p className="text-xs text-foreground/60">
                     {stats.inProgress} pending
+                  </p>
+                </div>
+              </Link>
+            )}
+
+            {user.role === "REVIEWER" && pendingSubmissionsCount > 0 && (
+              <Link
+                href="/dashboard/organic-submissions"
+                className="flex items-center gap-3 rounded-lg border border-foreground/10 p-4 transition-colors hover:bg-foreground/5"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10 text-orange-500">
+                  <Inbox className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium">Approve Submissions</p>
+                  <p className="text-xs text-foreground/60">
+                    {pendingSubmissionsCount} pending
                   </p>
                 </div>
               </Link>
