@@ -19,13 +19,22 @@ export function OrganizationSchema() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'IRA - IPO Readiness Assessment',
+    alternateName: 'IRA',
     url: process.env.NEXT_PUBLIC_APP_URL || 'https://irascore.com',
-    logo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://irascore.com'}/ira_logo.png`,
+    logo: {
+      '@type': 'ImageObject',
+      url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://irascore.com'}/ira_logo.png`,
+      width: 1200,
+      height: 1200,
+    },
+    image: `${process.env.NEXT_PUBLIC_APP_URL || 'https://irascore.com'}/ira_logo.png`,
     description: 'Professional IPO readiness assessment for BSE, NSE, NYSE & NASDAQ. Expert financial analysis for companies planning to go public.',
+    foundingDate: '2024',
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Service',
       email: 'send@irascore.com',
+      availableLanguage: ['English', 'Hindi'],
     },
     sameAs: [
       'https://twitter.com/irascore',

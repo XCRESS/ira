@@ -73,6 +73,22 @@ export const metadata: Metadata = {
     siteName: 'IRA - IPO Readiness Assessment',
     title: "IPO Readiness Assessment - Expert Advisory | IRA",
     description: "Professional IPO readiness assessment for BSE, NSE, NYSE & NASDAQ. Free 90-second eligibility check. Expert financial analysis for companies planning to go public.",
+    images: [
+      {
+        url: '/ira_logo.png',
+        width: 1200,
+        height: 1200,
+        alt: 'IRA - IPO Readiness Assessment',
+        type: 'image/png',
+      },
+      {
+        url: '/ira_logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'IRA - IPO Readiness Assessment',
+        type: 'image/png',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -80,6 +96,7 @@ export const metadata: Metadata = {
     description: "Professional IPO readiness assessment for BSE, NSE, NYSE & NASDAQ. Free eligibility check in 90 seconds.",
     creator: '@irascore',
     site: '@irascore',
+    images: ['/ira_logo.png'],
   },
   robots: {
     index: true,
