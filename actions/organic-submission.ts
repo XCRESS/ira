@@ -82,8 +82,9 @@ export async function createOrganicSubmission(input: unknown): Promise<ActionRes
         status: "PENDING",
         submittedAt: new Date(), // Reset timestamp
         // Clear rejection data if resubmitting
-        rejectedById: null,
-        rejectedBy: null,
+        rejectedBy: {
+          disconnect: true
+        },
         rejectedAt: null,
         rejectionReason: null,
       }
