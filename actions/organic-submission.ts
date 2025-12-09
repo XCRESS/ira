@@ -7,10 +7,11 @@ import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { verifyRole, generateLeadId, createAuditLog, leadInclude } from "@/lib/dal"
-import { sendOrganicSubmissionEmail } from "@/lib/email"
+import { sendOrganicSubmissionEmail, sendEmailVerificationEmail } from "@/lib/email"
 import { getCompanyDetails } from "@/actions/probe42"
 import { downloadAndSaveProbe42Report } from "@/actions/documents"
 import type { ActionResponse, LeadWithRelations } from "@/lib/types"
+import { randomBytes } from "crypto"
 
 // ============================================
 // VALIDATION SCHEMAS
@@ -31,6 +32,26 @@ const CreateSubmissionSchema = z.object({
 const RejectSubmissionSchema = z.object({
   reason: z.string().max(500).optional(),
 })
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Generate email verification token
+ */
+function generateVerificationToken(): string {
+  return randomBytes(32).toString("hex")
+}
+
+/**
+ * Calculate token expiry (24 hours from now)
+ */
+function getTokenExpiry(): Date {
+  const expiry = new Date()
+  expiry.setHours(expiry.getHours() + 24)
+  return expiry
+}
 
 // ============================================
 // PUBLIC SUBMISSION ACTION
@@ -165,10 +186,37 @@ export async function createOrganicSubmission(input: unknown): Promise<ActionRes
       })
     }
 
+    // ✨ NEW: Generate verification token and send email immediately
+    const verificationToken = generateVerificationToken()
+    const verificationExpiry = getTokenExpiry()
+
+    // Update submission with verification token
+    await prisma.organicSubmission.update({
+      where: { id: submission.id },
+      data: {
+        emailVerificationToken: verificationToken,
+        emailVerificationExpiry: verificationExpiry,
+      }
+    })
+
+    // Send verification email to submitter (fire-and-forget)
+    sendEmailVerificationEmail({
+      contactPerson: data.contactPerson,
+      contactEmail: data.email,
+      companyName: data.companyName,
+      verificationToken,
+    }).catch((err: unknown) => {
+      console.error("Failed to send verification email:", err)
+    })
+
     // Revalidate submissions page
     revalidatePath("/dashboard/organic-submissions")
 
-    return { success: true, data: { id: submission.id } }
+    return {
+      success: true,
+      data: { id: submission.id },
+      message: "Submission received! Please check your email to verify your address."
+    }
 
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -390,6 +438,8 @@ export async function convertSubmissionToLead(
       downloadAndSaveProbe42Report(lead.id, submission.cin, session.user.id)
         .catch((err: unknown) => console.error("Background Probe42 report download failed:", err))
     }
+
+    // Note: Email verification already happened at submission time, not needed here
 
     // Revalidate caches
     revalidatePath("/dashboard/leads")

@@ -317,6 +317,12 @@ model OrganicSubmission {
   email           String
   phone           String?
 
+  // Email verification (happens at submission, before lead creation)
+  isEmailVerified          Boolean   @default(false)
+  emailVerificationToken   String?   @unique
+  emailVerificationExpiry  DateTime?
+  emailVerifiedAt          DateTime?
+
   // Status tracking
   status          OrganicSubmissionStatus  @default(PENDING)
 
@@ -339,5 +345,6 @@ model OrganicSubmission {
   @@unique([cin])
   @@index([status])
   @@index([submittedAt])
+  @@index([isEmailVerified])
   @@map("organic_submission")
 }

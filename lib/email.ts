@@ -15,10 +15,13 @@ import {
   getAssessmentRejectedEmailText,
   getOrganicSubmissionEmailHTML,
   getOrganicSubmissionEmailText,
+  getEmailVerificationEmailHTML,
+  getEmailVerificationEmailText,
   type LeadAssignmentEmailData,
   type AssessmentSubmittedEmailData,
   type AssessmentRejectedEmailData,
-  type OrganicSubmissionEmailData
+  type OrganicSubmissionEmailData,
+  type EmailVerificationEmailData
 } from './email-templates'
 
 // ============================================
@@ -246,6 +249,28 @@ export async function sendOrganicSubmissionEmail(
   }
 
   return sendEmail(data.reviewerEmail, subject, html, text)
+}
+
+/**
+ * Send email verification to lead contact
+ * Called when a lead is created (organic or manual) or when verification is resent
+ */
+export async function sendEmailVerificationEmail(
+  data: EmailVerificationEmailData
+): Promise<EmailResult> {
+  const subject = `Verify Your Email Address - ${data.companyName}`
+  const html = getEmailVerificationEmailHTML(data)
+  const text = getEmailVerificationEmailText(data)
+
+  if (!data.contactEmail) {
+    console.error('[Email] No contact email provided', { data })
+    return {
+      success: false,
+      error: 'Contact email not provided'
+    }
+  }
+
+  return sendEmail(data.contactEmail, subject, html, text)
 }
 
 /**

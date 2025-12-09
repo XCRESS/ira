@@ -44,6 +44,13 @@ export interface OrganicSubmissionEmailData {
   contactPhone: string | null
 }
 
+export interface EmailVerificationEmailData {
+  contactPerson: string
+  contactEmail: string
+  companyName: string
+  verificationToken: string
+}
+
 /**
  * Email template for lead assignment notification (sent to assessor)
  */
@@ -580,6 +587,140 @@ Phone: ${data.contactPhone}` : ''}
 Review Submission: ${submissionsUrl}
 
 This is an automated notification from the IRA Platform. You can view all pending submissions in the dashboard.
+
+---
+IPO Readiness Assessment Platform
+  `.trim()
+}
+
+/**
+ * Email template for email verification (sent to lead contact)
+ */
+export function getEmailVerificationEmailHTML(data: EmailVerificationEmailData): string {
+  const baseUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const verificationUrl = `${baseUrl}/verify-email?token=${data.verificationToken}`
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email Address</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
+                Verify Your Email Address
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <p style="margin: 0 0 20px 0; font-size: 16px; color: #333;">
+                Hi <strong>${data.contactPerson}</strong>,
+              </p>
+
+              <p style="margin: 0 0 30px 0; font-size: 16px; color: #555; line-height: 1.6;">
+                Thank you for submitting <strong>${data.companyName}</strong> for IPO readiness assessment. To complete your submission and allow our team to review your application, please verify your email address.
+              </p>
+
+              <!-- Info Card -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f8f9fa; border-left: 4px solid #667eea; border-radius: 8px; margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0; font-size: 15px; color: #666;">
+                      <strong style="color: #333;">Company:</strong> ${data.companyName}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA Button -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="center" style="padding: 10px 0 30px 0;">
+                    <a href="${verificationUrl}" style="display: inline-block; background-color: #667eea; color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 8px; font-size: 16px; font-weight: 600; letter-spacing: 0.3px; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);">
+                      Verify Email Address
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Alternative Link -->
+              <p style="margin: 0 0 20px 0; font-size: 14px; color: #666; line-height: 1.6; text-align: center;">
+                If the button doesn't work, copy and paste this link into your browser:
+              </p>
+              <p style="margin: 0 0 30px 0; font-size: 13px; color: #667eea; word-break: break-all; text-align: center;">
+                ${verificationUrl}
+              </p>
+
+              <!-- Security Notice -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0; font-size: 14px; color: #856404; line-height: 1.6;">
+                      <strong>Security Notice:</strong> This verification link will expire in 24 hours. If you didn't request this, please ignore this email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0; font-size: 14px; color: #888; line-height: 1.6;">
+                This is an automated email from the IRA Platform. For support, please contact <a href="mailto:support@ira-platform.com" style="color: #667eea; text-decoration: none;">support@ira-platform.com</a>.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
+              <p style="margin: 0; font-size: 13px; color: #999;">
+                IPO Readiness Assessment Platform
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim()
+}
+
+/**
+ * Plain text version of email verification email (fallback)
+ */
+export function getEmailVerificationEmailText(data: EmailVerificationEmailData): string {
+  const baseUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const verificationUrl = `${baseUrl}/verify-email?token=${data.verificationToken}`
+
+  return `
+Verify Your Email Address
+
+Hi ${data.contactPerson},
+
+Thank you for submitting ${data.companyName} for IPO readiness assessment. To complete your submission and allow our team to review your application, please verify your email address.
+
+Company: ${data.companyName}
+
+Verify your email by clicking this link:
+${verificationUrl}
+
+SECURITY NOTICE: This verification link will expire in 24 hours. If you didn't request this, please ignore this email.
+
+This is an automated email from the IRA Platform. For support, please contact support@ira-platform.com.
 
 ---
 IPO Readiness Assessment Platform

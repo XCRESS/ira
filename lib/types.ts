@@ -190,7 +190,7 @@ export function parseQuestionSnapshot(snapshot: unknown): QuestionSnapshot {
 // ============================================
 
 export type ActionResponse<T = void> =
-  | { success: true; data: T }
+  | { success: true; data: T; message?: string }
   | { success: false; error: string; code?: ErrorCode; context?: Record<string, unknown> }
 
 // Lead with relations
