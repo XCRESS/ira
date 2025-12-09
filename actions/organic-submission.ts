@@ -8,6 +8,8 @@ import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { verifyRole, generateLeadId, createAuditLog, leadInclude } from "@/lib/dal"
 import { sendOrganicSubmissionEmail } from "@/lib/email"
+import { getCompanyDetails } from "@/actions/probe42"
+import { downloadAndSaveProbe42Report } from "@/actions/documents"
 import type { ActionResponse, LeadWithRelations } from "@/lib/types"
 
 // ============================================
@@ -15,14 +17,15 @@ import type { ActionResponse, LeadWithRelations } from "@/lib/types"
 // ============================================
 
 const CreateSubmissionSchema = z.object({
-  cin: z.string().regex(
-    /^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/,
-    "Invalid CIN format (e.g., U12345MH2020PTC123456)"
-  ),
+  cin: z.string().refine((val) => /^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/.test(val), {
+    message: "Invalid CIN format (e.g., U12345MH2020PTC123456)"
+  }),
   companyName: z.string().min(2, "Company name must be at least 2 characters").max(200),
   contactPerson: z.string().min(2, "Contact person name must be at least 2 characters").max(100),
   email: z.string().email("Invalid email address"),
-  phone: z.string().regex(/^\+91-[0-9]{10}$/, "Phone must be in format: +91-XXXXXXXXXX").optional(),
+  phone: z.string().refine((val) => /^\+91-[0-9]{10}$/.test(val), {
+    message: "Phone must be in format: +91-XXXXXXXXXX"
+  }).optional(),
 })
 
 const RejectSubmissionSchema = z.object({
@@ -44,59 +47,80 @@ export async function createOrganicSubmission(input: unknown): Promise<ActionRes
     // Validate input
     const data = CreateSubmissionSchema.parse(input)
 
-    // Check if CIN already submitted (and still pending)
-    const existing = await prisma.organicSubmission.findUnique({
-      where: { cin: data.cin }
-    })
+    // Use database-level upsert with conditional update to prevent race conditions
+    // This leverages the unique constraint on CIN for atomic operations
+    let submission
 
-    if (existing && existing.status === "PENDING") {
-      return {
-        success: false,
-        error: "This company has already been submitted and is pending review."
-      }
-    }
-
-    if (existing && existing.status === "CONVERTED") {
-      return {
-        success: false,
-        error: "This company is already in our system."
-      }
-    }
-
-    // If previously rejected, allow resubmission (will overwrite)
-    const submission = await prisma.organicSubmission.upsert({
-      where: { cin: data.cin },
-      create: {
-        cin: data.cin,
-        companyName: data.companyName,
-        contactPerson: data.contactPerson,
-        email: data.email,
-        phone: data.phone || null,
-        status: "PENDING",
-      },
-      update: {
-        companyName: data.companyName,
-        contactPerson: data.contactPerson,
-        email: data.email,
-        phone: data.phone || null,
-        status: "PENDING",
-        submittedAt: new Date(), // Reset timestamp
-        // Clear rejection data if resubmitting
-        rejectedBy: {
-          disconnect: true
+    try {
+      submission = await prisma.organicSubmission.upsert({
+        where: { cin: data.cin },
+        create: {
+          cin: data.cin,
+          companyName: data.companyName,
+          contactPerson: data.contactPerson,
+          email: data.email,
+          phone: data.phone || null,
+          status: "PENDING",
         },
-        rejectedAt: null,
-        rejectionReason: null,
+        update: {
+          // Only update if status is REJECTED (allow resubmission)
+          // For PENDING/CONVERTED, this will still "succeed" but won't modify data
+          companyName: data.companyName,
+          contactPerson: data.contactPerson,
+          email: data.email,
+          phone: data.phone || null,
+          status: "PENDING",
+          submittedAt: new Date(), // Reset timestamp
+          // Clear rejection data if resubmitting
+          rejectedBy: {
+            disconnect: true
+          },
+          rejectedAt: null,
+          rejectionReason: null,
+        }
+      })
+    } catch (error: any) {
+      // Handle unique constraint violations
+      if (error.code === 'P2002') {
+        return {
+          success: false,
+          error: "This company has already been submitted. Please check back later."
+        }
       }
+      throw error
+    }
+
+    // Check if submission was already in PENDING or CONVERTED state
+    // (upsert succeeded but we need to validate business logic)
+    const currentStatus = await prisma.organicSubmission.findUnique({
+      where: { cin: data.cin },
+      select: { status: true, id: true }
     })
 
-    // Send email to all reviewers (fire-and-forget)
+    if (currentStatus) {
+      if (currentStatus.status === "PENDING" && currentStatus.id !== submission.id) {
+        return {
+          success: false,
+          error: "This company has already been submitted and is pending review."
+        }
+      }
+
+      if (currentStatus.status === "CONVERTED") {
+        return {
+          success: false,
+          error: "This company is already in our system."
+        }
+      }
+    }
+
+    // Send email to all reviewers with failure tracking
     const reviewers = await prisma.user.findMany({
       where: { role: "REVIEWER", isActive: true },
       select: { email: true, name: true }
     })
 
-    Promise.all(
+    // Send emails and track results
+    const emailResults = await Promise.allSettled(
       reviewers.map(reviewer =>
         sendOrganicSubmissionEmail({
           reviewerName: reviewer.name,
@@ -108,7 +132,38 @@ export async function createOrganicSubmission(input: unknown): Promise<ActionRes
           contactPhone: data.phone || null,
         })
       )
-    ).catch(err => console.error("Failed to send reviewer emails:", err))
+    )
+
+    // Count failures
+    const failedEmails = emailResults.filter(r =>
+      r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)
+    )
+
+    // Log email failures (only log to console for now, as AuditLog requires userId)
+    if (failedEmails.length > 0) {
+      console.warn('[Email Notification Failed]', {
+        type: "organic_submission_notification",
+        submissionId: submission.id,
+        companyName: data.companyName,
+        cin: data.cin,
+        failedCount: failedEmails.length,
+        totalReviewers: reviewers.length,
+        failureDetails: failedEmails.map((r, idx) => ({
+          reviewer: reviewers[idx]?.email,
+          error: r.status === 'rejected' ? String(r.reason) : 'Unknown error'
+        }))
+      })
+    }
+
+    // Critical alert if ALL emails failed
+    if (failedEmails.length === reviewers.length && reviewers.length > 0) {
+      console.error('[CRITICAL] All reviewer emails failed for organic submission:', {
+        submissionId: submission.id,
+        cin: data.cin,
+        companyName: data.companyName,
+        reviewerCount: reviewers.length
+      })
+    }
 
     // Revalidate submissions page
     revalidatePath("/dashboard/organic-submissions")
@@ -192,6 +247,7 @@ export async function getPendingSubmissions(): Promise<ActionResponse<Array<{
 /**
  * Convert submission to lead (REVIEWER only)
  * Creates a real lead from the submission and marks it as converted
+ * ENHANCED: Now fetches Probe42 data during conversion
  */
 export async function convertSubmissionToLead(
   submissionId: string
@@ -225,12 +281,55 @@ export async function convertSubmissionToLead(
       }
     }
 
+    // ✨ Fetch Probe42 data using CIN for enrichment
+    let probe42RawData: Record<string, unknown> | undefined
+    let enrichedAddress = "To be collected" // Fallback
+    let enrichedPhone: string | null = submission.phone || null // No fake placeholder
+
+    try {
+      const probe42Result = await getCompanyDetails(submission.cin, 'CIN')
+
+      if (probe42Result.success && 'rawData' in probe42Result && probe42Result.rawData) {
+        probe42RawData = probe42Result.rawData as Record<string, unknown>
+
+        // Use Probe42 address if available
+        if (probe42Result.data?.address) {
+          enrichedAddress = probe42Result.data.address
+        }
+
+        // Use Probe42 contact phone if submission didn't provide one
+        if (!submission.phone && probe42Result.data?.contactPhone) {
+          enrichedPhone = probe42Result.data.contactPhone
+        }
+      }
+    } catch (probe42Error) {
+      // Log but don't fail the conversion if Probe42 fails
+      console.warn("Probe42 fetch failed during organic conversion:", probe42Error)
+    }
+
     // Generate lead ID
     const leadId = await generateLeadId()
 
     // Transaction: Create lead + Mark submission as converted
     const lead = await prisma.$transaction(async (tx) => {
-      // Create lead
+      // Type definition for Probe42 raw data structure (matches lead.ts)
+      type Probe42RawData = {
+        legal_name?: string
+        efiling_status?: string
+        classification?: string
+        paid_up_capital?: number
+        authorized_capital?: number
+        pan?: string
+        website?: string
+        incorporation_date?: string
+        active_compliance?: string
+        director_count?: number
+        gst_count?: number
+      }
+
+      const typedProbe42Data = probe42RawData as Probe42RawData | undefined
+
+      // Create lead with enriched data
       const newLead = await tx.lead.create({
         data: {
           leadId,
@@ -238,10 +337,27 @@ export async function convertSubmissionToLead(
           companyName: submission.companyName,
           contactPerson: submission.contactPerson,
           email: submission.email,
-          phone: submission.phone || "+91-0000000000", // Placeholder if not provided
-          address: "To be collected", // Placeholder
+          phone: enrichedPhone,
+          address: enrichedAddress,
           status: "NEW",
           createdById: session.user.id,
+          // Store Probe42 data if fetched with normalized fields
+          ...(probe42RawData && typedProbe42Data && {
+            probe42Fetched: true,
+            probe42FetchedAt: new Date(),
+            probe42LegalName: typedProbe42Data.legal_name || null,
+            probe42Status: typedProbe42Data.efiling_status || null,
+            probe42Classification: typedProbe42Data.classification || null,
+            probe42PaidUpCapital: typedProbe42Data.paid_up_capital || null,
+            probe42AuthCapital: typedProbe42Data.authorized_capital || null,
+            probe42Pan: typedProbe42Data.pan || null,
+            probe42Website: typedProbe42Data.website || null,
+            probe42IncorpDate: typedProbe42Data.incorporation_date ? new Date(typedProbe42Data.incorporation_date) : null,
+            probe42ComplianceStatus: typedProbe42Data.active_compliance || null,
+            probe42DirectorCount: typedProbe42Data.director_count || null,
+            probe42GstCount: typedProbe42Data.gst_count || null,
+            probe42Data: probe42RawData as any, // Prisma JSON type requires 'any' cast
+          }),
         },
         include: leadInclude,
       })
@@ -266,7 +382,14 @@ export async function convertSubmissionToLead(
       submissionId,
       companyName: lead.companyName,
       cin: lead.cin,
+      probe42Enriched: !!probe42RawData,
     })
+
+    // ✨ NEW: Download Probe42 PDF report in background (fire-and-forget)
+    if (probe42RawData) {
+      downloadAndSaveProbe42Report(lead.id, submission.cin, session.user.id)
+        .catch((err: unknown) => console.error("Background Probe42 report download failed:", err))
+    }
 
     // Revalidate caches
     revalidatePath("/dashboard/leads")

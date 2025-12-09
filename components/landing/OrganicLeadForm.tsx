@@ -159,11 +159,22 @@ export function OrganicLeadForm({ onSuccess, onCancel }: OrganicLeadFormProps) {
             </div>
           )}
 
-          {/* Privacy Note */}
-          <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-            <p className="text-xs text-gray-600 leading-relaxed">
-              By submitting this form, you agree to our team contacting you regarding your IPO readiness assessment. We respect your privacy and will never share your information with third parties.
-            </p>
+          {/* GDPR Consent Checkbox */}
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
+            <input
+              type="checkbox"
+              id="consent"
+              name="consent"
+              required
+              disabled={loading}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-600 disabled:opacity-50"
+            />
+            <label htmlFor="consent" className="text-xs text-gray-600 leading-relaxed cursor-pointer">
+              I consent to the processing of my personal data for IPO readiness assessment purposes. I understand that my information will be securely stored and used only by the IRA team to contact me regarding my submission. View our{' '}
+              <a href="/privacy-policy" target="_blank" className="text-brand-600 hover:text-brand-700 underline">
+                Privacy Policy
+              </a>.
+            </label>
           </div>
 
           {/* Action Buttons */}

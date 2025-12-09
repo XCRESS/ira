@@ -10,12 +10,13 @@ import { type ErrorCode } from "./errors"
 export const CreateLeadSchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters").max(200),
   contactPerson: z.string().min(2, "Contact person name must be at least 2 characters").max(100),
-  phone: z.string().regex(/^\+91-[0-9]{10}$/, "Phone must be in format: +91-XXXXXXXXXX"),
+  phone: z.string().refine((val) => /^\+91-[0-9]{10}$/.test(val), {
+    message: "Phone must be in format: +91-XXXXXXXXXX"
+  }).nullable().optional(),
   email: z.string().email("Invalid email address"),
-  cin: z.string().regex(
-    /^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/,
-    "Invalid CIN format (e.g., U12345MH2020PTC123456)"
-  ),
+  cin: z.string().refine((val) => /^[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/.test(val), {
+    message: "Invalid CIN format (e.g., U12345MH2020PTC123456)"
+  }),
   address: z.string().min(10, "Address must be at least 10 characters").max(500),
   // Optional Probe42 data from lead creation flow
   probe42Data: z.any().optional(),
@@ -24,7 +25,9 @@ export const CreateLeadSchema = z.object({
 export const UpdateLeadSchema = z.object({
   companyName: z.string().min(2).max(200).optional(),
   contactPerson: z.string().min(2).max(100).optional(),
-  phone: z.string().regex(/^\+91-[0-9]{10}$/).optional(),
+  phone: z.string().refine((val) => /^\+91-[0-9]{10}$/.test(val), {
+    message: "Phone must be in format: +91-XXXXXXXXXX"
+  }).nullable().optional(),
   email: z.string().email().optional(),
   address: z.string().min(10).max(500).optional(),
 })
@@ -196,7 +199,7 @@ export type LeadWithRelations = {
   leadId: string
   companyName: string
   contactPerson: string
-  phone: string
+  phone: string | null
   email: string
   cin: string
   address: string

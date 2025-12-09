@@ -142,7 +142,7 @@ model Lead {
   // Company info
   companyName    String
   contactPerson  String
-  phone          String
+  phone          String? // Optional - may not be available for organic submissions
   email          String
   cin            String  @unique // Company Identification Number
   address        String  @db.Text

@@ -9,6 +9,7 @@ import { getDocuments } from "@/actions/documents"
 import { UploadDocumentButton } from "@/components/documents/upload-document-button"
 import { DocumentList } from "@/components/documents/document-list"
 import { Probe42DataCard } from "@/components/probe42-data-card"
+import { EditLeadButton } from "@/components/edit-lead-button"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -79,7 +80,18 @@ export default async function LeadDetailPage(props: Props) {
           <div className="space-y-6 lg:col-span-2">
             {/* Contact & Key Information */}
             <div className="glass space-y-4 rounded-2xl p-6">
-              <h2 className="text-lg font-semibold">Contact & Key Information</h2>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold">Contact & Key Information</h2>
+                  {/* Subtle Probe42 data enrichment indicator */}
+                  {!lead.probe42Fetched && (
+                    <span className="text-xs text-foreground/40" title="Company data not enriched from Probe42">
+                      ⓘ Manual entry
+                    </span>
+                  )}
+                </div>
+                {isReviewer && <EditLeadButton lead={lead} />}
+              </div>
 
               <div className="grid gap-3 text-sm">
                 {/* Contact Person */}
