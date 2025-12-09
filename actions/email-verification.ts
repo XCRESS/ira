@@ -62,6 +62,8 @@ export async function verifyEmail(input: unknown): Promise<ActionResponse<{
     // Validate input
     const { token } = VerifyEmailSchema.parse(input)
 
+    console.log('[Email Verification] Attempting to verify token:', token.substring(0, 10) + '...')
+
     // Find submission with this token
     const submission = await prisma.organicSubmission.findFirst({
       where: {
@@ -78,7 +80,17 @@ export async function verifyEmail(input: unknown): Promise<ActionResponse<{
       }
     })
 
+    console.log('[Email Verification] Submission found:', !!submission)
+
     if (!submission) {
+      // Try to find any submission with this token (for debugging)
+      const anySubmission = await prisma.organicSubmission.findFirst({
+        where: { emailVerificationToken: token },
+        select: { id: true, isEmailVerified: true }
+      })
+
+      console.log('[Email Verification] Any submission with token:', !!anySubmission, anySubmission)
+
       return {
         success: false,
         error: "Invalid or expired verification link. Please request a new verification email."
@@ -116,8 +128,8 @@ export async function verifyEmail(input: unknown): Promise<ActionResponse<{
       }
     })
 
-    // Revalidate submissions page
-    revalidatePath("/dashboard/organic-submissions")
+    // Note: Cannot use revalidatePath here because this is called during server component render
+    // The dashboard will refresh naturally when reviewers reload the page
 
     return {
       success: true,
