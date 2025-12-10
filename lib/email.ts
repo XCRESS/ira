@@ -17,11 +17,17 @@ import {
   getOrganicSubmissionEmailText,
   getEmailVerificationEmailHTML,
   getEmailVerificationEmailText,
+  getSubmissionApprovedEmailHTML,
+  getSubmissionApprovedEmailText,
+  getSubmissionRejectedEmailHTML,
+  getSubmissionRejectedEmailText,
   type LeadAssignmentEmailData,
   type AssessmentSubmittedEmailData,
   type AssessmentRejectedEmailData,
   type OrganicSubmissionEmailData,
-  type EmailVerificationEmailData
+  type EmailVerificationEmailData,
+  type SubmissionApprovedEmailData,
+  type SubmissionRejectedEmailData
 } from './email-templates'
 
 // ============================================
@@ -261,6 +267,50 @@ export async function sendEmailVerificationEmail(
   const subject = `Verify Your Email Address - ${data.companyName}`
   const html = getEmailVerificationEmailHTML(data)
   const text = getEmailVerificationEmailText(data)
+
+  if (!data.contactEmail) {
+    console.error('[Email] No contact email provided', { data })
+    return {
+      success: false,
+      error: 'Contact email not provided'
+    }
+  }
+
+  return sendEmail(data.contactEmail, subject, html, text)
+}
+
+/**
+ * Send submission approved notification to submitter
+ * Called when a reviewer converts a submission to a lead
+ */
+export async function sendSubmissionApprovedEmail(
+  data: SubmissionApprovedEmailData
+): Promise<EmailResult> {
+  const subject = `Your Submission Has Been Approved - ${data.companyName}`
+  const html = getSubmissionApprovedEmailHTML(data)
+  const text = getSubmissionApprovedEmailText(data)
+
+  if (!data.contactEmail) {
+    console.error('[Email] No contact email provided', { data })
+    return {
+      success: false,
+      error: 'Contact email not provided'
+    }
+  }
+
+  return sendEmail(data.contactEmail, subject, html, text)
+}
+
+/**
+ * Send submission rejected notification to submitter
+ * Called when a reviewer rejects a submission
+ */
+export async function sendSubmissionRejectedEmail(
+  data: SubmissionRejectedEmailData
+): Promise<EmailResult> {
+  const subject = `Update on Your Submission - ${data.companyName}`
+  const html = getSubmissionRejectedEmailHTML(data)
+  const text = getSubmissionRejectedEmailText(data)
 
   if (!data.contactEmail) {
     console.error('[Email] No contact email provided', { data })

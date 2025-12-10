@@ -301,6 +301,10 @@ export async function downloadProbe42Report(cin: string): Promise<string> {
   const url = `${reportsBaseUrl}/companies/${cin}/reports?type=pdf&client_name=IRA&unit=INR&format=base64`
 
   try {
+    // Add 30 second timeout for PDF downloads (they can be large)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 seconds
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -309,7 +313,10 @@ export async function downloadProbe42Report(cin: string): Promise<string> {
         'x-api-version': client['apiVersion'],
       },
       cache: 'no-store',
+      signal: controller.signal,
     })
+
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -345,6 +352,16 @@ export async function downloadProbe42Report(cin: string): Promise<string> {
   } catch (error) {
     if (error instanceof AppError) {
       throw error
+    }
+
+    // Handle timeout
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new AppError(
+        ErrorCode.EXTERNAL_API_ERROR,
+        'Report download timed out - please try again',
+        504,
+        { cin, timeout: '30s' }
+      )
     }
 
     throw new AppError(

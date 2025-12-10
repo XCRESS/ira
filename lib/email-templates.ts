@@ -51,6 +51,20 @@ export interface EmailVerificationEmailData {
   verificationToken: string
 }
 
+export interface SubmissionApprovedEmailData {
+  contactPerson: string
+  contactEmail: string
+  companyName: string
+  leadId: string
+}
+
+export interface SubmissionRejectedEmailData {
+  contactPerson: string
+  contactEmail: string
+  companyName: string
+  rejectionReason?: string
+}
+
 /**
  * Email template for lead assignment notification (sent to assessor)
  */
@@ -721,6 +735,252 @@ ${verificationUrl}
 SECURITY NOTICE: This verification link will expire in 24 hours. If you didn't request this, please ignore this email.
 
 This is an automated email from the IRA Platform. For support, please contact support@ira-platform.com.
+
+---
+IPO Readiness Assessment Platform
+  `.trim()
+}
+
+/**
+ * Email template for submission approval (sent to company contact)
+ */
+export function getSubmissionApprovedEmailHTML(data: SubmissionApprovedEmailData): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submission Approved</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
+                ✓ Submission Approved!
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <p style="margin: 0 0 20px 0; font-size: 16px; color: #333;">
+                Hi <strong>${data.contactPerson}</strong>,
+              </p>
+
+              <p style="margin: 0 0 30px 0; font-size: 16px; color: #555; line-height: 1.6;">
+                Great news! Your submission for <strong>${data.companyName}</strong> has been approved by our team. We've created a lead in our system and will begin the IPO readiness assessment process.
+              </p>
+
+              <!-- Info Card -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f0fdf4; border-left: 4px solid #10b981; border-radius: 8px; margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 12px 0; font-size: 15px; color: #666;">
+                      <strong style="color: #333;">Company:</strong> ${data.companyName}
+                    </p>
+                    <p style="margin: 0; font-size: 15px; color: #666;">
+                      <strong style="color: #333;">Lead ID:</strong> ${data.leadId}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Next Steps -->
+              <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">What Happens Next?</h3>
+                <div style="space-y: 12px;">
+                  <div style="display: flex; align-items: start; margin-bottom: 12px;">
+                    <span style="display: inline-block; width: 24px; height: 24px; background-color: #10b981; color: white; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold; margin-right: 12px; flex-shrink: 0;">1</span>
+                    <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.6;">Our team will conduct a comprehensive IPO readiness assessment</p>
+                  </div>
+                  <div style="display: flex; align-items: start; margin-bottom: 12px;">
+                    <span style="display: inline-block; width: 24px; height: 24px; background-color: #10b981; color: white; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold; margin-right: 12px; flex-shrink: 0;">2</span>
+                    <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.6;">We'll evaluate your company across multiple criteria</p>
+                  </div>
+                  <div style="display: flex; align-items: start;">
+                    <span style="display: inline-block; width: 24px; height: 24px; background-color: #10b981; color: white; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold; margin-right: 12px; flex-shrink: 0;">3</span>
+                    <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.6;">You'll receive a detailed report with our findings and recommendations</p>
+                  </div>
+                </div>
+              </div>
+
+              <p style="margin: 0 0 20px 0; font-size: 14px; color: #666; line-height: 1.6;">
+                We'll keep you updated throughout the process. If you have any questions, please don't hesitate to reach out to us.
+              </p>
+
+              <p style="margin: 0; font-size: 14px; color: #888; line-height: 1.6; border-top: 1px solid #e9ecef; padding-top: 20px;">
+                This is an automated email from the IRA Platform. For support, please contact <a href="mailto:support@irascore.com" style="color: #10b981; text-decoration: none;">support@irascore.com</a>.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
+              <p style="margin: 0; font-size: 13px; color: #999;">
+                IPO Readiness Assessment Platform
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim()
+}
+
+/**
+ * Plain text version of submission approval email
+ */
+export function getSubmissionApprovedEmailText(data: SubmissionApprovedEmailData): string {
+  return `
+Submission Approved!
+
+Hi ${data.contactPerson},
+
+Great news! Your submission for ${data.companyName} has been approved by our team. We've created a lead in our system and will begin the IPO readiness assessment process.
+
+Company: ${data.companyName}
+Lead ID: ${data.leadId}
+
+WHAT HAPPENS NEXT?
+
+1. Our team will conduct a comprehensive IPO readiness assessment
+2. We'll evaluate your company across multiple criteria
+3. You'll receive a detailed report with our findings and recommendations
+
+We'll keep you updated throughout the process. If you have any questions, please don't hesitate to reach out to us.
+
+This is an automated email from the IRA Platform. For support, please contact support@irascore.com.
+
+---
+IPO Readiness Assessment Platform
+  `.trim()
+}
+
+/**
+ * Email template for submission rejection (sent to company contact)
+ */
+export function getSubmissionRejectedEmailHTML(data: SubmissionRejectedEmailData): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submission Update</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
+                Submission Update
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <p style="margin: 0 0 20px 0; font-size: 16px; color: #333;">
+                Hi <strong>${data.contactPerson}</strong>,
+              </p>
+
+              <p style="margin: 0 0 30px 0; font-size: 16px; color: #555; line-height: 1.6;">
+                Thank you for your interest in our IPO readiness assessment service. After reviewing your submission for <strong>${data.companyName}</strong>, we're unable to proceed with an assessment at this time.
+              </p>
+
+              ${data.rejectionReason ? `
+              <!-- Reason Card -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #92400e;">
+                      Reason:
+                    </p>
+                    <p style="margin: 0; font-size: 14px; color: #78350f; line-height: 1.6;">
+                      ${data.rejectionReason}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
+              <!-- Next Steps -->
+              <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">What You Can Do:</h3>
+                <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #666; line-height: 1.8;">
+                  <li>Review and address any concerns mentioned above</li>
+                  <li>Feel free to resubmit your application in the future</li>
+                  <li>Contact our support team if you have questions or need clarification</li>
+                </ul>
+              </div>
+
+              <p style="margin: 0 0 20px 0; font-size: 14px; color: #666; line-height: 1.6;">
+                We appreciate your interest in our services. If you believe this decision was made in error or if circumstances change, please don't hesitate to reach out to our team.
+              </p>
+
+              <p style="margin: 0; font-size: 14px; color: #888; line-height: 1.6; border-top: 1px solid #e9ecef; padding-top: 20px;">
+                This is an automated email from the IRA Platform. For support, please contact <a href="mailto:support@irascore.com" style="color: #f59e0b; text-decoration: none;">support@irascore.com</a>.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
+              <p style="margin: 0; font-size: 13px; color: #999;">
+                IPO Readiness Assessment Platform
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim()
+}
+
+/**
+ * Plain text version of submission rejection email
+ */
+export function getSubmissionRejectedEmailText(data: SubmissionRejectedEmailData): string {
+  return `
+Submission Update
+
+Hi ${data.contactPerson},
+
+Thank you for your interest in our IPO readiness assessment service. After reviewing your submission for ${data.companyName}, we're unable to proceed with an assessment at this time.
+
+${data.rejectionReason ? `REASON:\n${data.rejectionReason}\n\n` : ''}WHAT YOU CAN DO:
+
+- Review and address any concerns mentioned above
+- Feel free to resubmit your application in the future
+- Contact our support team if you have questions or need clarification
+
+We appreciate your interest in our services. If you believe this decision was made in error or if circumstances change, please don't hesitate to reach out to our team.
+
+This is an automated email from the IRA Platform. For support, please contact support@irascore.com.
 
 ---
 IPO Readiness Assessment Platform

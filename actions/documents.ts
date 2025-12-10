@@ -60,6 +60,10 @@ const DeleteDocumentSchema = z.object({
   documentId: z.string().cuid(),
 })
 
+const RetryReportDownloadSchema = z.object({
+  leadId: z.string().cuid(),
+})
+
 // ============================================
 // Actions
 // ============================================
@@ -312,11 +316,11 @@ export async function downloadAndSaveProbe42Report(
     await createAuditLog(userId, 'DOCUMENT_UPLOADED', leadId, {
       documentId: document.id,
       fileName,
-      source: 'probe42_auto_download',
+      source: 'probe42_manual_download',
     })
 
-    // Note: No revalidatePath here as this runs in background during page render
-    // The document will be visible on next page load/navigation
+    // Revalidate the lead detail page
+    revalidatePath(`/dashboard/leads/${lead.leadId}`)
 
     return { success: true, data: document }
   } catch (error) {
@@ -337,5 +341,52 @@ export async function downloadAndSaveProbe42Report(
     }
 
     return handleActionError(error)
+  }
+}
+
+/**
+ * Download Probe42 report (manual trigger by user)
+ * This is called when user clicks the download button
+ */
+export async function retryProbe42ReportDownload(
+  input: unknown
+): Promise<ActionResponse<Document>> {
+  try {
+    const session = await verifyAuth()
+    const { leadId } = RetryReportDownloadSchema.parse(input)
+
+    // Get lead details
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId },
+      select: { id: true, cin: true, leadId: true, probe42ReportDownloaded: true },
+    })
+
+    if (!lead) {
+      throw Errors.leadNotFound(leadId)
+    }
+
+    // Skip if already downloaded (user can re-download by deleting the document first)
+    if (lead.probe42ReportDownloaded) {
+      return {
+        success: false,
+        error: 'Report already downloaded. To re-download, please delete the existing report first.',
+        code: ErrorCode.INVALID_INPUT,
+      }
+    }
+
+    // Call the download function
+    const result = await downloadAndSaveProbe42Report(
+      lead.id,
+      lead.cin,
+      session.user.id
+    )
+
+    // Revalidate the lead detail page
+    revalidatePath(`/dashboard/leads/${lead.leadId}`)
+
+    return result
+  } catch (error) {
+    console.error('Report download error:', error)
+    return handleActionError(handlePrismaError(error))
   }
 }

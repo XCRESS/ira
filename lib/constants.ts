@@ -151,5 +151,6 @@ export const PROBE42 = {
     HEALTHCARE: ['healthcare', 'pharma', 'pharmaceutical', 'hospital', 'medical'],
     MANUFACTURING: ['manufacturing', 'factory', 'production', 'industrial'],
     RETAIL: ['retail', 'commerce', 'e-commerce', 'trading'],
+    OTHER: ['private limited', 'public limited', 'foreign company', 'company incorporated', 'limited liability'],
   } as const,
 } as const

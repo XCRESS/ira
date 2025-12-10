@@ -7,9 +7,8 @@ import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { verifyRole, generateLeadId, createAuditLog, leadInclude } from "@/lib/dal"
-import { sendOrganicSubmissionEmail, sendEmailVerificationEmail } from "@/lib/email"
+import { sendOrganicSubmissionEmail, sendEmailVerificationEmail, sendSubmissionApprovedEmail, sendSubmissionRejectedEmail } from "@/lib/email"
 import { getCompanyDetails } from "@/actions/probe42"
-import { downloadAndSaveProbe42Report } from "@/actions/documents"
 import type { ActionResponse, LeadWithRelations } from "@/lib/types"
 import { randomBytes } from "crypto"
 
@@ -267,6 +266,8 @@ export async function getPendingSubmissions(): Promise<ActionResponse<Array<{
   email: string
   phone: string | null
   submittedAt: Date
+  isEmailVerified: boolean
+  emailVerifiedAt: Date | null
 }>>> {
   try {
     await verifyRole("REVIEWER")
@@ -282,6 +283,8 @@ export async function getPendingSubmissions(): Promise<ActionResponse<Array<{
         email: true,
         phone: true,
         submittedAt: true,
+        isEmailVerified: true,
+        emailVerifiedAt: true,
       }
     })
 
@@ -433,13 +436,18 @@ export async function convertSubmissionToLead(
       probe42Enriched: !!probe42RawData,
     })
 
-    // ✨ NEW: Download Probe42 PDF report in background (fire-and-forget)
-    if (probe42RawData) {
-      downloadAndSaveProbe42Report(lead.id, submission.cin, session.user.id)
-        .catch((err: unknown) => console.error("Background Probe42 report download failed:", err))
-    }
+    // Send approval email to submitter (fire-and-forget)
+    sendSubmissionApprovedEmail({
+      contactPerson: submission.contactPerson,
+      contactEmail: submission.email,
+      companyName: submission.companyName,
+      leadId: lead.leadId,
+    }).catch((err: unknown) => {
+      console.error("Failed to send submission approved email:", err)
+    })
 
-    // Note: Email verification already happened at submission time, not needed here
+    // Note: Probe42 PDF report can be downloaded manually by users via the UI
+    // Email verification already happened at submission time, not needed here
 
     // Revalidate caches
     revalidatePath("/dashboard/leads")
@@ -485,6 +493,16 @@ export async function rejectSubmission(
         rejectedAt: new Date(),
         rejectionReason: reason || null,
       }
+    })
+
+    // Send rejection email to submitter (fire-and-forget)
+    sendSubmissionRejectedEmail({
+      contactPerson: submission.contactPerson,
+      contactEmail: submission.email,
+      companyName: submission.companyName,
+      rejectionReason: reason,
+    }).catch((err: unknown) => {
+      console.error("Failed to send submission rejected email:", err)
     })
 
     revalidatePath("/dashboard/organic-submissions")

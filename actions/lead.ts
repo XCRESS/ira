@@ -31,7 +31,6 @@ import {
 import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError } from "zod"
 import { fetchCompanyByCIN } from "@/lib/probe42"
-import { downloadAndSaveProbe42Report } from "./documents"
 import { sendLeadAssignmentEmail, getAppBaseUrl } from "@/lib/email"
 
 // ============================================
@@ -157,21 +156,8 @@ export async function createLead(
       leadId: lead.leadId,
     })
 
-    // 8. Download Probe42 PDF report in background (fire-and-forget)
-    // This should NOT block lead creation - if it fails, user can manually upload later
-    if (hasProbe42Data) {
-      downloadAndSaveProbe42Report(lead.id, lead.cin, session.user.id)
-        .then((result) => {
-          if (result.success) {
-            console.log('[Probe42 PDF] Downloaded and saved successfully:', result.data?.fileName)
-          } else {
-            console.error('[Probe42 PDF] Download failed:', result.error)
-          }
-        })
-        .catch((error) => {
-          console.error('[Probe42 PDF] Unexpected error:', error)
-        })
-    }
+    // 8. Probe42 PDF report download removed from background
+    // Users can manually download the report via the "Download Report" button in the UI
 
     // 9. Next.js 16: Use updateTag for immediate cache refresh
     updateTag(`lead-${lead.id}`)

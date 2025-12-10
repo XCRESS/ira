@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Building2, User, Mail, Phone, CheckCircle, X, Loader2 } from 'lucide-react'
+import { Building2, User, Mail, Phone, CheckCircle, X, Loader2, ShieldCheck, AlertCircle } from 'lucide-react'
 import { convertSubmissionToLead, rejectSubmission } from '@/actions/organic-submission'
 import { useRouter } from 'next/navigation'
 
@@ -14,6 +14,8 @@ interface SubmissionCardProps {
     email: string
     phone: string | null
     submittedAt: Date
+    isEmailVerified: boolean
+    emailVerifiedAt: Date | null
   }
 }
 
@@ -89,7 +91,20 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
                 <h3 className="text-base md:text-lg font-semibold truncate">{submission.companyName}</h3>
               </div>
               <p className="text-sm text-foreground/70">CIN: {submission.cin}</p>
-              <p className="text-xs text-foreground/60 mt-1">Submitted {timeAgo}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-xs text-foreground/60">Submitted {timeAgo}</p>
+                {submission.isEmailVerified ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-xs font-medium">
+                    <ShieldCheck className="h-3 w-3" />
+                    Verified
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 text-xs font-medium">
+                    <AlertCircle className="h-3 w-3" />
+                    Unverified
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

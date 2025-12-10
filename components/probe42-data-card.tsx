@@ -1,8 +1,9 @@
 'use client'
 
-import { Building2, ChevronDown, ChevronUp, RefreshCw, Calendar, DollarSign, Shield, Globe, FileText, Download, AlertCircle } from 'lucide-react'
+import { Building2, ChevronDown, ChevronUp, RefreshCw, Calendar, DollarSign, Shield, Globe, FileText, Download, RotateCw } from 'lucide-react'
 import { useState } from 'react'
 import { fetchProbe42Data } from '@/actions/lead'
+import { retryProbe42ReportDownload } from '@/actions/documents'
 import { toast } from 'sonner'
 
 type Probe42DataCardProps = {
@@ -32,6 +33,7 @@ type Probe42DataCardProps = {
 
 export function Probe42DataCard({ lead }: Probe42DataCardProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
 
   const handleFetchData = async () => {
@@ -48,6 +50,23 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
       toast.error('An unexpected error occurred')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleDownloadReport = async () => {
+    setIsDownloading(true)
+    try {
+      const result = await retryProbe42ReportDownload({ leadId: lead.id })
+      if (result.success) {
+        toast.success('Report downloaded successfully!')
+        window.location.reload()
+      } else {
+        toast.error(result.error || 'Failed to download report')
+      }
+    } catch {
+      toast.error('An unexpected error occurred')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -124,33 +143,41 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
                 <>
                   <FileText className="size-4 text-green-500" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-green-500">Report Downloaded</p>
+                    <p className="text-sm font-medium text-green-500">Report Available</p>
                     {lead.probe42ReportDownloadedAt && (
                       <p className="text-xs text-foreground/60">
-                        {formatDate(lead.probe42ReportDownloadedAt)}
+                        Downloaded {formatDate(lead.probe42ReportDownloadedAt)}
                       </p>
                     )}
                   </div>
                 </>
-              ) : lead.probe42ReportFailedAt ? (
-                <>
-                  <AlertCircle className="size-4 text-red-500" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-red-500">Download Failed</p>
-                    <p className="text-xs text-foreground/60">
-                      Check documents section or contact support
-                    </p>
-                  </div>
-                </>
               ) : (
                 <>
-                  <Download className="size-4 text-yellow-500 animate-pulse" />
+                  <Download className="size-4 text-primary" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-yellow-500">Downloading Report...</p>
+                    <p className="text-sm font-medium">Probe42 Report</p>
                     <p className="text-xs text-foreground/60">
-                      This may take a few moments
+                      Click to download the detailed PDF report
                     </p>
                   </div>
+                  <button
+                    onClick={handleDownloadReport}
+                    disabled={isDownloading}
+                    className="px-3 py-1.5 text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1.5"
+                    title="Download Report"
+                  >
+                    {isDownloading ? (
+                      <>
+                        <RotateCw className="size-4 animate-spin" />
+                        <span>Downloading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="size-4" />
+                        <span>Download</span>
+                      </>
+                    )}
+                  </button>
                 </>
               )}
             </div>
