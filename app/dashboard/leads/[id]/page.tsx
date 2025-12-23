@@ -63,6 +63,10 @@ export default async function LeadDetailPage(props: Props) {
   const documentsResult = await getDocuments(lead.id)
   const documents = documentsResult.success ? documentsResult.data : []
 
+  // Check if MOA and AOA are already downloaded
+  const hasMoa = documents.some(doc => doc.fileName.includes(`MoA_${lead.cin}`))
+  const hasAoa = documents.some(doc => doc.fileName.includes(`AoA_${lead.cin}`))
+
   return (
     <div className="p-4 md:p-6">
       {/* Page Header */}
@@ -288,7 +292,7 @@ export default async function LeadDetailPage(props: Props) {
             )}
 
             {/* Probe42 Company Details - Collapsible */}
-            <Probe42DataCard lead={lead} />
+            <Probe42DataCard lead={lead} hasMoa={hasMoa} hasAoa={hasAoa} />
           </div>
 
           {/* Sidebar */}

@@ -375,3 +375,120 @@ export async function downloadProbe42Report(cin: string): Promise<string> {
     )
   }
 }
+
+/**
+ * Download reference document (MOA/AOA) from Probe42
+ * Returns base64 encoded PDF
+ */
+export async function downloadReferenceDocument(
+  cin: string,
+  type: 'MoA' | 'AoA'
+): Promise<string> {
+  const client = getProbe42Client()
+
+  if (!cin || cin.trim().length === 0) {
+    throw new AppError(
+      ErrorCode.INVALID_INPUT,
+      'CIN is required',
+      400,
+      { field: 'cin' }
+    )
+  }
+
+  // Use the probe_reports_sandbox endpoint for reference documents
+  const reportsBaseUrl = PROBE42_API_BASE.replace('probe_pro_sandbox', 'probe_reports_sandbox')
+  const url = `${reportsBaseUrl}/companies/${cin}/reference-document?type=${type}&identifier_type=CIN`
+
+  try {
+    // Add 30 second timeout for PDF downloads
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'x-api-key': client['apiKey'],
+        'Accept': 'application/json',
+        'x-api-version': client['apiVersion'],
+      },
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new AppError(
+          ErrorCode.NOT_FOUND,
+          `${type} document for CIN ${cin} not found`,
+          404,
+          { cin, type, status: response.status }
+        )
+      }
+
+      throw new AppError(
+        ErrorCode.EXTERNAL_API_ERROR,
+        `Probe42 Reference Document API error: ${response.statusText}`,
+        502,
+        { status: response.status, cin, type }
+      )
+    }
+
+    // The API returns binary PDF (application/octet-stream)
+    const arrayBuffer = await response.arrayBuffer()
+
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+      throw new AppError(
+        ErrorCode.EXTERNAL_API_ERROR,
+        `Empty response from ${type} download`,
+        502,
+        { cin, type }
+      )
+    }
+
+    // Verify it's a valid PDF
+    const bytes = new Uint8Array(arrayBuffer)
+    const pdfSignature = String.fromCharCode(...bytes.slice(0, 4))
+
+    if (pdfSignature !== '%PDF') {
+      throw new AppError(
+        ErrorCode.EXTERNAL_API_ERROR,
+        `Invalid PDF file received for ${type}`,
+        502,
+        { cin, type, signature: pdfSignature }
+      )
+    }
+
+    // Convert to base64
+    const buffer = Buffer.from(arrayBuffer)
+    const base64String = buffer.toString('base64')
+
+    return base64String
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error
+    }
+
+    // Handle timeout
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new AppError(
+        ErrorCode.EXTERNAL_API_ERROR,
+        `${type} download timed out - please try again`,
+        504,
+        { cin, type, timeout: '30s' }
+      )
+    }
+
+    throw new AppError(
+      ErrorCode.EXTERNAL_API_ERROR,
+      `Failed to download ${type} from Probe42`,
+      502,
+      {
+        originalError: error instanceof Error ? error.message : String(error),
+        cin,
+        type
+      }
+    )
+  }
+}
