@@ -228,16 +228,34 @@ export async function deleteDocument(
       throw Errors.unauthorized()
     }
 
+    // Check if this is a Probe42 report
+    const isProbe42Report = document.fileName.includes('Probe42_Report')
+
     // Delete from Vercel Blob
     await deleteFromBlob(document.fileUrl)
 
-    // Delete from database
-    await prisma.document.delete({ where: { id: documentId } })
+    // Delete from database and reset Probe42 flag if needed
+    await prisma.$transaction(async (tx) => {
+      // Delete the document
+      await tx.document.delete({ where: { id: documentId } })
+
+      // If this is a Probe42 report, reset the download flag
+      if (isProbe42Report) {
+        await tx.lead.update({
+          where: { id: document.leadId },
+          data: {
+            probe42ReportDownloaded: false,
+            probe42ReportDownloadedAt: null,
+          },
+        })
+      }
+    })
 
     // Audit log
     await createAuditLog(session.user.id, 'DOCUMENT_DELETED', document.leadId, {
       documentId,
       fileName: document.fileName,
+      wasProbe42Report: isProbe42Report,
     })
 
     revalidatePath(`/dashboard/leads/${document.lead.leadId}`)
