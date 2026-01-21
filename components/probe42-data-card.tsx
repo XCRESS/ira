@@ -1,9 +1,10 @@
 'use client'
 
-import { Building2, ChevronDown, ChevronUp, RefreshCw, Calendar, DollarSign, Shield, Globe, FileText, Download, RotateCw } from 'lucide-react'
+import { Building2, ChevronDown, ChevronUp, RefreshCw, Calendar, DollarSign, Shield, Globe, FileText, Download, RotateCw, FileCheck } from 'lucide-react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { fetchProbe42Data } from '@/actions/lead'
-import { retryProbe42ReportDownload } from '@/actions/documents'
+import { retryProbe42ReportDownload, downloadAndSaveReferenceDocument } from '@/actions/documents'
 import { toast } from 'sonner'
 
 type Probe42DataCardProps = {
@@ -29,11 +30,16 @@ type Probe42DataCardProps = {
     probe42ReportDownloadedAt: Date | null
     probe42ReportFailedAt: Date | null
   }
+  hasMoa: boolean
+  hasAoa: boolean
 }
 
-export function Probe42DataCard({ lead }: Probe42DataCardProps) {
+export function Probe42DataCard({ lead, hasMoa, hasAoa }: Probe42DataCardProps) {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isDownloadingMoa, setIsDownloadingMoa] = useState(false)
+  const [isDownloadingAoa, setIsDownloadingAoa] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
 
   const handleFetchData = async () => {
@@ -42,7 +48,7 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
       const result = await fetchProbe42Data(lead.id)
       if (result.success) {
         toast.success('Company data updated successfully')
-        window.location.reload()
+        router.refresh()
       } else {
         toast.error(result.error || 'Failed to fetch company data')
       }
@@ -59,7 +65,7 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
       const result = await retryProbe42ReportDownload({ leadId: lead.id })
       if (result.success) {
         toast.success('Report downloaded successfully!')
-        window.location.reload()
+        router.refresh()
       } else {
         toast.error(result.error || 'Failed to download report')
       }
@@ -67,6 +73,40 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
       toast.error('An unexpected error occurred')
     } finally {
       setIsDownloading(false)
+    }
+  }
+
+  const handleDownloadMoa = async () => {
+    setIsDownloadingMoa(true)
+    try {
+      const result = await downloadAndSaveReferenceDocument({ leadId: lead.id, type: 'MoA' })
+      if (result.success) {
+        toast.success('MOA downloaded successfully!')
+        router.refresh()
+      } else {
+        toast.error(result.error || 'Failed to download MOA')
+      }
+    } catch {
+      toast.error('An unexpected error occurred')
+    } finally {
+      setIsDownloadingMoa(false)
+    }
+  }
+
+  const handleDownloadAoa = async () => {
+    setIsDownloadingAoa(true)
+    try {
+      const result = await downloadAndSaveReferenceDocument({ leadId: lead.id, type: 'AoA' })
+      if (result.success) {
+        toast.success('AOA downloaded successfully!')
+        router.refresh()
+      } else {
+        toast.error(result.error || 'Failed to download AOA')
+      }
+    } catch {
+      toast.error('An unexpected error occurred')
+    } finally {
+      setIsDownloadingAoa(false)
     }
   }
 
@@ -137,51 +177,146 @@ export function Probe42DataCard({ lead }: Probe42DataCardProps) {
 
         {/* PDF Report Status */}
         {lead.probe42Fetched && (
-          <div className="mt-4 p-3 rounded-lg bg-foreground/5">
-            <div className="flex items-center gap-2">
-              {lead.probe42ReportDownloaded ? (
-                <>
-                  <FileText className="size-4 text-green-500" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-green-500">Report Available</p>
-                    {lead.probe42ReportDownloadedAt && (
+          <>
+            <div className="mt-4 p-3 rounded-lg bg-foreground/5">
+              <div className="flex items-center gap-2">
+                {lead.probe42ReportDownloaded ? (
+                  <>
+                    <FileText className="size-4 text-green-500" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-green-500">Report Available</p>
+                      {lead.probe42ReportDownloadedAt && (
+                        <p className="text-xs text-foreground/60">
+                          Downloaded {formatDate(lead.probe42ReportDownloadedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Download className="size-4 text-primary" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">Probe42 Report</p>
                       <p className="text-xs text-foreground/60">
-                        Downloaded {formatDate(lead.probe42ReportDownloadedAt)}
+                        Click to download the detailed PDF report
                       </p>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Download className="size-4 text-primary" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">Probe42 Report</p>
-                    <p className="text-xs text-foreground/60">
-                      Click to download the detailed PDF report
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleDownloadReport}
-                    disabled={isDownloading}
-                    className="px-3 py-1.5 text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1.5"
-                    title="Download Report"
-                  >
-                    {isDownloading ? (
-                      <>
-                        <RotateCw className="size-4 animate-spin" />
-                        <span>Downloading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Download className="size-4" />
-                        <span>Download</span>
-                      </>
-                    )}
-                  </button>
-                </>
-              )}
+                    </div>
+                    <button
+                      onClick={handleDownloadReport}
+                      disabled={isDownloading}
+                      className="px-3 py-1.5 text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1.5"
+                      title="Download Report"
+                    >
+                      {isDownloading ? (
+                        <>
+                          <RotateCw className="size-4 animate-spin" />
+                          <span>Downloading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download className="size-4" />
+                          <span>Download</span>
+                        </>
+                      )}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+
+            {/* MOA & AOA Documents */}
+            <div className="mt-3 space-y-2">
+              {/* MOA Download */}
+              <div className="p-3 rounded-lg bg-foreground/5">
+                <div className="flex items-center gap-2">
+                  {hasMoa ? (
+                    <>
+                      <FileCheck className="size-4 text-green-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-500">MOA Available</p>
+                        <p className="text-xs text-foreground/60">
+                          Document downloaded
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <FileCheck className="size-4 text-primary" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">Memorandum of Association</p>
+                        <p className="text-xs text-foreground/60">
+                          Download MOA document
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleDownloadMoa}
+                        disabled={isDownloadingMoa}
+                        className="px-3 py-1.5 text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1.5"
+                        title="Download MOA"
+                      >
+                        {isDownloadingMoa ? (
+                          <>
+                            <RotateCw className="size-4 animate-spin" />
+                            <span>Downloading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Download className="size-4" />
+                            <span>Download</span>
+                          </>
+                        )}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* AOA Download */}
+              <div className="p-3 rounded-lg bg-foreground/5">
+                <div className="flex items-center gap-2">
+                  {hasAoa ? (
+                    <>
+                      <FileCheck className="size-4 text-green-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-500">AOA Available</p>
+                        <p className="text-xs text-foreground/60">
+                          Document downloaded
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <FileCheck className="size-4 text-primary" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">Articles of Association</p>
+                        <p className="text-xs text-foreground/60">
+                          Download AOA document
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleDownloadAoa}
+                        disabled={isDownloadingAoa}
+                        className="px-3 py-1.5 text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1.5"
+                        title="Download AOA"
+                      >
+                        {isDownloadingAoa ? (
+                          <>
+                            <RotateCw className="size-4 animate-spin" />
+                            <span>Downloading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Download className="size-4" />
+                            <span>Download</span>
+                          </>
+                        )}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Summary View - Key Metrics (Always Visible) */}

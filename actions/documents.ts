@@ -8,7 +8,7 @@ import { z, ZodError } from 'zod'
 import type { ActionResponse } from '@/lib/types'
 import type { Document, DocumentType } from '@prisma/client'
 import { Errors, AppError, ErrorCode } from '@/lib/errors'
-import { downloadProbe42Report } from '@/lib/probe42'
+import { downloadProbe42Report, downloadReferenceDocument } from '@/lib/probe42'
 
 // ============================================
 // Error Handler
@@ -62,6 +62,11 @@ const DeleteDocumentSchema = z.object({
 
 const RetryReportDownloadSchema = z.object({
   leadId: z.string().cuid(),
+})
+
+const DownloadReferenceDocumentSchema = z.object({
+  leadId: z.string().cuid(),
+  type: z.enum(['MoA', 'AoA']),
 })
 
 // ============================================
@@ -228,16 +233,34 @@ export async function deleteDocument(
       throw Errors.unauthorized()
     }
 
+    // Check if this is a Probe42 report
+    const isProbe42Report = document.fileName.includes('Probe42_Report')
+
     // Delete from Vercel Blob
     await deleteFromBlob(document.fileUrl)
 
-    // Delete from database
-    await prisma.document.delete({ where: { id: documentId } })
+    // Delete from database and reset Probe42 flag if needed
+    await prisma.$transaction(async (tx) => {
+      // Delete the document
+      await tx.document.delete({ where: { id: documentId } })
+
+      // If this is a Probe42 report, reset the download flag
+      if (isProbe42Report) {
+        await tx.lead.update({
+          where: { id: document.leadId },
+          data: {
+            probe42ReportDownloaded: false,
+            probe42ReportDownloadedAt: null,
+          },
+        })
+      }
+    })
 
     // Audit log
     await createAuditLog(session.user.id, 'DOCUMENT_DELETED', document.leadId, {
       documentId,
       fileName: document.fileName,
+      wasProbe42Report: isProbe42Report,
     })
 
     revalidatePath(`/dashboard/leads/${document.lead.leadId}`)
@@ -387,6 +410,117 @@ export async function retryProbe42ReportDownload(
     return result
   } catch (error) {
     console.error('Report download error:', error)
+    return handleActionError(handlePrismaError(error))
+  }
+}
+
+/**
+ * Download reference document (MOA/AOA) and save as document
+ * This is called when user clicks the MOA/AOA download button
+ */
+export async function downloadAndSaveReferenceDocument(
+  input: unknown
+): Promise<ActionResponse<Document>> {
+  let blobUrl: string | null = null
+
+  try {
+    const session = await verifyAuth()
+    const { leadId, type } = DownloadReferenceDocumentSchema.parse(input)
+
+    // Get lead details
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId },
+      select: {
+        id: true,
+        cin: true,
+        leadId: true,
+        companyName: true,
+      },
+    })
+
+    if (!lead) {
+      throw Errors.leadNotFound(leadId)
+    }
+
+    // Download from Probe42 (returns base64)
+    const base64Pdf = await downloadReferenceDocument(lead.cin, type)
+
+    // Generate filename
+    const timestamp = new Date().toISOString().split('T')[0]
+    const fileName = `${type}_${lead.cin}_${timestamp}.pdf`
+
+    // Upload to blob storage
+    const { url, size } = await uploadBase64ToBlob(
+      base64Pdf,
+      fileName,
+      lead.leadId
+    )
+    blobUrl = url
+
+    // Use transaction to prevent race condition and ensure atomicity
+    const document = await prisma.$transaction(async (tx) => {
+      // Check for existing document inside transaction with lock
+      const existingDoc = await tx.document.findFirst({
+        where: {
+          leadId,
+          fileName: {
+            contains: `${type}_${lead.cin}`,
+          },
+        },
+      })
+
+      if (existingDoc) {
+        throw new AppError(
+          ErrorCode.INVALID_INPUT,
+          `${type} already downloaded. To re-download, please delete the existing document first.`,
+          400,
+          { leadId, type }
+        )
+      }
+
+      // Create document record
+      const doc = await tx.document.create({
+        data: {
+          leadId,
+          fileName,
+          fileUrl: url,
+          fileSize: size,
+          fileType: 'PDF',
+          uploadedById: session.user.id,
+        },
+        include: {
+          uploadedBy: {
+            select: { name: true, email: true },
+          },
+        },
+      })
+
+      return doc
+    })
+
+    // Audit log (after successful transaction)
+    await createAuditLog(session.user.id, 'DOCUMENT_UPLOADED', leadId, {
+      documentId: document.id,
+      fileName,
+      source: `probe42_${type.toLowerCase()}_download`,
+    })
+
+    // Revalidate the lead detail page
+    revalidatePath(`/dashboard/leads/${lead.leadId}`)
+
+    return { success: true, data: document }
+  } catch (error) {
+    // Cleanup orphaned blob if database operation failed
+    if (blobUrl) {
+      try {
+        await deleteFromBlob(blobUrl)
+        console.log(`[Cleanup] Deleted orphaned blob: ${blobUrl}`)
+      } catch (cleanupError) {
+        console.error('[Cleanup] Failed to delete orphaned blob:', cleanupError)
+      }
+    }
+
+    console.error('Reference document download error:', error)
     return handleActionError(handlePrismaError(error))
   }
 }
