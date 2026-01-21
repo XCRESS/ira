@@ -9,7 +9,7 @@
 
 import { revalidateTag, updateTag } from "next/cache"
 import prisma from "@/lib/prisma"
-import type { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 import {
   verifyAuth,
   verifyRole,
@@ -464,42 +464,7 @@ export async function assignAssessor(
 
     checkOptimisticLock(lead.updatedAt, new Date(expectedUpdatedAt))
 
-    // 5. Create question snapshot for assessment
-    // Each assessment gets its own editable question list (initialized from templates)
-    const questions = await prisma.question.findMany({
-      where: { isActive: true },
-      orderBy: [{ type: "asc" }, { order: "asc" }],
-    })
-
-    // Transform questions into assessment-specific format
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const transformQuestion = (q: any) => ({
-      id: `${q.id}_${Date.now()}`, // Unique per assessment
-      sourceQuestionId: q.id, // Reference to template
-      type: q.type,
-      text: q.text,
-      order: q.order,
-      helpText: q.helpText,
-      isCustom: false,
-      isActive: true,
-    })
-
-    const questionSnapshot = {
-      eligibility: questions.filter((q) => q.type === "ELIGIBILITY").map(transformQuestion),
-      company: questions.filter((q) => q.type === "COMPANY").map(transformQuestion),
-      financial: questions.filter((q) => q.type === "FINANCIAL").map(transformQuestion),
-      sector: questions.filter((q) => q.type === "SECTOR").map(transformQuestion),
-    }
-
-    const totalQuestionCount =
-      questionSnapshot.eligibility.length +
-      questionSnapshot.company.length +
-      questionSnapshot.financial.length +
-      questionSnapshot.sector.length
-
-    const snapshotVersion = `${Date.now()}-${totalQuestionCount}`
-
-    // 6. Transaction: Update lead + create/update assessment
+    // 5. Transaction: Update lead + create/update assessment
     const updated = await prisma.$transaction(async (tx) => {
       // Update lead status and assignment
       const updatedLead = await tx.lead.update({
@@ -514,39 +479,62 @@ export async function assignAssessor(
         include: leadInclude,
       })
 
-      // Create assessment if it doesn't exist
+      // Create assessment if it doesn't exist (new stepper-based model)
       if (!lead.assessment) {
         await tx.assessment.create({
           data: {
             leadId: lead.id, // Use internal id for foreign key
             assessorId: validatedData.assessorId,
             status: "DRAFT",
-            questionSnapshot: questionSnapshot as Prisma.InputJsonValue,
-            questionSnapshotVersion: snapshotVersion,
+            currentStep: 1,
+            // New fields are initialized with defaults by Prisma
           },
         })
       } else {
-        // Update existing assessment's assessor and refresh snapshot
+        // Update existing assessment's assessor and reset for new stepper flow
         await tx.assessment.update({
           where: { id: lead.assessment.id },
           data: {
             assessorId: validatedData.assessorId,
-            questionSnapshot: questionSnapshot as Prisma.InputJsonValue,
-            questionSnapshotVersion: snapshotVersion,
             // Reset if reassigning to different assessor
             status: "DRAFT",
-            eligibilityAnswers: {},
-            companyAnswers: {},
-            financialAnswers: {},
-            sectorAnswers: {},
-            isEligible: null,
-            eligibilityCompletedAt: null,
+            currentStep: 1,
+            companyVerified: false,
+            companyVerifiedAt: null,
+            companyDataSnapshot: Prisma.DbNull,
+            financialVerified: false,
+            financialVerifiedAt: null,
+            financialDataSnapshot: Prisma.DbNull,
+            // Reset all preset question answers
+            hasInvestmentPlan: null,
+            q2aGovernancePlan: null,
+            q2bFinancialReporting: null,
+            q2cControlSystems: null,
+            q2dShareholdingClear: null,
+            q3aSeniorManagement: null,
+            q3bIndependentBoard: null,
+            q3cMidManagement: null,
+            q3dKeyPersonnel: null,
+            q4PaidUpCapital: null,
+            q5OutstandingShares: null,
+            q6NetWorth: null,
+            q7Borrowings: null,
+            q8DebtEquityRatio: null,
+            q9TurnoverYear1: null,
+            q9TurnoverYear2: null,
+            q9TurnoverYear3: null,
+            q10EbitdaYear1: null,
+            q10EbitdaYear2: null,
+            q10EbitdaYear3: null,
+            q11Eps: null,
+            // Reset scoring
+            scoreBreakdown: Prisma.DbNull,
             totalScore: null,
+            maxScore: null,
             percentage: null,
             rating: null,
             submittedAt: null,
             reviewedAt: null,
-            usesOldQuestions: false,
           },
         })
       }
@@ -554,11 +542,10 @@ export async function assignAssessor(
       return updatedLead
     })
 
-    // 7. Create audit log
+    // 6. Create audit log
     await createAuditLog(session.user.id, "LEAD_ASSIGNED", lead.id, {
       assessorId: validatedData.assessorId,
       assessorName: assessor.name,
-      totalQuestions: totalQuestionCount,
     })
 
     // 8. Send email notification to assessor (fire-and-forget)

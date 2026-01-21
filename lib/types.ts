@@ -217,9 +217,13 @@ export type LeadWithRelations = {
   assessment: {
     id: string
     status: string
-    isEligible: boolean | null
+    currentStep: number
+    companyVerified: boolean
+    financialVerified: boolean
     percentage: number | null
     rating: string | null
+    totalScore: number | null
+    maxScore: number | null
   } | null
   _count: {
     documents: number

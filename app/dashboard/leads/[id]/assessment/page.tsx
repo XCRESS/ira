@@ -2,9 +2,8 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { getLead } from "@/actions/lead"
-import { getAssessment } from "@/actions/assessment"
-import { getAssessmentQuestions } from "@/actions/assessment-questions"
-import { AssessmentForm } from "@/components/assessment-form"
+import { getAssessmentForStepper } from "@/actions/assessment-stepper"
+import { AssessmentStepper } from "@/components/assessment-stepper"
 import Link from "next/link"
 import { ChevronLeft, AlertCircle } from "lucide-react"
 
@@ -22,10 +21,10 @@ export default async function AssessmentPage({ params }: Props) {
     redirect("/login")
   }
 
-  // ✅ PERFORMANCE: Parallelize data fetching
+  // Fetch lead and assessment data
   const [leadResult, assessmentResult] = await Promise.all([
     getLead(resolvedParams.id),
-    getAssessment(resolvedParams.id),
+    getAssessmentForStepper(resolvedParams.id),
   ])
 
   if (!leadResult.success || !leadResult.data) {
@@ -52,8 +51,8 @@ export default async function AssessmentPage({ params }: Props) {
 
   const assessment = assessmentResult.data
 
-  // Check if eligibility completed
-  if (assessment.isEligible === null) {
+  // Check if Probe42 data is fetched
+  if (!assessment.lead.probe42Fetched) {
     return (
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <Link
@@ -67,35 +66,14 @@ export default async function AssessmentPage({ params }: Props) {
         <div className="glass rounded-xl p-6 text-center">
           <AlertCircle className="h-12 w-12 mx-auto text-foreground/30 mb-4" />
           <p className="text-sm text-foreground/70 mb-4">
-            Please complete the eligibility check first.
+            Please fetch company data from Probe42 before starting the assessment.
           </p>
           <Link
-            href={`/dashboard/leads/${lead.leadId}/eligibility`}
+            href={`/dashboard/leads/${lead.leadId}/company-details`}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 h-12 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
           >
-            Go to Eligibility Check
+            Go to Company Details
           </Link>
-        </div>
-      </div>
-    )
-  }
-
-  // Check if ineligible
-  if (!assessment.isEligible) {
-    return (
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-        <Link
-          href={`/dashboard/leads/${lead.leadId}`}
-          className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back to Lead
-        </Link>
-
-        <div className="glass rounded-xl p-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-500">
-            ✗ Company is not eligible for IPO assessment
-          </div>
         </div>
       </div>
     )
@@ -103,6 +81,18 @@ export default async function AssessmentPage({ params }: Props) {
 
   // Check if already submitted
   if (assessment.status !== "DRAFT") {
+    const statusMessages = {
+      SUBMITTED: "Assessment is pending review",
+      APPROVED: "Assessment has been approved",
+      REJECTED: "Assessment was rejected",
+    }
+
+    const statusColors = {
+      SUBMITTED: "bg-blue-500/10 text-blue-500",
+      APPROVED: "bg-green-500/10 text-green-500",
+      REJECTED: "bg-red-500/10 text-red-500",
+    }
+
     return (
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <Link
@@ -114,54 +104,20 @@ export default async function AssessmentPage({ params }: Props) {
         </Link>
 
         <div className="glass rounded-xl p-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500">
-            Assessment {assessment.status.toLowerCase()}
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${statusColors[assessment.status]}`}>
+            {statusMessages[assessment.status]}
           </div>
-          <p className="mt-4 text-sm text-foreground/70">
-            {assessment.status === "SUBMITTED" && "Waiting for reviewer approval"}
-            {assessment.status === "APPROVED" && "Assessment has been approved"}
-            {assessment.status === "REJECTED" && "Assessment was rejected. You can edit and resubmit."}
-          </p>
-        </div>
-      </div>
-    )
-  }
 
-  // Get questions from assessment snapshot (per-assessment questions)
-  const questionsResult = await getAssessmentQuestions(assessment.id)
-  const allQuestions = questionsResult.success && !Array.isArray(questionsResult.data)
-    ? questionsResult.data
-    : { company: [], financial: [], sector: [], eligibility: [] }
-
-  const companyQuestions = allQuestions.company || []
-  const financialQuestions = allQuestions.financial || []
-  const sectorQuestions = allQuestions.sector || []
-
-  const totalQuestions = companyQuestions.length + financialQuestions.length + sectorQuestions.length
-
-  if (totalQuestions === 0) {
-    return (
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-        <Link
-          href={`/dashboard/leads/${lead.leadId}`}
-          className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back to Lead
-        </Link>
-
-        <div className="glass rounded-xl p-6 text-center">
-          <AlertCircle className="h-12 w-12 mx-auto text-foreground/30 mb-4" />
-          <p className="text-sm text-foreground/70 mb-4">
-            No assessment questions found. You can add questions specific to this company.
-          </p>
-          {assessment.status === "DRAFT" && (
-            <Link
-              href={`/dashboard/leads/${lead.leadId}/assessment/manage`}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 h-12 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
-            >
-              Add Assessment Questions
-            </Link>
+          {assessment.totalScore !== null && (
+            <div className="mt-6">
+              <p className="text-sm text-foreground/70 mb-2">Assessment Score</p>
+              <p className="text-3xl font-bold">
+                {assessment.totalScore} / {assessment.maxScore}
+              </p>
+              <p className="text-sm text-foreground/70 mt-1">
+                {assessment.percentage?.toFixed(1)}% - {assessment.rating?.replace(/_/g, " ")}
+              </p>
+            </div>
           )}
         </div>
       </div>
@@ -186,32 +142,9 @@ export default async function AssessmentPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Manage Questions Link */}
-      {assessment.status === "DRAFT" && (
-        <div className="glass rounded-xl p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold mb-1">Assessment Questions</h3>
-              <p className="text-xs text-foreground/60">
-                Company: {companyQuestions.length} • Financial: {financialQuestions.length} • Sector: {sectorQuestions.length}
-              </p>
-            </div>
-            <Link
-              href={`/dashboard/leads/${lead.leadId}/assessment/manage`}
-              className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 px-4 h-10 rounded-lg bg-background/50 hover:bg-background/70"
-            >
-              Manage Questions
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Assessment Form */}
-      <AssessmentForm
+      {/* Assessment Stepper */}
+      <AssessmentStepper
         assessment={assessment}
-        companyQuestions={companyQuestions}
-        financialQuestions={financialQuestions}
-        sectorQuestions={sectorQuestions}
         leadId={lead.id}
       />
     </div>

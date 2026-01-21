@@ -9,6 +9,7 @@ import {
   Settings,
   Plus,
   Inbox,
+  HelpCircle,
 } from "lucide-react"
 
 type NavItem = {
@@ -52,6 +53,12 @@ export function DashboardSidebar({ userRole, pendingSubmissionsCount = 0 }: Prop
       roles: ["REVIEWER"],
     },
     {
+      name: "Scoring Guide",
+      href: "/dashboard/scoring-guide",
+      icon: HelpCircle,
+      roles: ["REVIEWER"],
+    },
+    {
       name: "Settings",
       href: "/dashboard/settings",
       icon: Settings,
@@ -91,11 +98,10 @@ export function DashboardSidebar({ userRole, pendingSubmissionsCount = 0 }: Prop
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-75 ${
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground/90 hover:text-foreground hover:bg-foreground/5"
-              }`}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-75 ${active
+                ? "bg-primary text-primary-foreground"
+                : "text-foreground/90 hover:text-foreground hover:bg-foreground/5"
+                }`}
               suppressHydrationWarning
             >
               <Icon className="h-5 w-5 shrink-0" />

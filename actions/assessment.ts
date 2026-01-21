@@ -1,16 +1,14 @@
 "use server"
 
-// IRA Platform - Assessment Server Actions
-// ✅ Eligibility check workflow
-// ✅ Main assessment (company/financial/sector)
-// ✅ Auto-save support
-// ✅ Question version tracking
-// ✅ Scoring calculation
-// ✅ Submit/review workflow
+/**
+ * IRA Platform - Assessment Server Actions
+ * 
+ * Core assessment operations for the new stepper-based flow.
+ * Handles: read operations, review workflow (approve/reject)
+ */
 
-import { revalidateTag, updateTag } from "next/cache"
+import { revalidateTag } from "next/cache"
 import prisma from "@/lib/prisma"
-import type { Prisma } from "@prisma/client"
 import {
   verifyAuth,
   verifyRole,
@@ -18,26 +16,23 @@ import {
   handlePrismaError,
 } from "@/lib/dal"
 import {
-  UpdateEligibilityAnswersSchema,
-  UpdateAllAssessmentAnswersSchema,
   ApproveAssessmentSchema,
   RejectAssessmentSchema,
   type ActionResponse,
-  type UpdateEligibilityAnswersInput,
-  type UpdateAllAssessmentAnswersInput,
   type ApproveAssessmentInput,
   type RejectAssessmentInput,
-  type EligibilityAnswer,
-  type AssessmentAnswer,
 } from "@/lib/types"
 import { Errors, AppError, ErrorCode } from "@/lib/errors"
 import { ZodError } from "zod"
 import type { Assessment } from "@prisma/client"
-import { sendAssessmentSubmittedEmail, sendAssessmentRejectedEmail, sendEmailsBatched, getAppBaseUrl } from "@/lib/email"
+import {
+  sendAssessmentRejectedEmail,
+  getAppBaseUrl
+} from "@/lib/email"
 
-// ============================================
-// ERROR HANDLER WRAPPER
-// ============================================
+// ============================================================================
+// Error Handler
+// ============================================================================
 
 function handleActionError(error: unknown): ActionResponse<never> {
   if (error instanceof AppError) {
@@ -65,9 +60,9 @@ function handleActionError(error: unknown): ActionResponse<never> {
   }
 }
 
-// ============================================
-// TYPE DEFINITIONS
-// ============================================
+// ============================================================================
+// Types
+// ============================================================================
 
 export type AssessmentWithRelations = Assessment & {
   lead: {
@@ -92,9 +87,9 @@ type ReviewHistoryEntry = {
   reviewerName: string
 }
 
-// ============================================
-// READ OPERATIONS
-// ============================================
+// ============================================================================
+// Read Operations
+// ============================================================================
 
 /**
  * Get assessment by lead ID
@@ -196,579 +191,89 @@ export async function getAssessmentById(
   }
 }
 
-// ============================================
-// ELIGIBILITY OPERATIONS
-// ============================================
-
 /**
- * Update eligibility answers (ASSESSOR only, auto-save)
- * Can only update if assessment is in DRAFT status
+ * Get all assessments pending review (REVIEWER only)
  */
-export async function updateEligibilityAnswers(
-  assessmentId: string,
-  input: unknown
-): Promise<ActionResponse<Assessment>> {
+export async function getPendingReviews(): Promise<
+  ActionResponse<AssessmentWithRelations[]>
+> {
   try {
-    const session = await verifyAuth()
+    await verifyRole("REVIEWER")
 
-    // Validate input
-    const validatedData = UpdateEligibilityAnswersSchema.parse(
-      input
-    ) as UpdateEligibilityAnswersInput
-
-    // Get assessment
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-      include: { lead: true },
-    })
-
-    if (!assessment) {
-      throw Errors.assessmentNotFound(assessmentId)
-    }
-
-    // Access control: Only assigned assessor can update
-    if (
-      session.user.role === "ASSESSOR" &&
-      assessment.assessorId !== session.user.id
-    ) {
-      throw Errors.insufficientPermissions()
-    }
-
-    // Check if assessor is still active
-    if (session.user.role === "ASSESSOR") {
-      const assessor = await prisma.user.findUnique({
-        where: { id: assessment.assessorId },
-        select: { isActive: true }
-      })
-
-      if (!assessor?.isActive) {
-        throw Errors.userInactive()
-      }
-    }
-
-    // Can only update if DRAFT
-    if (assessment.status !== "DRAFT") {
-      throw Errors.invalidStatusTransition(assessment.status, "DRAFT")
-    }
-
-    // Update answers
-    const updated = await prisma.assessment.update({
-      where: { id: assessmentId },
-      data: {
-        eligibilityAnswers: validatedData as Prisma.InputJsonValue,
-        updatedAt: new Date(),
+    const assessments = await prisma.assessment.findMany({
+      where: { status: "SUBMITTED" },
+      include: {
+        lead: {
+          select: {
+            id: true,
+            leadId: true,
+            companyName: true,
+            cin: true,
+            status: true,
+          },
+        },
+        assessor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
+      orderBy: { submittedAt: "desc" },
     })
 
-    // ✅ PERFORMANCE: Do NOT revalidate on auto-save
-    // Only revalidate when completing eligibility (see completeEligibility)
-    // This prevents full page rerender on every checkbox click
-
-    return { success: true, data: updated }
+    return { success: true, data: assessments as AssessmentWithRelations[] }
   } catch (error) {
     return handleActionError(handlePrismaError(error))
   }
 }
 
-/**
- * Complete eligibility check (ASSESSOR only)
- * Validates all questions are checked = true
- * If eligible: allows proceeding to main assessment
- * If not eligible: closes assessment and marks lead as COMPLETED
- */
-export async function completeEligibility(
-  assessmentId: string
-): Promise<
-  ActionResponse<{
-    isEligible: boolean
-    failedQuestions: string[]
-  }>
-> {
-  try {
-    const session = await verifyAuth()
-
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-      include: { lead: true },
-    })
-
-    if (!assessment) {
-      throw Errors.assessmentNotFound(assessmentId)
-    }
-
-    // Access control
-    if (
-      session.user.role === "ASSESSOR" &&
-      assessment.assessorId !== session.user.id
-    ) {
-      throw Errors.insufficientPermissions()
-    }
-
-    // Can only complete if DRAFT
-    if (assessment.status !== "DRAFT") {
-      throw Errors.invalidStatusTransition(assessment.status, "DRAFT")
-    }
-
-    // Check all eligibility answers
-    const answers = assessment.eligibilityAnswers as Record<
-      string,
-      EligibilityAnswer
-    >
-    const failedQuestions = Object.entries(answers)
-      .filter(([, ans]) => !ans.checked)
-      .map(([qId]) => qId)
-
-    const isEligible = failedQuestions.length === 0
-
-    // Update assessment
-    if (isEligible) {
-      // Eligible: Allow proceeding to main assessment
-      await prisma.assessment.update({
-        where: { id: assessmentId },
-        data: {
-          isEligible: true,
-          eligibilityCompletedAt: new Date(),
-        },
-      })
-
-      await createAuditLog(
-        session.user.id,
-        "ASSESSMENT_UPDATED",
-        assessment.leadId,
-        {
-          assessmentId,
-          action: "eligibility_passed",
-        }
-      )
-    } else {
-      // Not eligible: Close assessment
-      await prisma.$transaction([
-        prisma.assessment.update({
-          where: { id: assessmentId },
-          data: {
-            isEligible: false,
-            eligibilityCompletedAt: new Date(),
-            status: "DRAFT", // Keep as draft but mark ineligible
-          },
-        }),
-        prisma.lead.update({
-          where: { id: assessment.leadId },
-          data: {
-            status: "COMPLETED", // Mark lead as completed (ineligible)
-          },
-        }),
-      ])
-
-      await createAuditLog(
-        session.user.id,
-        "ASSESSMENT_UPDATED",
-        assessment.leadId,
-        {
-          assessmentId,
-          action: "eligibility_failed",
-          failedQuestions,
-        }
-      )
-    }
-
-    // Next.js 16: Use updateTag for immediate cache refresh (read-your-writes)
-    updateTag(`assessment-${assessmentId}`)
-    updateTag(`lead-${assessment.leadId}`)
-    revalidateTag("leads-list", "hours") // SWR for list pages
-
-    return {
-      success: true,
-      data: { isEligible, failedQuestions },
-    }
-  } catch (error) {
-    return handleActionError(handlePrismaError(error))
-  }
-}
-
-// ============================================
-// MAIN ASSESSMENT OPERATIONS
-// ============================================
-
-/**
- * Update all assessment answers in one transaction (ASSESSOR only, auto-save)
- * This prevents race conditions when multiple sections are being edited
- * Only updates sections that are provided
- */
-export async function updateAllAssessmentAnswers(
-  assessmentId: string,
-  input: unknown
-): Promise<ActionResponse<Assessment>> {
-  try {
-    const session = await verifyAuth()
-
-    const validatedData = UpdateAllAssessmentAnswersSchema.parse(
-      input
-    ) as UpdateAllAssessmentAnswersInput
-
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-      include: { lead: true },
-    })
-
-    if (!assessment) {
-      throw Errors.assessmentNotFound(assessmentId)
-    }
-
-    // Access control
-    if (
-      session.user.role === "ASSESSOR" &&
-      assessment.assessorId !== session.user.id
-    ) {
-      throw Errors.insufficientPermissions()
-    }
-
-    // Check if assessor is still active
-    if (session.user.role === "ASSESSOR") {
-      const assessor = await prisma.user.findUnique({
-        where: { id: assessment.assessorId },
-        select: { isActive: true }
-      })
-
-      if (!assessor?.isActive) {
-        throw Errors.userInactive()
-      }
-    }
-
-    // Can only update if DRAFT
-    if (assessment.status !== "DRAFT") {
-      throw Errors.invalidStatusTransition(assessment.status, "DRAFT")
-    }
-
-    // Must complete eligibility first
-    if (!assessment.isEligible) {
-      throw Errors.eligibilityNotCompleted()
-    }
-
-    // Build update data - only include fields that were provided
-    const updateData: Prisma.AssessmentUpdateInput = {
-      updatedAt: new Date(),
-    }
-
-    if (validatedData.companyAnswers !== undefined) {
-      updateData.companyAnswers = validatedData.companyAnswers
-    }
-    if (validatedData.financialAnswers !== undefined) {
-      updateData.financialAnswers = validatedData.financialAnswers
-    }
-    if (validatedData.sectorAnswers !== undefined) {
-      updateData.sectorAnswers = validatedData.sectorAnswers
-    }
-
-    // Single atomic update
-    const updated = await prisma.assessment.update({
-      where: { id: assessmentId },
-      data: updateData,
-    })
-
-    // ✅ PERFORMANCE: Do NOT revalidate on auto-save
-    // Only revalidate when submitting assessment (see submitAssessment)
-    // This prevents full page rerender on every answer change
-
-    return { success: true, data: updated }
-  } catch (error) {
-    return handleActionError(handlePrismaError(error))
-  }
-}
-
-
-// ============================================
-// SCORING & SUBMISSION
-// ============================================
-
-/**
- * Calculate assessment score
- */
-function calculateScore(
-  companyAnswers: Record<string, AssessmentAnswer>,
-  financialAnswers: Record<string, AssessmentAnswer>,
-  sectorAnswers: Record<string, AssessmentAnswer>
-): {
-  totalScore: number
-  maxPossibleScore: number
-  percentage: number
-  rating: "IPO_READY" | "NEEDS_IMPROVEMENT" | "NOT_READY"
-} {
-  const allAnswers = [
-    ...Object.values(companyAnswers),
-    ...Object.values(financialAnswers),
-    ...Object.values(sectorAnswers),
-  ]
-
-  const totalScore = allAnswers.reduce((sum, ans) => sum + ans.score, 0)
-  const maxPossibleScore = allAnswers.length * 2 // All Yes = 2 each
-
-  const percentage = (totalScore / maxPossibleScore) * 100
-
-  let rating: "IPO_READY" | "NEEDS_IMPROVEMENT" | "NOT_READY"
-  if (percentage > 65) rating = "IPO_READY"
-  else if (percentage >= 45) rating = "NEEDS_IMPROVEMENT"
-  else rating = "NOT_READY"
-
-  return { totalScore, maxPossibleScore, percentage, rating }
-}
-
-/**
- * Submit assessment for review (ASSESSOR only)
- * Validates all sections are complete
- * Calculates score automatically
- * Updates lead status to IN_REVIEW
- */
-export async function submitAssessment(
-  assessmentId: string,
-  confirmOldQuestions = false
-): Promise<
-  ActionResponse<{
-    totalScore: number
-    percentage: number
-    rating: string
-  }>
-> {
-  try {
-    const session = await verifyAuth()
-
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-      include: { lead: true },
-    })
-
-    if (!assessment) {
-      throw Errors.assessmentNotFound(assessmentId)
-    }
-
-    // Access control
-    if (
-      session.user.role === "ASSESSOR" &&
-      assessment.assessorId !== session.user.id
-    ) {
-      throw Errors.insufficientPermissions()
-    }
-
-    // Can only submit if DRAFT
-    if (assessment.status !== "DRAFT") {
-      throw Errors.invalidStatusTransition(assessment.status, "DRAFT")
-    }
-
-    // Must be eligible
-    if (!assessment.isEligible) {
-      throw Errors.eligibilityNotCompleted()
-    }
-
-    // Validate all sections have answers
-    const companyAnswers = assessment.companyAnswers as Record<
-      string,
-      AssessmentAnswer
-    >
-    const financialAnswers = assessment.financialAnswers as Record<
-      string,
-      AssessmentAnswer
-    >
-    const sectorAnswers = assessment.sectorAnswers as Record<
-      string,
-      AssessmentAnswer
-    >
-
-    // Get snapshot to validate against
-    const snapshot = assessment.questionSnapshot as Record<string, unknown[]> | null
-    if (!snapshot) {
-      throw Errors.databaseError("Assessment snapshot not found")
-    }
-
-    const snapshotCompanyCount = snapshot.company?.length || 0
-    const snapshotFinancialCount = snapshot.financial?.length || 0
-    const snapshotSectorCount = snapshot.sector?.length || 0
-
-    // Validate ALL questions are answered (not just "at least one")
-    const companyAnsweredCount = Object.keys(companyAnswers).length
-    const financialAnsweredCount = Object.keys(financialAnswers).length
-    const sectorAnsweredCount = Object.keys(sectorAnswers).length
-
-    const missingDetails: string[] = []
-    if (companyAnsweredCount < snapshotCompanyCount) {
-      missingDetails.push(`Company: ${companyAnsweredCount}/${snapshotCompanyCount} answered`)
-    }
-    if (financialAnsweredCount < snapshotFinancialCount) {
-      missingDetails.push(`Financial: ${financialAnsweredCount}/${snapshotFinancialCount} answered`)
-    }
-    if (sectorAnsweredCount < snapshotSectorCount) {
-      missingDetails.push(`Sector: ${sectorAnsweredCount}/${snapshotSectorCount} answered`)
-    }
-
-    if (missingDetails.length > 0) {
-      throw Errors.incompleteAssessment(missingDetails)
-    }
-
-    // Check if using outdated questions (if snapshot exists)
-    if (snapshot) {
-      // ✅ PERFORMANCE: Use count() instead of groupBy (100-200ms faster)
-      // Count current active questions per type
-      const [currentCompanyCount, currentFinancialCount, currentSectorCount] =
-        await Promise.all([
-          prisma.question.count({ where: { type: "COMPANY", isActive: true } }),
-          prisma.question.count({ where: { type: "FINANCIAL", isActive: true } }),
-          prisma.question.count({ where: { type: "SECTOR", isActive: true } }),
-        ])
-
-      const snapshotCompanyCount = snapshot.company?.length || 0
-      const snapshotFinancialCount = snapshot.financial?.length || 0
-      const snapshotSectorCount = snapshot.sector?.length || 0
-
-      const isOutdated =
-        currentCompanyCount !== snapshotCompanyCount ||
-        currentFinancialCount !== snapshotFinancialCount ||
-        currentSectorCount !== snapshotSectorCount
-
-      // If outdated and not confirmed, require confirmation
-      if (isOutdated && !confirmOldQuestions) {
-        throw Errors.questionsOutdated()
-      }
-    }
-
-    // Calculate score
-    const { totalScore, percentage, rating } = calculateScore(
-      companyAnswers,
-      financialAnswers,
-      sectorAnswers
-    )
-
-    // Update assessment, lead, and create audit log in transaction
-    await prisma.$transaction([
-      prisma.assessment.update({
-        where: { id: assessmentId },
-        data: {
-          totalScore,
-          percentage,
-          rating,
-          status: "SUBMITTED",
-          submittedAt: new Date(),
-          usesOldQuestions: assessment.questionSnapshot ? confirmOldQuestions : false,
-        },
-      }),
-      prisma.lead.update({
-        where: { id: assessment.leadId },
-        data: { status: "IN_REVIEW" },
-      }),
-      prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "ASSESSMENT_SUBMITTED",
-          leadId: assessment.leadId,
-          details: {
-            assessmentId,
-            totalScore,
-            percentage,
-            rating,
-          },
-        },
-      }),
-    ])
-
-    // Send email notification to all active reviewers (fire-and-forget)
-    // Email failure should NOT fail the submission operation
-    const baseUrl = getAppBaseUrl()
-    const reviewUrl = `${baseUrl}/dashboard/leads/${assessment.lead.leadId}`
-
-    // Get all active reviewers
-    prisma.user.findMany({
-      where: { role: 'REVIEWER', isActive: true },
-      select: { email: true, name: true }
-    }).then(reviewers => {
-      if (reviewers.length === 0) {
-        console.warn('[Assessment Submission] No active reviewers found to notify')
-        return
-      }
-
-      // Send to all reviewers in parallel with rate limiting
-      const emailPromises = reviewers.map(reviewer =>
-        () => sendAssessmentSubmittedEmail({
-          reviewerName: reviewer.name,
-          reviewerEmail: reviewer.email,
-          companyName: assessment.lead.companyName,
-          leadId: assessment.lead.leadId,
-          assessorName: session.user.name,
-          totalScore,
-          percentage,
-          rating,
-          actionUrl: reviewUrl
-        })
-      )
-
-      return sendEmailsBatched(emailPromises, 2, 1000)
-    }).then(results => {
-      if (!results) return
-
-      const failed = results.filter(r => r.status === 'rejected')
-      if (failed.length > 0) {
-        console.error('[Assessment Submission] Some email notifications failed:', failed)
-      } else {
-        console.log('[Assessment Submission] Email notifications sent to all reviewers')
-      }
-    }).catch(err => {
-      console.error('[Assessment Submission] Unexpected error sending notifications:', err)
-    })
-
-    // Next.js 16: Use updateTag for immediate cache refresh after submission
-    updateTag(`assessment-${assessmentId}`)
-    updateTag(`lead-${assessment.leadId}`)
-    revalidateTag("leads-list", "hours") // SWR for list pages
-
-    return {
-      success: true,
-      data: { totalScore, percentage, rating },
-    }
-  } catch (error) {
-    return handleActionError(handlePrismaError(error))
-  }
-}
-
-// ============================================
-// REVIEW OPERATIONS (REVIEWER only)
-// ============================================
+// ============================================================================
+// Review Operations (REVIEWER only)
+// ============================================================================
 
 /**
  * Approve assessment (REVIEWER only)
- * Updates lead status to PAYMENT_PENDING
  */
 export async function approveAssessment(
   assessmentId: string,
   input: unknown
-): Promise<ActionResponse<void>> {
+): Promise<ActionResponse<Assessment>> {
   try {
     const session = await verifyRole("REVIEWER")
-
-    const validatedData = ApproveAssessmentSchema.parse(
-      input
-    ) as ApproveAssessmentInput
+    const validatedData = ApproveAssessmentSchema.parse(input) as ApproveAssessmentInput
 
     const assessment = await prisma.assessment.findUnique({
       where: { id: assessmentId },
-      include: { lead: true },
+      include: {
+        lead: {
+          select: {
+            id: true,
+            leadId: true,
+            companyName: true,
+          },
+        },
+        assessor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     })
 
     if (!assessment) {
       throw Errors.assessmentNotFound(assessmentId)
     }
 
-    // Can only approve if SUBMITTED
     if (assessment.status !== "SUBMITTED") {
-      throw Errors.assessmentNotSubmitted()
+      throw Errors.invalidStatusTransition(assessment.status, "APPROVED")
     }
 
-    // If using old questions, require confirmation
-    if (assessment.usesOldQuestions && !validatedData.confirmOldQuestions) {
-      throw Errors.questionsOutdated()
-    }
-
-    // Get existing review history (limit to last 49 to keep total at 50 max)
-    const reviewHistory = (assessment.reviewHistory as ReviewHistoryEntry[]) || []
-    const limitedHistory = reviewHistory.slice(-49)
-
-    // Add new review entry
-    const newEntry: ReviewHistoryEntry = {
+    // Build review history entry
+    const newHistoryEntry: ReviewHistoryEntry = {
       reviewedAt: new Date().toISOString(),
       action: "APPROVED",
       comments: validatedData.comments || "",
@@ -776,39 +281,49 @@ export async function approveAssessment(
       reviewerName: session.user.name,
     }
 
-    // Update assessment, lead, and create audit log in transaction
-    await prisma.$transaction([
+    const existingHistory = (assessment.reviewHistory || []) as ReviewHistoryEntry[]
+    const updatedHistory = [...existingHistory, newHistoryEntry]
+
+    // Update assessment and lead status
+    const [updatedAssessment] = await prisma.$transaction([
       prisma.assessment.update({
         where: { id: assessmentId },
         data: {
           status: "APPROVED",
           reviewedAt: new Date(),
-          reviewHistory: [...limitedHistory, newEntry] as Prisma.InputJsonValue,
+          reviewHistory: updatedHistory,
         },
       }),
       prisma.lead.update({
-        where: { id: assessment.leadId },
-        data: { status: "PAYMENT_PENDING" },
-      }),
-      prisma.auditLog.create({
+        where: { id: assessment.lead.id },
         data: {
-          userId: session.user.id,
-          action: "ASSESSMENT_APPROVED",
-          leadId: assessment.leadId,
-          details: {
-            assessmentId,
-            comments: validatedData.comments,
-          },
+          status: "COMPLETED",
+          updatedAt: new Date(),
         },
       }),
     ])
 
-    // Next.js 16: Use updateTag for immediate cache refresh
-    updateTag(`assessment-${assessmentId}`)
-    updateTag(`lead-${assessment.leadId}`)
-    revalidateTag("leads-list", "hours")
+    await createAuditLog(
+      session.user.id,
+      "ASSESSMENT_APPROVED",
+      assessment.lead.id,
+      {
+        assessmentId,
+        comments: validatedData.comments,
+      }
+    )
 
-    return { success: true, data: undefined }
+    // Note: No approval email function exists yet - skip for now
+
+    revalidateTag(`lead-${assessment.leadId}`, "hours")
+    revalidateTag("reviews", "hours")
+    revalidateTag("leads", "hours")
+
+    return {
+      success: true,
+      data: updatedAssessment,
+      message: "Assessment approved successfully",
+    }
   } catch (error) {
     return handleActionError(handlePrismaError(error))
   }
@@ -816,23 +331,33 @@ export async function approveAssessment(
 
 /**
  * Reject assessment (REVIEWER only)
- * Sends back to assessor for revision
- * Updates assessment status to DRAFT and lead status to ASSIGNED
  */
 export async function rejectAssessment(
   assessmentId: string,
   input: unknown
-): Promise<ActionResponse<void>> {
+): Promise<ActionResponse<Assessment>> {
   try {
     const session = await verifyRole("REVIEWER")
-
-    const validatedData = RejectAssessmentSchema.parse(
-      input
-    ) as RejectAssessmentInput
+    const validatedData = RejectAssessmentSchema.parse(input) as RejectAssessmentInput
 
     const assessment = await prisma.assessment.findUnique({
       where: { id: assessmentId },
-      include: { lead: true },
+      include: {
+        lead: {
+          select: {
+            id: true,
+            leadId: true,
+            companyName: true,
+          },
+        },
+        assessor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     })
 
     if (!assessment) {
@@ -840,15 +365,11 @@ export async function rejectAssessment(
     }
 
     if (assessment.status !== "SUBMITTED") {
-      throw Errors.assessmentNotSubmitted()
+      throw Errors.invalidStatusTransition(assessment.status, "REJECTED")
     }
 
-    // Get existing review history (limit to last 49 to keep total at 50 max)
-    const reviewHistory = (assessment.reviewHistory as ReviewHistoryEntry[]) || []
-    const limitedHistory = reviewHistory.slice(-49)
-
-    // Add rejection entry
-    const newEntry: ReviewHistoryEntry = {
+    // Build review history entry
+    const newHistoryEntry: ReviewHistoryEntry = {
       reviewedAt: new Date().toISOString(),
       action: "REJECTED",
       comments: validatedData.comments,
@@ -856,198 +377,53 @@ export async function rejectAssessment(
       reviewerName: session.user.name,
     }
 
-    // Update assessment, lead, and create audit log in transaction
-    await prisma.$transaction([
-      prisma.assessment.update({
-        where: { id: assessmentId },
-        data: {
-          status: "DRAFT", // Back to draft for editing
-          reviewedAt: new Date(),
-          reviewHistory: [...limitedHistory, newEntry] as Prisma.InputJsonValue,
-          // Clear submission data
-          totalScore: null,
-          percentage: null,
-          rating: null,
-          submittedAt: null,
-        },
-      }),
-      prisma.lead.update({
-        where: { id: assessment.leadId },
-        data: { status: "ASSIGNED" }, // Back to assigned
-      }),
-      prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "ASSESSMENT_REJECTED",
-          leadId: assessment.leadId,
-          details: {
-            assessmentId,
-            comments: validatedData.comments,
-          },
-        },
-      }),
-    ])
+    const existingHistory = (assessment.reviewHistory || []) as ReviewHistoryEntry[]
+    const updatedHistory = [...existingHistory, newHistoryEntry]
 
-    // Send email notification to assessor (fire-and-forget)
-    // Email failure should NOT fail the rejection operation
-    const baseUrl = getAppBaseUrl()
-    const revisionUrl = `${baseUrl}/dashboard/leads/${assessment.lead.leadId}`
-
-    // Get assessor details
-    prisma.user.findUnique({
-      where: { id: assessment.assessorId },
-      select: { email: true, name: true }
-    }).then(assessor => {
-      if (!assessor) {
-        console.warn('[Assessment Rejection] Assessor not found:', assessment.assessorId)
-        return
-      }
-
-      return sendAssessmentRejectedEmail({
-        assessorName: assessor.name,
-        assessorEmail: assessor.email,
-        companyName: assessment.lead.companyName,
-        leadId: assessment.lead.leadId,
-        reviewerName: session.user.name,
-        comments: validatedData.comments,
-        actionUrl: revisionUrl
-      })
-    }).then(result => {
-      if (!result) return
-
-      if (result.success) {
-        console.log('[Assessment Rejection] Email notification sent to assessor')
-      } else {
-        console.error('[Assessment Rejection] Failed to send email notification:', result.error)
-      }
-    }).catch(err => {
-      console.error('[Assessment Rejection] Unexpected error sending notification:', err)
-    })
-
-    // Next.js 16: Use updateTag for immediate cache refresh
-    updateTag(`assessment-${assessmentId}`)
-    updateTag(`lead-${assessment.leadId}`)
-    revalidateTag("leads-list", "hours")
-
-    return { success: true, data: undefined }
-  } catch (error) {
-    return handleActionError(handlePrismaError(error))
-  }
-}
-
-// ============================================
-// RESTART ASSESSMENT (when questions updated)
-// ============================================
-
-/**
- * Restart assessment with new question set
- * Clears all answers and creates new snapshot
- * Only available for DRAFT assessments
- */
-export async function restartAssessmentWithNewQuestions(
-  assessmentId: string
-): Promise<ActionResponse<Assessment>> {
-  try {
-    const session = await verifyAuth()
-
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-    })
-
-    if (!assessment) {
-      throw Errors.assessmentNotFound(assessmentId)
-    }
-
-    // Access control
-    if (
-      session.user.role === "ASSESSOR" &&
-      assessment.assessorId !== session.user.id
-    ) {
-      throw Errors.insufficientPermissions()
-    }
-
-    // Can only restart if DRAFT
-    if (assessment.status !== "DRAFT") {
-      throw Errors.invalidStatusTransition(assessment.status, "DRAFT")
-    }
-
-    // Get new question snapshot
-    const questions = await prisma.question.findMany({
-      where: { isActive: true },
-      orderBy: [{ type: "asc" }, { order: "asc" }],
-    })
-
-    const snapshot = {
-      eligibility: questions.filter((q) => q.type === "ELIGIBILITY"),
-      company: questions.filter((q) => q.type === "COMPANY"),
-      financial: questions.filter((q) => q.type === "FINANCIAL"),
-      sector: questions.filter((q) => q.type === "SECTOR"),
-    }
-
-    const totalCount =
-      snapshot.eligibility.length +
-      snapshot.company.length +
-      snapshot.financial.length +
-      snapshot.sector.length
-
-    const version = `${Date.now()}-${totalCount}`
-
-    // Clear all answers and update snapshot
-    const updated = await prisma.assessment.update({
+    // Update assessment - goes back to DRAFT for resubmission
+    const updatedAssessment = await prisma.assessment.update({
       where: { id: assessmentId },
       data: {
-        questionSnapshot: snapshot as Prisma.InputJsonValue,
-        questionSnapshotVersion: version,
-        eligibilityAnswers: {},
-        companyAnswers: {},
-        financialAnswers: {},
-        sectorAnswers: {},
-        isEligible: null,
-        eligibilityCompletedAt: null,
-        usesOldQuestions: false,
+        status: "REJECTED",
+        reviewedAt: new Date(),
+        reviewHistory: updatedHistory,
       },
     })
 
-    await createAuditLog(session.user.id, "ASSESSMENT_UPDATED", assessment.leadId, {
-      assessmentId,
-      action: "restarted_with_new_questions",
-    })
+    await createAuditLog(
+      session.user.id,
+      "ASSESSMENT_REJECTED",
+      assessment.lead.id,
+      {
+        assessmentId,
+        comments: validatedData.comments,
+      }
+    )
 
-    // Next.js 16: Use updateTag for immediate refresh
-    updateTag(`assessment-${assessmentId}`)
-    updateTag(`lead-${assessment.leadId}`)
-
-    return { success: true, data: updated }
-  } catch (error) {
-    return handleActionError(handlePrismaError(error))
-  }
-}
-
-/**
- * Check if questions have been updated since the given version
- */
-export async function checkQuestionVersion(snapshotVersion: string | null) {
-  try {
-    await verifyAuth()
-
-    if (!snapshotVersion) {
-      return { success: true, data: { isOutdated: false } }
+    // Send notification email
+    try {
+      const baseUrl = getAppBaseUrl()
+      await sendAssessmentRejectedEmail({
+        assessorEmail: assessment.assessor.email,
+        assessorName: assessment.assessor.name,
+        companyName: assessment.lead.companyName,
+        leadId: assessment.lead.leadId,
+        reviewerName: session.user.name,
+        actionUrl: `${baseUrl}/dashboard/leads/${assessment.lead.id}/assessment`,
+        comments: validatedData.comments,
+      })
+    } catch (emailError) {
+      console.error("Failed to send rejection email:", emailError)
     }
 
-    // Parse timestamp from version string (format: "timestamp-count")
-    const versionTimestamp = parseInt(snapshotVersion.split("-")[0] || "0", 10)
+    revalidateTag(`lead-${assessment.leadId}`, "hours")
+    revalidateTag("reviews", "hours")
 
-    // Get current active questions version
-    const currentVersion = await prisma.question.findFirst({
-      where: { isActive: true },
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-    })
-
-    const currentTimestamp = currentVersion?.updatedAt.getTime() || 0
-    const isOutdated = currentTimestamp > versionTimestamp
-
-    return { success: true, data: { isOutdated } }
+    return {
+      success: true,
+      data: updatedAssessment,
+      message: "Assessment rejected - sent back for revision",
+    }
   } catch (error) {
     return handleActionError(handlePrismaError(error))
   }

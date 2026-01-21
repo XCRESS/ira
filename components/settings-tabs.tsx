@@ -2,25 +2,15 @@
 
 import { useState } from "react"
 import { ThemeSwitcher } from "@/components/theme-switcher"
-import { QuestionList } from "@/components/question-list"
-import { User, Palette, Bell, Shield, FileQuestion } from "lucide-react"
-import type { Question } from "@prisma/client"
+import { User, Palette, Bell, Shield } from "lucide-react"
 
-type SettingsSection = "appearance" | "questions" | "general" | "notifications" | "security"
-
-type GroupedQuestions = {
-  eligibility: Question[]
-  company: Question[]
-  financial: Question[]
-  sector: Question[]
-}
+type SettingsSection = "appearance" | "general" | "notifications" | "security"
 
 type Props = {
   userRole: "ASSESSOR" | "REVIEWER"
-  questions: GroupedQuestions | null
 }
 
-export function SettingsTabs({ userRole, questions }: Props) {
+export function SettingsTabs({ userRole }: Props) {
   const [activeSection, setActiveSection] = useState<SettingsSection>("appearance")
 
   const sections = [
@@ -30,13 +20,6 @@ export function SettingsTabs({ userRole, questions }: Props) {
       icon: Palette,
       description: "Customize theme and display",
       roles: ["ASSESSOR", "REVIEWER"] as const,
-    },
-    {
-      id: "questions" as SettingsSection,
-      name: "Questions",
-      icon: FileQuestion,
-      description: "Manage assessment questions",
-      roles: ["REVIEWER"] as const,
     },
     {
       id: "general" as SettingsSection,
@@ -77,11 +60,10 @@ export function SettingsTabs({ userRole, questions }: Props) {
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
-                isActive
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${isActive
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-foreground/5"
-              }`}
+                }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="font-medium">{section.name}</span>
@@ -97,62 +79,6 @@ export function SettingsTabs({ userRole, questions }: Props) {
           <div className="glass rounded-2xl p-6 md:p-8">
             <h2 className="mb-6 text-base md:text-lg font-semibold">Theme</h2>
             <ThemeSwitcher />
-          </div>
-        )}
-
-        {/* Questions Section (Reviewer only) */}
-        {activeSection === "questions" && userRole === "REVIEWER" && (
-          <div className="space-y-4 md:space-y-6">
-            <div className="glass rounded-2xl p-4 md:p-6">
-              <h2 className="text-base md:text-lg font-semibold mb-2">Question Bank</h2>
-              <p className="text-sm text-foreground/70">
-                Manage assessment questions for all leads. Changes only affect new assessments.
-              </p>
-            </div>
-
-            {questions ? (
-              <>
-                {/* Stats */}
-                <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                  <div className="glass rounded-xl p-4">
-                    <p className="text-xs text-foreground/60">Eligibility</p>
-                    <p className="text-2xl font-bold mt-1">
-                      {questions.eligibility.filter((q) => q.isActive).length}
-                    </p>
-                  </div>
-                  <div className="glass rounded-xl p-4">
-                    <p className="text-xs text-foreground/60">Company</p>
-                    <p className="text-2xl font-bold mt-1">
-                      {questions.company.filter((q) => q.isActive).length}
-                    </p>
-                  </div>
-                  <div className="glass rounded-xl p-4">
-                    <p className="text-xs text-foreground/60">Financial</p>
-                    <p className="text-2xl font-bold mt-1">
-                      {questions.financial.filter((q) => q.isActive).length}
-                    </p>
-                  </div>
-                  <div className="glass rounded-xl p-4">
-                    <p className="text-xs text-foreground/60">Sector</p>
-                    <p className="text-2xl font-bold mt-1">
-                      {questions.sector.filter((q) => q.isActive).length}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Question Lists */}
-                <QuestionList
-                  eligibility={questions.eligibility}
-                  company={questions.company}
-                  financial={questions.financial}
-                  sector={questions.sector}
-                />
-              </>
-            ) : (
-              <div className="glass rounded-2xl p-6 text-center">
-                <p className="text-sm text-foreground/70">Failed to load questions</p>
-              </div>
-            )}
           </div>
         )}
 

@@ -81,14 +81,6 @@ export default async function ReviewPage({ params }: Props) {
     )
   }
 
-  // Get question snapshot
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const snapshot = assessment.questionSnapshot as any
-  const eligibilityQuestions = snapshot?.eligibility || []
-  const companyQuestions = snapshot?.company || []
-  const financialQuestions = snapshot?.financial || []
-  const sectorQuestions = snapshot?.sector || []
-
   return (
     <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-4 md:space-y-6">
       {/* Header */}
@@ -107,13 +99,9 @@ export default async function ReviewPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Review Form */}
+      {/* Review Form - now uses new preset questionnaire system */}
       <ReviewForm
         assessment={assessment}
-        eligibilityQuestions={eligibilityQuestions}
-        companyQuestions={companyQuestions}
-        financialQuestions={financialQuestions}
-        sectorQuestions={sectorQuestions}
         leadId={lead.leadId}
       />
     </div>

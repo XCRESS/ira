@@ -1,0 +1,4114 @@
+{
+    "metadata": {
+        "api_version": {
+            "type": "string"
+        },
+        "last_updated": {
+            "type": "string",
+            "format": "date"
+        },
+        "identifier_changed": {
+            "type": [
+                "boolean",
+                "null"
+            ]
+        }
+    },
+    "data": {
+        "company": {
+            "authorized_capital": {
+                "type": "number"
+            },
+            "cin": {
+                "type": "string"
+            },
+            "efiling_status": {
+                "type": [
+                    "null",
+                    "string"
+                ]
+            },
+            "active_compliance": {
+                "type": [
+                    "null",
+                    "string"
+                ]
+            },
+            "cirp_status": {
+                "type": [
+                    "null",
+                    "string"
+                ]
+            },
+            "incorporation_date": {
+                "type": [
+                    "string",
+                    "null"
+                ],
+                "format": "date"
+            },
+            "legal_name": {
+                "type": "string"
+            },
+            "paid_up_capital": {
+                "type": [
+                    "number",
+                    "null"
+                ]
+            },
+            "sum_of_charges": {
+                "type": [
+                    "number",
+                    "null"
+                ]
+            },
+            "registered_address": {
+                "full_address": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "address_line1": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "address_line2": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "city": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "pincode": {
+                    "type": [
+                        "string",
+                        "number",
+                        "null"
+                    ]
+                },
+                "state": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "business_address": {
+                "address_line1": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "address_line2": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "city": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "pincode": {
+                    "type": [
+                        "string",
+                        "number",
+                        "null"
+                    ]
+                },
+                "state": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                }
+            },
+            "classification": {
+                "type": "string",
+                "enum": [
+                    "Public Limited Indian Non-Government Company",
+                    "Private Limited Indian Non-Government Company",
+                    "One Person Company",
+                    "Private Limited Foreign Company Incorporated in India",
+                    "Public Limited Foreign Company Incorporated in India",
+                    "Union Government Company",
+                    "State Government Company",
+                    "Guarantee & Association Public",
+                    "Guarantee & Association Private",
+                    "Not For Profit Company",
+                    "Unlimited Liabilities Public",
+                    "Unlimited Liabilities Private",
+                    "Undefined"
+                ]
+            },
+            "pan": {
+                "type": "string"
+            },
+            "status": {
+                "enum": [
+                    "Listed",
+                    "Unlisted",
+                    "Undefined"
+                ]
+            },
+            "next_cin": {
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            "last_agm_date": {
+                "type": [
+                    "string",
+                    "null"
+                ],
+                "format": "date"
+            },
+            "last_filing_date": {
+                "type": [
+                    "string",
+                    "null"
+                ],
+                "format": "date"
+            },
+            "email": {
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            "website": {
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            "lei": {
+                "number": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "status": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "registration_date": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date"
+                },
+                "last_updated_date": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date"
+                },
+                "next_renewal_date": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date"
+                }
+            }
+        },
+        "description": {
+            "desc_thousand_char": {
+                "type": "string"
+            }
+        },
+        "name_history": [
+            {
+                "name": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date"
+                }
+            }
+        ],
+        "authorized_signatories": [
+            {
+                "pan": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "din": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "designation": {
+                    "type": "string"
+                },
+                "date_of_birth": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "format": "date"
+                },
+                "din_status": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "gender": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "age": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "date_of_appointment": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date"
+                },
+                "date_of_appointment_for_current_designation": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "format": "date"
+                },
+                "date_of_cessation": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "format": "date"
+                },
+                "nationality": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "father_name": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "address": {
+                    "address_line1": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "address_line2": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "city": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "state": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "pincode": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "country": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                },
+                "association_history": [
+                    {
+                        "event": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "designation_after_event": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "event_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "filing_date": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    }
+                ],
+                "dsc_status": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "dsc_expiry_date": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "format": "date"
+                }
+            }
+        ],
+        "contact_details": {
+            "email": [
+                {
+                    "emailId": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                }
+            ],
+            "phone": [
+                {
+                    "phoneNumber": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                }
+            ]
+        },
+        "director_network": [
+            {
+                "name": {
+                    "type": "string"
+                },
+                "pan": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "din": {
+                    "type": "string"
+                },
+                "network": {
+                    "companies": [
+                        {
+                            "cin": {
+                                "type": "string"
+                            },
+                            "legal_name": {
+                                "type": "string"
+                            },
+                            "company_status": {
+                                "type": [
+                                    "null",
+                                    "string"
+                                ]
+                            },
+                            "incorporation_date": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "paid_up_capital": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "cirp_status": {
+                                "type": [
+                                    "null",
+                                    "string"
+                                ]
+                            },
+                            "sum_of_charges": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "city": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "designation": {
+                                "type": "string"
+                            },
+                            "date_of_appointment": {
+                                "type": [
+                                    "null",
+                                    "string"
+                                ]
+                            },
+                            "date_of_appointment_for_current_designation": {
+                                "type": [
+                                    "null",
+                                    "string"
+                                ]
+                            },
+                            "date_of_cessation": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "active_compliance": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    ],
+                    "llps": [
+                        {
+                            "llpin": {
+                                "type": "string"
+                            },
+                            "legal_name": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string"
+                            },
+                            "incorporation_date": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "cirp_status": {
+                                "type": [
+                                    "null",
+                                    "string"
+                                ]
+                            },
+                            "total_obligation_of_contribution": {
+                                "type": "number"
+                            },
+                            "sum_of_charges": {
+                                "type": "number"
+                            },
+                            "city": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "designation": {
+                                "type": "string"
+                            },
+                            "date_of_appointment": {
+                                "type": [
+                                    "null",
+                                    "string"
+                                ]
+                            },
+                            "date_of_appointment_for_current_designation": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "date_of_cessation": {
+                                "type": [
+                                    "null",
+                                    "string"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "open_charges": [
+            {
+                "id": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "holder_name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "amount": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "enum": [
+                        "Creation",
+                        "Modification"
+                    ]
+                }
+            }
+        ],
+        "open_charges_latest_event": [
+            {
+                "id": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "holder_name": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "enum": [
+                        "Creation",
+                        "Modification"
+                    ]
+                },
+                "filing_date": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "property_type": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "number_of_chargeholder": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "instrument_description": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "rate_of_interest": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "terms_of_payment": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "property_particulars": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "extent_and_operation": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "other_terms": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "modification_particulars": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "joint_holding": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "consortium_holding": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                }
+            }
+        ],
+        "financials": [
+            {
+                "year": {
+                    "type": "string"
+                },
+                "nature": {
+                    "type": "string"
+                },
+                "stated_on": {
+                    "type": "string"
+                },
+                "filing_standard": {
+                    "type": "string"
+                },
+                "filing_type": {
+                    "type": "string"
+                },
+                "bs": {
+                    "assets": {
+                        "tangible_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "producing_properties": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "intangible_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "preproducing_properties": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "tangible_assets_capital_work_in_progress": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "intangible_assets_under_development": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "noncurrent_investments": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "deferred_tax_assets_net": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "foreign_curr_monetary_item_trans_diff_asset_account": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "long_term_loans_and_advances": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_noncurrent_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "current_investments": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "inventories": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "trade_receivables": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "cash_and_bank_balances": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "short_term_loans_and_advances": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_current_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "given_assets_total": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    },
+                    "liabilities": {
+                        "share_capital": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "reserves_and_surplus": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "money_received_against_share_warrants": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "share_application_money_pending_allotment": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "deferred_government_grants": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "minority_interest": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "long_term_borrowings": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "deferred_tax_liabilities_net": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "foreign_curr_monetary_item_trans_diff_liability_account": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_long_term_liabilities": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "long_term_provisions": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "short_term_borrowings": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "trade_payables": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_current_liabilities": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "short_term_provisions": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "given_liabilities_total": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    },
+                    "subTotals": {
+                        "total_equity": {
+                            "type": "number"
+                        },
+                        "total_current_liabilities": {
+                            "type": "number"
+                        },
+                        "net_fixed_assets": {
+                            "type": "number"
+                        },
+                        "total_current_assets": {
+                            "type": "number"
+                        },
+                        "capital_wip": {
+                            "type": "number"
+                        },
+                        "total_debt": {
+                            "type": "number"
+                        },
+                        "total_non_current_liabilities": {
+                            "type": "number"
+                        },
+                        "total_other_non_current_assets": {
+                            "type": "number"
+                        }
+                    },
+                    "metadata": {
+                        "doc_id": {
+                            "type": "string"
+                        }
+                    },
+                    "notes": {
+                        "gross_fixed_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "trade_receivable_exceeding_six_months": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "pnl": {
+                    "lineItems": {
+                        "net_revenue": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_cost_of_materials_consumed": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_purchases_of_stock_in_trade": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_changes_in_inventories_or_finished_goods": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_employee_benefit_expense": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_other_expenses": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "operating_profit": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "depreciation": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_before_interest_and_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "interest": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_before_tax_and_exceptional_items_before_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "exceptional_items_before_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_before_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "income_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_for_period_from_continuing_operations": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_from_discontinuing_operation_after_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "minority_interest_and_profit_from_associates_and_joint_ventures": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_after_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    },
+                    "subTotals": {
+                        "total_operating_cost": {
+                            "type": "number"
+                        }
+                    },
+                    "revenue_breakup": {
+                        "type": "object"
+                    },
+                    "depreciation_breakup": {
+                        "type": "object"
+                    },
+                    "metadata": {
+                        "doc_id": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "cash_flow": {
+                    "profit_before_tax": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "adjustment_for_finance_cost_and_depreciation": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "adjustment_for_current_and_non_current_assets": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "adjustment_for_current_and_non_current_liabilities": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "other_adjustments_in_operating_activities": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "cash_flows_from_used_in_operating_activities": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "cash_outflow_from_purchase_of_assets": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "cash_inflow_from_sale_of_assets": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "income_from_assets": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "other_adjustments_in_investing_activities": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "cash_flows_from_used_in_investing_activities": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "cash_outflow_from_repayment_of_capital_and_borrowings": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "cash_inflow_from_raisng_capital_and_borrowings": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "interest_and_dividends_paid": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "other_adjustments_in_financing_activities": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "cash_flows_from_used_in_financing_activities": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incr_decr_in_cash_cash_equv_before_effect_of_excg_rate_changes": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "adjustments_to_cash_and_cash_equivalents": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incr_decr_in_cash_cash_equv": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "cash_flow_statement_at_end_of_period": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    }
+                },
+                "pnl_key_schedule": {
+                    "managerial_remuneration": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "payment_to_auditors": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "insurance_expenses": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "power_and_fuel": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    }
+                },
+                "auditor_comments": {
+                    "report_has_adverse_remarks": {
+                        "type": "boolean"
+                    },
+                    "disclosures_auditor_report": [
+                        {
+                            "auditor": {
+                                "type": "string"
+                            },
+                            "footnote": {
+                                "type": "null"
+                            }
+                        }
+                    ],
+                    "disclosures_director_report": [
+                        {
+                            "auditor": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "director": {
+                                "type": "string"
+                            },
+                            "footnote": {
+                                "type": "null"
+                            }
+                        }
+                    ]
+                },
+                "auditor": {
+                    "auditor_name": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "auditor_firm_name": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "pan": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "membership_number": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "firm_registration_number": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "address": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                },
+                "auditor_additional": {
+                    "auditor_name": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "auditor_firm_name": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "pan": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "membership_number": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "firm_registration_number": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "address": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                },
+                "ratios": {
+                    "revenue_growth": {
+                        "type": "number"
+                    },
+                    "gross_profit_margin": {
+                        "type": "number"
+                    },
+                    "net_margin": {
+                        "type": "number"
+                    },
+                    "ebitda_margin": {
+                        "type": "number"
+                    },
+                    "return_on_equity": {
+                        "type": "number"
+                    },
+                    "return_on_capital_employed": {
+                        "type": "number"
+                    },
+                    "debt_ratio": {
+                        "type": "number"
+                    },
+                    "debt_by_equity": {
+                        "type": "number"
+                    },
+                    "interest_coverage_ratio": {
+                        "type": "number"
+                    },
+                    "current_ratio": {
+                        "type": "number"
+                    },
+                    "quick_ratio": {
+                        "type": "number"
+                    },
+                    "inventory_by_sales_days": {
+                        "type": "number"
+                    },
+                    "debtors_by_sales_days": {
+                        "type": "number"
+                    },
+                    "payables_by_sales_days": {
+                        "type": "number"
+                    },
+                    "cash_conversion_cycle": {
+                        "type": "number"
+                    },
+                    "sales_by_net_fixed_assets": {
+                        "type": "number"
+                    }
+                }
+            }
+        ],
+        "nbfc_financials": [
+            {
+                "year": {
+                    "type": "string"
+                },
+                "nature": {
+                    "type": "string"
+                },
+                "stated_on": {
+                    "type": "string"
+                },
+                "filing_standard": {
+                    "type": "string"
+                },
+                "filing_type": {
+                    "type": "string"
+                },
+                "bs": {
+                    "assets": {
+                        "other_receivables": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "cash_equivalents": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "bank_balance_other_than_cash": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "derivative_financial_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "trade_receivables": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "loans": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "investments": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_financial_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "inventories": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "current_tax_assets_net": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "deferred_tax_assets_net": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "investment_property": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "biological_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "property_plant_and_equipment": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "capital_work_in_progress": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "goodwill": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_intangibles": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_non_financial_assets": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "given_assets_total": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "intangible_under_development": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    },
+                    "liabilities": {
+                        "derivative_financial_instruments": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "dues_of_micro_and_small_enterprises_TP": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "dues_of_micro_and_small_enterprises_OP": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "dues_of_creditors_OP": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "debt_securities": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "deposits": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "borrowings_other_than_debt_securities": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "current_tax_liabilities_net": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "subordinated_liabilities": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_financial_liabilities": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "dues_of_creditors_TP": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "provisions": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "deferred_tax_liabilites_net": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_non_financial_liabilities": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "equity_share_capital": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "sh_app_money_pending_allotment": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "eq_comp_of_compound_fin_instruments": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "statutory_reserves": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "capital_reserves": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "securities_premium": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_reserves": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "retained_earnings": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "debt_through_other_comprehensive_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "equity_through_other_comprehensive_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "effective_portion_of_cash_flow_hedges": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "revaluation_surplus": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "exchange_diff_translating_of_foreign_operation": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_items_of_other_comprehensive_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "money_received_against_share_warrants": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "non_controlling_interest": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "given_other_equity": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "given_liabilities_total": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    },
+                    "sub_totals": {
+                        "total_equity": {
+                            "type": "number"
+                        },
+                        "total_financial_liabilities": {
+                            "type": "number"
+                        },
+                        "total_non_financial_liabilities": {
+                            "type": "number"
+                        },
+                        "total_non_financial_assets": {
+                            "type": "number"
+                        },
+                        "total_equity_and_liabilities": {
+                            "type": "number"
+                        },
+                        "total_assets": {
+                            "type": "number"
+                        },
+                        "total_financial_assets": {
+                            "type": "number"
+                        }
+                    },
+                    "metadata": {
+                        "doc_id": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "pnl": {
+                    "line_items": {
+                        "total_interest_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_dividend_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_other_operating_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "revenue": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "interest": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_cost_of_materials_consumed": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_purchases_of_stock_in_trade": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_changes_in_inventories_or_finished_goods": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_employee_benefit_expense": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "depreciation": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_other_expenses": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_expenses": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_before_tax_and_exceptional_items_before_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_for_period_from_continuing_operations": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_Loss_from_discontinued_operations_after_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "minority_interest_and_profit_from_associates_and_joint_ventures": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_after_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "total_exceptional_items": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_before_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "income_tax": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "profit_Loss_for_the_period_from_continuing_operations": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    },
+                    "revenue_breakup": {
+                        "interest_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "dividend_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "rental_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "fees_and_commission_income": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "sale_of_services": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "net_gain_on_fair_value_changes": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "net_gain_on_derecoginition_of_fin_instruments": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "sale_of_products": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "other": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    },
+                    "depreciation_breakup": {
+                        "depreciation_and_amortization_and_impairment": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    },
+                    "metadata": {
+                        "doc_id": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "auditor_comments": {
+                    "report_has_adverse_remarks": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "disclosures_auditor_report": [
+                        {
+                            "auditor": {
+                                "type": "string"
+                            },
+                            "footnote": {
+                                "type": "null"
+                            }
+                        }
+                    ],
+                    "disclosures_director_report": [
+                        {
+                            "auditor": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "director": {
+                                "type": "string"
+                            },
+                            "footnote": {
+                                "type": "null"
+                            }
+                        }
+                    ]
+                },
+                "auditor": {
+                    "auditor_name": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "auditor_firm_name": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "pan": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "membership_number": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "firm_registration_number": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "address": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                },
+                "auditor_additional": {
+                    "auditor_name": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "auditor_firm_name": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "pan": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "membership_number": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "firm_registration_number": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "address": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                }
+            }
+        ],
+        "financial_parameters": [
+            {
+                "year": {
+                    "type": "string",
+                    "format": "year"
+                },
+                "nature": {
+                    "enum": [
+                        "STANDALONE",
+                        "CONSOLIDATED"
+                    ]
+                },
+                "earning_fc": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "gross_fixed_assets": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "expenditure_fc": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "transaction_related_parties_as_18": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "trade_receivable_exceeding_six_months": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "proposed_dividend": {
+                    "type": "string"
+                },
+                "employee_benefit_expense": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "number_of_employees": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "prescribed_csr_expenditure": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "total_amount_csr_spent_for_financial_year": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                }
+            }
+        ],
+        "industry_segments": [
+            {
+                "industry": {
+                    "type": "string"
+                },
+                "segments": [
+                    "string"
+                ]
+            }
+        ],
+        "principal_business_activities": [
+            {
+                "year": {
+                    "type": "string"
+                },
+                "main_activity_group_code": {
+                    "type": "string"
+                },
+                "main_activity_group_description": {
+                    "type": "string"
+                },
+                "business_activity_code": {
+                    "type": "string"
+                },
+                "business_activity_description": {
+                    "type": "string"
+                },
+                "percentage_of_turnover": {
+                    "type": "number"
+                }
+            }
+        ],
+        "related_party_transactions": [
+            {
+                "financial_year": {
+                    "type": "string"
+                },
+                "company": [
+                    {
+                        "name": {
+                            "type": "string"
+                        },
+                        "relationship": {
+                            "type": "string"
+                        },
+                        "legal_name": {
+                            "type": "string"
+                        },
+                        "type_of_transaction": {
+                            "type": "string"
+                        },
+                        "amount": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "cin": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "llp": [
+                    {
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "relationship": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "legal_name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "type_of_transaction": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "amount": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "llpin": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                ],
+                "individual": [
+                    {
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "relationship": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "legal_name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "type_of_transaction": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "amount": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "din": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                ],
+                "others": [
+                    {
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "relationship": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "legal_name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "type_of_transaction": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "amount": {
+                            "type": [
+                                "integer"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "establishments_registered_with_epfo": [
+            {
+                "establishment_id": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "address": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "city": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "latest_date_of_credit": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "date_of_setup": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "establishment_name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "exemption_status_edli": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "exemption_status_pension": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "exemption_status_pf": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "no_of_employees": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "principal_business_activities": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "amount": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "latest_wage_month": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "working_status": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "payment_timeliness": {
+                    "type": "string"
+                },
+                "filing_details": [
+                    {
+                        "trrn": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "payment_timeliness": {
+                            "type": "string"
+                        },
+                        "wage_month": {
+                            "type": "string"
+                        },
+                        "date_of_credit": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "payment_due_date": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "no_of_employees": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "amount": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "shareholdings": [
+            {
+                "year": {
+                    "type": "string",
+                    "format": "year"
+                },
+                "financial_year": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "shareholders": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "indian_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "indian_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "nri_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "nri_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "foreign_held_other_than_nri_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "foreign_held_other_than_nri_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "central_government_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "central_government_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "state_government_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "state_government_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "government_company_held_no_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "government_company_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "insurance_company_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "insurance_company_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "bank_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "bank_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "financial_institutions_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "financial_institutions_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "financial_institutions_investors_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "financial_institutions_investors_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "mutual_funds_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "mutual_funds_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "venture_capital_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "venture_capital_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "body_corporate_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "body_corporate_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "others_held_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "others_held_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "total_no_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "total_percentage_of_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                }
+            }
+        ],
+        "shareholdings_more_than_five_percent": [
+            {
+                "financial_year": {
+                    "type": "string"
+                },
+                "company": [
+                    {
+                        "name": {
+                            "type": "string"
+                        },
+                        "shareholding_percentage": {
+                            "type": [
+                                "number",
+                                "integer"
+                            ]
+                        },
+                        "no_of_shares": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    }
+                ],
+                "llp": [
+                    {
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "shareholding_percentage": {
+                            "type": [
+                                "number",
+                                "integer"
+                            ]
+                        },
+                        "no_of_shares": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    }
+                ],
+                "individual": [
+                    {
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "shareholding_percentage": {
+                            "type": [
+                                "number",
+                                "integer"
+                            ]
+                        },
+                        "no_of_shares": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    }
+                ],
+                "others": [
+                    {
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "shareholding_percentage": {
+                            "type": [
+                                "number",
+                                "integer"
+                            ]
+                        },
+                        "no_of_shares": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "shareholdings_summary": [
+            {
+                "year": {
+                    "type": "string",
+                    "format": "year"
+                },
+                "financial_year": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "total_equity_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "total_preference_shares": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "promoter": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "public": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "total": {
+                    "type": [
+                        "null",
+                        "number"
+                    ]
+                },
+                "metadata": {
+                    "doc_id": {
+                        "type": "string"
+                    }
+                }
+            }
+        ],
+        "director_shareholdings": [
+            {
+                "year": {
+                    "type": "string",
+                    "format": "year"
+                },
+                "financial_year": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "din_pan": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "designation": {
+                    "type": "string"
+                },
+                "date_of_cessation": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "format": "date"
+                },
+                "no_of_shares": {
+                    "type": "number"
+                },
+                "percentage_holding": {
+                    "type": "number"
+                }
+            }
+        ],
+        "bifr_history": [
+            {
+                "date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "case_number": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        ],
+        "cdr_history": [
+            {
+                "date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "description": {
+                    "type": "string"
+                }
+            }
+        ],
+        "defaulter_list": [
+            {
+                "date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "agency": {
+                    "type": "string"
+                },
+                "bank": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": [
+                        "string",
+                        "number"
+                    ]
+                }
+            }
+        ],
+        "legal_history": [
+            {
+                "court": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date"
+                },
+                "case_status": {
+                    "type": "string"
+                },
+                "petitioner": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "respondent": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "case_number": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "case_type": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "case_category": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "severity": {
+                    "type": [
+                        "string"
+                    ]
+                }
+            }
+        ],
+        "credit_ratings": [
+            {
+                "rating_date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "rating_agency": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "string"
+                },
+                "type_of_loan": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": [
+                        "number"
+                    ]
+                },
+                "rating_details": [
+                    {
+                        "rating": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "action": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "outlook": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "remarks": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "credit_rating_rationale": [
+            {
+                "rating_agency": {
+                    "type": "string"
+                },
+                "financial_year": {
+                    "type": "string"
+                },
+                "doc_id": {
+                    "type": "string"
+                }
+            }
+        ],
+        "unaccepted_rating": [
+            {
+                "rating_agency": {
+                    "type": "string"
+                },
+                "rating_details": [
+                    {
+                        "rating": {
+                            "type": "string"
+                        },
+                        "type_of_loan": {
+                            "type": "string"
+                        },
+                        "amount": {
+                            "type": "number"
+                        },
+                        "currency": {
+                            "type": "string"
+                        },
+                        "date_of_non_acceptance": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ]
+            }
+        ],
+        "holding_entities": {
+            "financial_year": {
+                "type": "string",
+                "format": "date"
+            },
+            "company": [
+                {
+                    "cin": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "next_cin": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "active_compliance": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "cirp_status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "paid_up_capital": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "sum_of_charges": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incorporation_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    }
+                }
+            ],
+            "llp": [
+                {
+                    "llpin": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "total_obligation_of_contribution": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "sum_of_charges": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incorporation_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    },
+                    "cirp_status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                }
+            ],
+            "others": [
+                {
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    }
+                }
+            ]
+        },
+        "subsidiary_entities": {
+            "financial_year": {
+                "type": "string",
+                "format": "date"
+            },
+            "company": [
+                {
+                    "cin": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "next_cin": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "active_compliance": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "cirp_status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "paid_up_capital": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "sum_of_charges": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incorporation_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    }
+                }
+            ],
+            "llp": [
+                {
+                    "llpin": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "total_obligation_of_contribution": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "sum_of_charges": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incorporation_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    },
+                    "cirp_status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                }
+            ],
+            "others": [
+                {
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    }
+                }
+            ]
+        },
+        "associate_entities": {
+            "financial_year": {
+                "type": "string",
+                "format": "date"
+            },
+            "company": [
+                {
+                    "cin": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "next_cin": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "active_compliance": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "cirp_status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "paid_up_capital": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "sum_of_charges": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incorporation_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    }
+                }
+            ],
+            "llp": [
+                {
+                    "llpin": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "total_obligation_of_contribution": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "sum_of_charges": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incorporation_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    },
+                    "cirp_status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                }
+            ],
+            "others": [
+                {
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    }
+                }
+            ]
+        },
+        "joint_ventures": {
+            "financial_year": {
+                "type": "string",
+                "format": "date"
+            },
+            "company": [
+                {
+                    "cin": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "next_cin": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "active_compliance": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "cirp_status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "paid_up_capital": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "sum_of_charges": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incorporation_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    }
+                }
+            ],
+            "llp": [
+                {
+                    "llpin": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "total_obligation_of_contribution": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "sum_of_charges": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "incorporation_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    },
+                    "cirp_status": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                }
+            ],
+            "others": [
+                {
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "share_holding_percentage": {
+                        "type": [
+                            "null",
+                            "number"
+                        ]
+                    }
+                }
+            ]
+        },
+        "securities_allotment": [
+            {
+                "allotment_type": {
+                    "type": "string"
+                },
+                "allotment_date": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "instrument": {
+                    "type": "string"
+                },
+                "total_amount_raised": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "number_of_securities_allotted": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "nominal_amount_per_security": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "premium_amount_per_security": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                }
+            }
+        ],
+        "charge_sequence": [
+            {
+                "charge_id": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "filing_date": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "format": "date"
+                },
+                "amount": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "holder_name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "number_of_holder": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "property_type": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "property_particulars": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            }
+        ],
+        "peer_comparison": [
+            {
+                "bizIndustry": {
+                    "type": "string"
+                },
+                "bizSegment": {
+                    "type": "string"
+                },
+                "refYear": {
+                    "type": "string"
+                },
+                "peers": [
+                    {
+                        "cin": {
+                            "type": "string"
+                        },
+                        "legalName": {
+                            "type": "string"
+                        },
+                        "city": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "revenue": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "benchMarks": [
+                    {
+                        "year": {
+                            "type": "string"
+                        },
+                        "no_of_peers_in_sample": {
+                            "type": "number"
+                        },
+                        "revenue": {
+                            "type": "number"
+                        },
+                        "revenue_growth": {
+                            "type": "number"
+                        },
+                        "net_margin": {
+                            "type": "number"
+                        },
+                        "ebitda_margin": {
+                            "type": "number"
+                        },
+                        "return_on_equity": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "sales_by_net_fixed_assets": {
+                            "type": "number"
+                        },
+                        "inventory_holding_period": {
+                            "type": "number"
+                        },
+                        "debtor_days_outstanding": {
+                            "type": "number"
+                        },
+                        "trade_payable_days": {
+                            "type": "number"
+                        },
+                        "cash_conversion_cycle": {
+                            "type": "number"
+                        },
+                        "debt_by_equity": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "median_revenue": {
+                            "type": "number"
+                        },
+                        "median_revenue_growth": {
+                            "type": "number"
+                        },
+                        "median_net_margin": {
+                            "type": "number"
+                        },
+                        "median_ebitda_margin": {
+                            "type": "number"
+                        },
+                        "median_return_on_equity": {
+                            "type": "number"
+                        },
+                        "median_sales_by_net_fixed_assets": {
+                            "type": "number"
+                        },
+                        "median_inventory_holding_period": {
+                            "type": "number"
+                        },
+                        "median_debtor_days_outstanding": {
+                            "type": "number"
+                        },
+                        "median_trade_payable_days": {
+                            "type": "number"
+                        },
+                        "median_cash_conversion_cycle": {
+                            "type": "number"
+                        },
+                        "median_debt_by_equity": {
+                            "type": "number"
+                        }
+                    }
+                ]
+            }
+        ],
+        "gst_details": [
+            {
+                "gstin": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "trade_name": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "state_jurisdiction": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "centre_jurisdiction": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "date_of_registration": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "taxpayer_type": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "nature_of_business_activities": {
+                    "type": [
+                        "null",
+                        "string"
+                    ]
+                },
+                "filing_timeliness": {
+                    "type": "string"
+                },
+                "filings": [
+                    {
+                        "return_type": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "date_of_filing": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "financial_year": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "filing_due_date": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "tax_period": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "status": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "filing_timeliness": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "struckoff248_details": {
+            "struck_off_status": {
+                "type": "string"
+            },
+            "restored_status": {
+                "type": [
+                    "null",
+                    "string"
+                ]
+            }
+        },
+        "msme_supplier_payment_delays": {
+            "trend": [
+                {
+                    "period": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "amount": {
+                        "type": "number"
+                    }
+                }
+            ],
+            "delays_for_period": {
+                "latest_period": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "total_amount_due_for_period": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "delays": [
+                    {
+                        "supplier_name": {
+                            "type": "string"
+                        },
+                        "supplier_pan": {
+                            "type": "string"
+                        },
+                        "amount_due": {
+                            "type": "number"
+                        },
+                        "amount_due_from_date": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "legal_cases_of_financial_disputes": {
+            "receivable": [
+                {
+                    "type_of_financial_dispute": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "amount_under_default": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "verdict": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "court": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "litigant": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "case_no": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "default_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "date_of_judgement": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            ],
+            "payable": [
+                {
+                    "type_of_financial_dispute": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "amount_under_default": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "verdict": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "court": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "litigant": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "case_no": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "default_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "date_of_judgement": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            ]
+        },
+        "probe_financial_score": {
+            "overall_financial_score": {
+                "type": "number"
+            },
+            "growth_score": {
+                "type": "number"
+            },
+            "profitability_score": {
+                "type": "number"
+            },
+            "liquidity_score": {
+                "type": "number"
+            },
+            "solvency_score": {
+                "type": "number"
+            },
+            "efficiency_score": {
+                "type": "number"
+            }
+        },
+        "key_indicators": {
+            "revenue": {
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            "profit": {
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            "employee_count": {
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            "pending_cases_filed_against_this_corporate": {
+                "type": [
+                    "boolean",
+                    "null"
+                ]
+            },
+            "bureau_defaults": {
+                "type": [
+                    "boolean",
+                    "null"
+                ]
+            },
+            "gst_filing_delay": {
+                "type": [
+                    "boolean",
+                    "null"
+                ]
+            },
+            "epf_payment_delay": {
+                "type": [
+                    "boolean",
+                    "null"
+                ]
+            }
+        },
+        "filing_dates": {
+            "aoc_4": {
+                "financial_year": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "filing_date": {
+                    "type": "string",
+                    "format": "date"
+                }
+            },
+            "mgt_7": {
+                "financial_year": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "filing_date": {
+                    "type": "string",
+                    "format": "date"
+                }
+            }
+        }
+    }
+}

@@ -243,9 +243,13 @@ export const leadInclude = {
     select: {
       id: true,
       status: true,
-      isEligible: true,
+      currentStep: true,
+      companyVerified: true,
+      financialVerified: true,
       percentage: true,
       rating: true,
+      totalScore: true,
+      maxScore: true,
     },
   },
   _count: {

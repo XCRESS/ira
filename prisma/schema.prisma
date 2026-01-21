@@ -200,36 +200,80 @@ model Assessment {
   assessorId String
   assessor   User    @relation("AssessorAssessments", fields: [assessorId], references: [id])
 
-  // Question versioning (snapshot when assessment created)
-  questionSnapshot         Json?     // Stores {eligibility: [...], company: [...], financial: [...], sector: [...]}
-  questionSnapshotVersion  String?   // Hash/timestamp to detect changes
-  usesOldQuestions         Boolean   @default(false) // True if submitted with outdated questions
+  // Current step in stepper (1, 2, or 3)
+  currentStep  Int  @default(1)
 
-  // Step 1: Eligibility (JSON: questionId -> {checked, remark})
-  eligibilityAnswers      Json     @default("{}")
-  isEligible              Boolean?
-  eligibilityCompletedAt  DateTime?
+  // ==========================================
+  // STEP 1: Company Verification
+  // ==========================================
+  // Assessor verifies company data from Probe42
+  companyVerified       Boolean   @default(false)
+  companyVerifiedAt     DateTime?
+  companyDataSnapshot   Json?     // Snapshot of verified company data {name, address, pan, gst}
 
-  // Step 2: Main Questions (JSON: questionId -> {score, remark, evidenceLink})
-  companyAnswers    Json  @default("{}")
-  financialAnswers  Json  @default("{}")
-  sectorAnswers     Json  @default("{}")
+  // ==========================================
+  // STEP 2: Financial Data Verification
+  // ==========================================
+  // Assessor confirms financial data from Probe42
+  financialVerified     Boolean   @default(false)
+  financialVerifiedAt   DateTime?
+  financialDataSnapshot Json?     // Snapshot of financial data {paidUpCapital, shares, netWorth, etc.}
 
-  // Probe42 integration
+  // ==========================================
+  // STEP 3: Preset Questionnaire
+  // ==========================================
+  // Q1: Investment Plan Ready (Yes/No)
+  hasInvestmentPlan  Boolean?
+
+  // Q2: Corporate Governance (4 sub-questions)
+  q2aGovernancePlan       Boolean?  // Governance meets listing norms
+  q2bFinancialReporting   Boolean?  // Complies with statutory laws
+  q2cControlSystems       Boolean?  // Robust control systems
+  q2dShareholdingClear    Boolean?  // Clear shareholding
+
+  // Q3: Right Team (4 sub-questions)
+  q3aSeniorManagement     Boolean?  // Professional senior mgmt
+  q3bIndependentBoard     Boolean?  // Credible independent directors
+  q3cMidManagement        Boolean?  // Experienced mid-mgmt
+  q3dKeyPersonnel         Boolean?  // Key personnel recognized
+
+  // Q4-Q11: Financial Data (assessor inputs)
+  q4PaidUpCapital        Float?    // In crores
+  q5OutstandingShares    Int?      // Number of shares
+  q6NetWorth             Float?    // In crores
+  q7Borrowings           Float?    // Short + Long term in crores
+  q8DebtEquityRatio      Float?    // Ratio value
+  q9TurnoverYear1        Float?    // Turnover last 3 years (crores)
+  q9TurnoverYear2        Float?
+  q9TurnoverYear3        Float?
+  q10EbitdaYear1         Float?    // EBITDA last 3 years (crores)
+  q10EbitdaYear2         Float?
+  q10EbitdaYear3         Float?
+  q11Eps                 Float?    // Earnings per share
+
+  // ==========================================
+  // Scoring (Auto-calculated on submit)
+  // ==========================================
+  scoreBreakdown  Json?     // {q1: 10, q2: 4, q3: 4, q4: 5, ...}
+  totalScore      Float?    // Total calculated score
+  maxScore        Float?    // Maximum possible score
+  percentage      Float?    // (totalScore / maxScore) * 100
+  rating          String?   // IPO_READY | NEEDS_IMPROVEMENT | NOT_READY
+
+  // ==========================================
+  // Probe42 Integration
+  // ==========================================
   probe42Fetched   Boolean   @default(false)
   probe42FetchedAt DateTime?
-  probe42Data      Json?
+  probe42Data      Json?     // Full Probe42 API response
 
-  // Scoring
-  totalScore  Int?
-  percentage  Float?
-  rating      String? // IPO_READY | NEEDS_IMPROVEMENT | NOT_READY
-
+  // ==========================================
   // Workflow
+  // ==========================================
   status             AssessmentStatus  @default(DRAFT)
   submittedAt        DateTime?
   reviewedAt         DateTime?
-  reviewHistory      Json             @default("[]") // Array of {reviewedAt, action, comments}
+  reviewHistory      Json             @default("[]") // [{reviewedAt, action, comments, reviewerId}]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -237,9 +281,9 @@ model Assessment {
   @@index([assessorId])
   @@index([status])
   @@index([status, submittedAt])
-  @@index([status, usesOldQuestions])
+  @@index([currentStep])
   @@index([leadId, status])
-  @@index([assessorId, status]) // ✅ PERFORMANCE: Composite index for assessor's filtered queries
+  @@index([assessorId, status])
   @@map("assessment")
 }
 
