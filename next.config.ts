@@ -14,7 +14,6 @@ const nextConfig: NextConfig = {
   // Production optimizations
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    // turbopackFileSystemCacheForDev: true,
   },
 
   // Ensure proper headers for production
