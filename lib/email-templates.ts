@@ -986,3 +986,167 @@ This is an automated email from the IRA Platform. For support, please contact su
 IPO Readiness Assessment Platform
   `.trim()
 }
+
+
+
+/**
+ * Email template for payment link
+ */
+export interface PaymentLinkEmailData {
+  recipientEmail: string
+  paymentLink: string
+  amount?: string
+  description?: string
+}
+
+export function getPaymentLinkEmailHTML(data: PaymentLinkEmailData): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 0;
+            background-color: #f6f9fc;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 40px auto; 
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+          .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px; 
+            text-align: center;
+          }
+          .header h1 { 
+            color: white; 
+            margin: 0; 
+            font-size: 28px;
+            font-weight: 600;
+          }
+          .content { 
+            padding: 40px 30px;
+          }
+          .button { 
+            display: inline-block; 
+            padding: 16px 32px; 
+            background: #10b981;
+            color: white !important; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+          }
+          .link-box { 
+            background: #f9fafb;
+            padding: 16px; 
+            border-radius: 8px; 
+            word-break: break-all; 
+            margin: 20px 0;
+            border: 1px solid #e5e7eb;
+            font-size: 14px;
+            font-family: monospace;
+          }
+          .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+          }
+          .footer { 
+            text-align: center; 
+            padding: 30px;
+            background: #f9fafb;
+            font-size: 13px; 
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔐 Payment Link Ready</h1>
+          </div>
+          
+          <div class="content">
+            <p style="font-size: 16px; margin-bottom: 24px;">Hello,</p>
+            
+            ${data.amount ? `<p style="font-size: 16px; margin-bottom: 24px;">
+              Amount: <strong>₹${data.amount}</strong>
+            </p>` : ''}
+            
+            ${data.description ? `<p style="font-size: 16px; margin-bottom: 24px;">
+              ${data.description}
+            </p>` : ''}
+            
+            <p style="font-size: 16px; margin-bottom: 24px;">
+              Your secure payment link has been generated. Click the button below to complete your payment:
+            </p>
+            
+            <div style="text-align: center;">
+              <a href="${data.paymentLink}" class="button">Pay Now →</a>
+            </div>
+            
+            <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">
+              Or copy and paste this link into your browser:
+            </p>
+            
+            <div class="link-box">
+              <a href="${data.paymentLink}" style="color: #3b82f6;">${data.paymentLink}</a>
+            </div>
+            
+            <div class="info-box">
+              <p style="margin: 0 0 8px 0; font-weight: 600;">Important Information:</p>
+              <ul style="margin: 0;">
+                <li>This link is secure and encrypted</li>
+                <li>Complete your payment within 24 hours</li>
+                <li>Contact support if you encounter any issues</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p style="margin: 0;">This is an automated email. Please do not reply.</p>
+            <p style="margin: 8px 0 0 0;">&copy; ${new Date().getFullYear()} IRA Platform. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+}
+
+export function getPaymentLinkEmailText(data: PaymentLinkEmailData): string {
+  return `
+Payment Link Ready
+
+${data.amount ? `Amount: ₹${data.amount}\n` : ''}
+${data.description ? `${data.description}\n` : ''}
+
+Your secure payment link has been generated.
+
+Click here to complete your payment:
+${data.paymentLink}
+
+Important Information:
+- This link is secure and encrypted
+- Complete your payment within 24 hours
+- Contact support if you encounter any issues
+
+---
+This is an automated email. Please do not reply.
+© ${new Date().getFullYear()} IRA Platform. All rights reserved.
+  `.trim()
+}

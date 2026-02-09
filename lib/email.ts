@@ -21,6 +21,9 @@ import {
   getSubmissionApprovedEmailText,
   getSubmissionRejectedEmailHTML,
   getSubmissionRejectedEmailText,
+  getPaymentLinkEmailHTML,
+  getPaymentLinkEmailText,
+  type PaymentLinkEmailData,
   type LeadAssignmentEmailData,
   type AssessmentSubmittedEmailData,
   type AssessmentRejectedEmailData,
@@ -351,4 +354,31 @@ export async function sendBulkEmails(
       }
     }
   })
+}
+
+
+
+
+/** Send payment link to customer
+ * Called when a payment link is generated via Razorpay
+ */
+export async function sendPaymentLinkEmail(
+  data: PaymentLinkEmailData
+): Promise<EmailResult> {
+  const subject = data.amount 
+    ? `Your Payment Link - ₹${data.amount}`
+    : 'Your Payment Link'
+    
+  const html = getPaymentLinkEmailHTML(data)
+  const text = getPaymentLinkEmailText(data)
+
+  if (!data.recipientEmail) {
+    console.error('[Email] No recipient email provided', { data })
+    return {
+      success: false,
+      error: 'Recipient email not provided'
+    }
+  }
+
+  return sendEmail(data.recipientEmail, subject, html, text)
 }

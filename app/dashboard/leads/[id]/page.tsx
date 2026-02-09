@@ -10,6 +10,7 @@ import { UploadDocumentButton } from "@/components/documents/upload-document-but
 import { DocumentList } from "@/components/documents/document-list"
 import { Probe42DataCard } from "@/components/probe42-data-card"
 import { EditLeadButton } from "@/components/edit-lead-button"
+import PaymentLinkCard from "../PaymentLinkCard"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -348,6 +349,8 @@ export default async function LeadDetailPage(props: Props) {
               </p>
             </div>
           </div>
+
+          <PaymentLinkCard/>
         </div>
       </div>
     </div>
