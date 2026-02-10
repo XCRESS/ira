@@ -999,6 +999,8 @@ export interface PaymentLinkEmailData {
   description?: string
 }
 
+// lib/email-templates/payment-link.ts
+
 export function getPaymentLinkEmailHTML(data: PaymentLinkEmailData): string {
   return `
     <!DOCTYPE html>
@@ -1006,123 +1008,100 @@ export function getPaymentLinkEmailHTML(data: PaymentLinkEmailData): string {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6; 
-            color: #333; 
-            margin: 0; 
-            padding: 0;
-            background-color: #f6f9fc;
-          }
-          .container { 
-            max-width: 600px; 
-            margin: 40px auto; 
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          }
-          .header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 40px 30px; 
-            text-align: center;
-          }
-          .header h1 { 
-            color: white; 
-            margin: 0; 
-            font-size: 28px;
-            font-weight: 600;
-          }
-          .content { 
-            padding: 40px 30px;
-          }
-          .button { 
-            display: inline-block; 
-            padding: 16px 32px; 
-            background: #10b981;
-            color: white !important; 
-            text-decoration: none; 
-            border-radius: 8px; 
-            font-weight: 600;
-            font-size: 16px;
-            margin: 20px 0;
-          }
-          .link-box { 
-            background: #f9fafb;
-            padding: 16px; 
-            border-radius: 8px; 
-            word-break: break-all; 
-            margin: 20px 0;
-            border: 1px solid #e5e7eb;
-            font-size: 14px;
-            font-family: monospace;
-          }
-          .info-box {
-            background: #eff6ff;
-            border-left: 4px solid #3b82f6;
-            padding: 16px;
-            margin: 20px 0;
-            border-radius: 4px;
-          }
-          .footer { 
-            text-align: center; 
-            padding: 30px;
-            background: #f9fafb;
-            font-size: 13px; 
-            color: #6b7280;
-            border-top: 1px solid #e5e7eb;
-          }
-        </style>
       </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>🔐 Payment Link Ready</h1>
-          </div>
-          
-          <div class="content">
-            <p style="font-size: 16px; margin-bottom: 24px;">Hello,</p>
-            
-            ${data.amount ? `<p style="font-size: 16px; margin-bottom: 24px;">
-              Amount: <strong>₹${data.amount}</strong>
-            </p>` : ''}
-            
-            ${data.description ? `<p style="font-size: 16px; margin-bottom: 24px;">
-              ${data.description}
-            </p>` : ''}
-            
-            <p style="font-size: 16px; margin-bottom: 24px;">
-              Your secure payment link has been generated. Click the button below to complete your payment:
-            </p>
-            
-            <div style="text-align: center;">
-              <a href="${data.paymentLink}" class="button">Pay Now →</a>
-            </div>
-            
-            <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">
-              Or copy and paste this link into your browser:
-            </p>
-            
-            <div class="link-box">
-              <a href="${data.paymentLink}" style="color: #3b82f6;">${data.paymentLink}</a>
-            </div>
-            
-            <div class="info-box">
-              <p style="margin: 0 0 8px 0; font-weight: 600;">Important Information:</p>
-              <ul style="margin: 0;">
-                <li>This link is secure and encrypted</li>
-                <li>Complete your payment within 24 hours</li>
-                <li>Contact support if you encounter any issues</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div class="footer">
-            <p style="margin: 0;">This is an automated email. Please do not reply.</p>
-            <p style="margin: 8px 0 0 0;">&copy; ${new Date().getFullYear()} IRA Platform. All rights reserved.</p>
-          </div>
-        </div>
+      <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td align="center" style="padding: 40px 0;">
+              <table role="presentation" style="width: 600px; border-collapse: collapse; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                
+                <!-- Header -->
+                <tr>
+                  <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
+                    <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">Payment Request</h1>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #333;">
+                      Hello,
+                    </p>
+                    
+                    <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #333;">
+                      You have received a secure payment request from <strong>IRA Platform</strong>.
+                    </p>
+                    
+                    ${data.amount ? `
+                    <table style="width: 100%; margin: 20px 0; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+                      <tr>
+                        <td style="padding: 16px;">
+                          <p style="margin: 0; font-size: 14px; color: #666;">Amount Due</p>
+                          <p style="margin: 8px 0 0 0; font-size: 24px; font-weight: 600; color: #333;">₹${data.amount}</p>
+                        </td>
+                      </tr>
+                    </table>
+                    ` : ''}
+                    
+                    ${data.description ? `
+                    <p style="margin: 20px 0; font-size: 14px; line-height: 20px; color: #666;">
+                      ${data.description}
+                    </p>
+                    ` : ''}
+                    
+                    <!-- CTA Button -->
+                    <table role="presentation" style="margin: 30px 0;">
+                      <tr>
+                        <td style="border-radius: 8px; background: #10b981;">
+                          <a href="${data.paymentLink}" 
+                             style="display: inline-block; padding: 16px 32px; font-size: 16px; font-weight: 600; color: white; text-decoration: none; border-radius: 8px;">
+                            Complete Payment
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <p style="margin: 20px 0 0 0; font-size: 14px; line-height: 20px; color: #666;">
+                      Or copy and paste this link in your browser:
+                    </p>
+                    
+                    <p style="margin: 10px 0; padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; word-break: break-all; font-size: 13px; color: #3b82f6;">
+                      ${data.paymentLink}
+                    </p>
+                    
+                    <!-- Info Box -->
+                    <table style="margin: 30px 0; border-left: 4px solid #3b82f6; background: #eff6ff; border-radius: 4px;">
+                      <tr>
+                        <td style="padding: 16px;">
+                          <p style="margin: 0 0 8px 0; font-weight: 600; font-size: 14px; color: #333;">Payment Details:</p>
+                          <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #666;">
+                            <li style="margin: 4px 0;">Secure payment via Razorpay</li>
+                            <li style="margin: 4px 0;">Link expires in 24 hours</li>
+                            <li style="margin: 4px 0;">Questions? Contact support@irascore.com</li>
+                          </ul>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="padding: 30px 40px; background: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px;">
+                    <p style="margin: 0; font-size: 12px; line-height: 18px; color: #666; text-align: center;">
+                      This is an automated payment notification from IRA Platform.
+                    </p>
+                    <p style="margin: 8px 0 0 0; font-size: 12px; color: #999; text-align: center;">
+                      &copy; ${new Date().getFullYear()} IRA Platform. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+                
+              </table>
+            </td>
+          </tr>
+        </table>
       </body>
     </html>
   `
@@ -1130,23 +1109,23 @@ export function getPaymentLinkEmailHTML(data: PaymentLinkEmailData): string {
 
 export function getPaymentLinkEmailText(data: PaymentLinkEmailData): string {
   return `
-Payment Link Ready
+Payment Request from IRA Platform
 
-${data.amount ? `Amount: ₹${data.amount}\n` : ''}
+You have received a secure payment request.
+
+${data.amount ? `Amount Due: ₹${data.amount}\n` : ''}
 ${data.description ? `${data.description}\n` : ''}
 
-Your secure payment link has been generated.
-
-Click here to complete your payment:
+Complete your payment by clicking this link:
 ${data.paymentLink}
 
-Important Information:
-- This link is secure and encrypted
-- Complete your payment within 24 hours
-- Contact support if you encounter any issues
+Payment Details:
+- Secure payment via Razorpay
+- Link expires in 24 hours
+- Questions? Contact support@irascore.com
 
 ---
-This is an automated email. Please do not reply.
+This is an automated payment notification from IRA Platform.
 © ${new Date().getFullYear()} IRA Platform. All rights reserved.
   `.trim()
 }

@@ -366,8 +366,8 @@ export async function sendPaymentLinkEmail(
   data: PaymentLinkEmailData
 ): Promise<EmailResult> {
   const subject = data.amount 
-    ? `Your Payment Link - ₹${data.amount}`
-    : 'Your Payment Link'
+    ? `Payment Request: ₹${data.amount} - IRA Platform`
+    : 'Payment Request - IRA Platform'
     
   const html = getPaymentLinkEmailHTML(data)
   const text = getPaymentLinkEmailText(data)
