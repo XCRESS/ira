@@ -153,7 +153,6 @@ model Lead {
   probe42LegalName      String?
   probe42Status         String?
   probe42Classification String?
-  probe42PaidUpCapital  BigInt?
   probe42AuthCapital    BigInt?
   probe42Pan            String?
   probe42Website        String?

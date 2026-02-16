@@ -695,10 +695,13 @@ export async function fetchProbe42Data(
     if (!lead) {
       throw Errors.leadNotFound(leadId)
     }
-
+console.log("🚀 Found lead, CIN:", lead.cin)
+    console.log("🚀 Calling fetchCompanyByCIN...")
     // 3. Fetch company data from Probe42
     const companyData = await fetchCompanyByCIN(lead.cin)
-
+console.log("🚀 fetchCompanyByCIN returned")
+    console.log("🚀 companyData keys:", Object.keys(companyData))
+    console.log("🚀 companyData.financials?", companyData.financials ? "YES" : "NO")
     // 4. Update lead with Probe42 data
     const updatedLead = await prisma.lead.update({
       where: { id: leadId },
@@ -746,3 +749,122 @@ export async function fetchProbe42Data(
     return handleActionError(handlePrismaError(error))
   }
 }
+
+
+
+
+/**
+ * Force re-fetch Probe42 data (ignores cache)
+ */
+export async function forceRefetchProbe42Data(
+  leadId: string
+): Promise<ActionResponse<LeadWithRelations>> {
+  console.log("🔄 === FORCE RE-FETCH START ===", leadId)
+  
+  try {
+    const session = await verifyAuth()
+
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId },
+      select: {
+        id: true,
+        cin: true,
+        companyName: true,
+      },
+    })
+
+    if (!lead) {
+      throw Errors.leadNotFound(leadId)
+    }
+
+    console.log("🔄 Found lead, CIN:", lead.cin)
+    console.log("🔄 Calling fetchCompanyByCIN...")
+
+    // Fetch company data from Probe42
+    const companyData = await fetchCompanyByCIN(lead.cin)
+
+    console.log("🔄 Received companyData")
+    console.log("🔄 companyData keys:", Object.keys(companyData))
+    console.log("🔄 companyData.financials exists?", companyData.financials ? "YES" : "NO")
+    console.log("🔄 companyData.financials length:", companyData.financials?.length)
+    
+    if (companyData.financials && companyData.financials.length > 0) {
+      console.log("🔄 First financial has bs?", companyData.financials[0]?.bs ? "YES" : "NO")
+    }
+
+    // Clean data for JSON storage
+    const cleanForJson = (obj: any): any => {
+      if (obj === null || obj === undefined) return obj
+      if (typeof obj === 'bigint') return Number(obj)
+      if (Array.isArray(obj)) return obj.map(cleanForJson)
+      if (typeof obj === 'object') {
+        const cleaned: any = {}
+        for (const [key, value] of Object.entries(obj)) {
+          cleaned[key] = cleanForJson(value)
+        }
+        return cleaned
+      }
+      return obj
+    }
+
+    const cleanedData = cleanForJson(companyData)
+    
+    console.log("🔄 Cleaned data, financials still there?", cleanedData.financials ? "YES" : "NO")
+
+    // Update lead with Probe42 data (FORCE UPDATE)
+    const updatedLead = await prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        probe42Fetched: true,
+        probe42FetchedAt: new Date(),
+        probe42LegalName: companyData.legalName,
+        probe42Status: companyData.status,
+        probe42Classification: companyData.classification,
+        probe42PaidUpCapital: companyData.paidUpCapital,
+        probe42AuthCapital: companyData.authorizedCapital,
+        probe42Pan: companyData.pan,
+        probe42Website: companyData.website,
+        probe42IncorpDate: companyData.incorporationDate ? new Date(companyData.incorporationDate) : null,
+        probe42ComplianceStatus: companyData.activeCompliance,
+        probe42DirectorCount: companyData.activeDirectorsCount,
+        probe42GstCount: companyData.gstRegistrationsCount,
+        probe42Data: cleanedData,
+      },
+      include: leadInclude,
+    })
+
+    console.log("🔄 Saved to DB")
+    console.log("🔄 updatedLead.probe42Data has financials?", 
+      (updatedLead.probe42Data as any)?.financials ? "YES" : "NO")
+
+    await createAuditLog(
+      session.user.id,
+      "PROBE42_DATA_FETCHED",
+      leadId,
+      {
+        cin: lead.cin,
+        companyName: companyData.legalName,
+        status: companyData.status,
+        fetchedAt: new Date().toISOString(),
+        forced: true,
+      }
+    )
+
+    updateTag(`lead-${leadId}`)
+    revalidateTag("leads-list", "hours")
+
+    console.log("🔄 === FORCE RE-FETCH END ===")
+
+    return {
+      success: true,
+      data: updatedLead,
+    }
+  } catch (error) {
+    console.error("🔄 ERROR:", error)
+    return handleActionError(handlePrismaError(error))
+  }
+}
+
+
+
+

@@ -62,6 +62,79 @@ export interface Probe42CompanyData {
       net_profit: number
       total_assets: number
       total_liabilities: number
+      year?: string
+      nature?: string
+      stated_on?: string
+      filing_type?: string
+      filing_standard?: string
+      ratios?: {
+        revenue_growth?: number
+        gross_profit_margin?: number
+        net_margin?: number
+        ebitda_margin?: number
+        return_on_equity?: number
+        return_on_capital_employed?: number
+        debt_ratio?: number
+        debt_by_equity?: number
+        interest_coverage_ratio?: number
+        current_ratio?: number
+        quick_ratio?: number
+        inventory_by_sales_days?: number
+        debtors_by_sales_days?: number
+        payables_by_sales_days?: number
+        cash_conversion_cycle?: number
+        sales_by_net_fixed_assets?: number
+      }
+      bs?: {
+        assets?: {
+          tangible_assets?: number
+          producing_properties?: number | null
+          intangible_assets?: number
+          preproducing_properties?: number | null
+          tangible_assets_capital_work_in_progress?: number
+          intangible_assets_under_development?: number | null
+          noncurrent_investments?: number
+          deferred_tax_assets_net?: number
+          foreign_curr_monetary_item_trans_diff_asset_account?: number | null
+          long_term_loans_and_advances?: number
+          other_noncurrent_assets?: number
+          current_investments?: number
+          inventories?: number
+          trade_receivables?: number
+          cash_and_bank_balances?: number
+          short_term_loans_and_advances?: number
+          other_current_assets?: number
+          given_assets_total?: number
+        }
+        liabilities?: {
+          share_capital?: number
+          reserves_and_surplus?: number
+          money_received_against_share_warrants?: number | null
+          share_application_money_pending_allotment?: number | null
+          deferred_government_grants?: number | null
+          minority_interest?: number
+          long_term_borrowings?: number
+          deferred_tax_liabilities_net?: number | null
+          foreign_curr_monetary_item_trans_diff_liability_account?: number | null
+          other_long_term_liabilities?: number
+          long_term_provisions?: number
+          short_term_borrowings?: number
+          trade_payables?: number
+          other_current_liabilities?: number
+          short_term_provisions?: number
+          given_liabilities_total?: number
+        }
+        subTotals?: {
+          total_equity?: number
+          total_non_current_liabilities?: number
+          total_current_liabilities?: number
+          net_fixed_assets?: number
+          total_current_assets?: number
+          capital_wip?: number
+          total_debt?: number
+          total_other_non_current_assets?: number
+        }
+      }
     }>
     key_indicators: Record<string, unknown>
     gst_details: Array<{
@@ -182,76 +255,84 @@ class Probe42Client {
   /**
    * Extract key company information for IRA platform
    */
-  extractKeyInfo(data: Probe42CompanyData) {
-    const { company, description, authorized_signatories, financials, gst_details } = data.data
+extractKeyInfo(data: Probe42CompanyData) {
+  
+  const { company, description, authorized_signatories, financials, gst_details } = data.data
 
-    // Get active directors
-    const activeDirectors = authorized_signatories
-      ?.filter(s => !s.date_of_cessation && s.designation?.toLowerCase().includes('director'))
-      .map(s => ({
-        name: s.name,
-        designation: s.designation,
-        din: s.din,
-        dateOfAppointment: s.date_of_appointment,
-      })) || []
+  // Get active directors
+  const activeDirectors = authorized_signatories
+    ?.filter(s => !s.date_of_cessation && s.designation?.toLowerCase().includes('director'))
+    .map(s => ({
+      name: s.name,
+      designation: s.designation,
+      din: s.din,
+      dateOfAppointment: s.date_of_appointment,
+    })) || []
 
-    // Get latest financials
-    const latestFinancials = financials && financials.length > 0
-      ? {
-          yearEnding: financials[0].year_ending,
-          totalRevenue: financials[0].total_revenue,
-          netProfit: financials[0].net_profit,
-          totalAssets: financials[0].total_assets,
-          totalLiabilities: financials[0].total_liabilities,
-        }
-      : null
 
-    return {
-      // Basic Info
-      cin: company.cin,
-      legalName: company.legal_name,
-      status: company.efiling_status,
-      incorporationDate: company.incorporation_date,
-      classification: company.classification,
-
-      // Financial Info
-      paidUpCapital: company.paid_up_capital,
-      authorizedCapital: company.authorized_capital,
-
-      // Compliance
-      activeCompliance: company.active_compliance,
-      lastAgmDate: company.last_agm_date,
-      lastFilingDate: company.last_filing_date,
-
-      // Contact Info
-      pan: company.pan,
-      email: company.email,
-      website: company.website,
-
-      // Address
-      registeredAddress: company.registered_address.full_address,
-      city: company.registered_address.city,
-      state: company.registered_address.state,
-      pincode: company.registered_address.pincode,
-
-      // Description
-      businessDescription: description?.desc_thousand_char,
-
-      // Directors
-      activeDirectorsCount: activeDirectors.length,
-      activeDirectors: activeDirectors.slice(0, 5), // Top 5 directors
-
-      // Financials
-      latestFinancials,
-
-      // GST
-      gstRegistrationsCount: gst_details?.length || 0,
-
-      // Metadata
-      lastUpdated: data.metadata.last_updated,
-      apiVersion: data.metadata.api_version,
-    }
+  // Transform ALL financials with full nested structure
+  let transformedFinancials: any[] = []
+  
+  try {
+    transformedFinancials = financials?.map((f, index) => {
+      
+      const transformed = {
+        year: f.year_ending,
+        totalRevenue: f.total_revenue,
+        netProfit: f.net_profit,
+        totalAssets: f.total_assets,
+        totalLiabilities: f.total_liabilities,
+        bs: f.bs ? {
+          subTotals: f.bs.subTotals ? {
+            totalEquity: f.bs.subTotals.total_equity,
+            totalNonCurrentLiabilities: f.bs.subTotals.total_non_current_liabilities,
+            totalCurrentLiabilities: f.bs.subTotals.total_current_liabilities,
+            netFixedAssets: f.bs.subTotals.net_fixed_assets,
+            totalCurrentAssets: f.bs.subTotals.total_current_assets,
+            capitalWip: f.bs.subTotals.capital_wip,
+            totalDebt: f.bs.subTotals.total_debt,
+            totalOtherNonCurrentAssets: f.bs.subTotals.total_other_non_current_assets,
+          } : undefined
+        } : undefined,
+        ratios: f.ratios,
+      }      
+      return transformed
+    }) || []
+        
+  } catch (error) {
+    console.error("ERROR transforming financials:", error)
+    transformedFinancials = []
   }
+
+  const result = {
+    cin: company.cin,
+    legalName: company.legal_name,
+    status: company.efiling_status,
+    incorporationDate: company.incorporation_date,
+    classification: company.classification,
+    paidUpCapital: company.paid_up_capital,
+    authorizedCapital: company.authorized_capital,
+    activeCompliance: company.active_compliance,
+    lastAgmDate: company.last_agm_date,
+    lastFilingDate: company.last_filing_date,
+    pan: company.pan,
+    email: company.email,
+    website: company.website,
+    registeredAddress: company.registered_address.full_address,
+    city: company.registered_address.city,
+    state: company.registered_address.state,
+    pincode: company.registered_address.pincode,
+    businessDescription: description?.desc_thousand_char,
+    activeDirectorsCount: activeDirectors.length,
+    activeDirectors: activeDirectors.slice(0, 5),
+    financials: transformedFinancials,
+    gstRegistrationsCount: gst_details?.length || 0,
+    lastUpdated: data.metadata.last_updated,
+    apiVersion: data.metadata.api_version,
+  }
+
+  return result
+}
 }
 
 // ============================================================================

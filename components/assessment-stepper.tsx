@@ -41,7 +41,7 @@ interface Props {
 }
 
 type Probe42Data = {
-    data?: {
+    
         company?: {
             legal_name?: string
             pan?: string
@@ -55,14 +55,25 @@ type Probe42Data = {
             state?: string
             status?: string
         }>
-        financials?: Array<{
+        financials?:  Array<{
+            year?: string
             year_ending?: string
             total_revenue?: number
             net_profit?: number
-            total_assets?: number
-            total_liabilities?: number
+            bs?: {
+                subTotals?: {
+                    totalEquity?: number
+                    ttotalNonCurrentLiabilities?: number
+                    totalCurrentLiabilities?: number
+                    netFixedAssets?: number
+                    totalCurrentAssets?: number
+                    capital_wip?: number
+                    totalDebt?: number
+                    totalOtherNonCurrentAssets?: number
+                }
+            }
         }>
-    }
+    
 }
 
 // ============================================================================
@@ -146,19 +157,26 @@ function Step1CompanyVerification({
     probe42Data: Probe42Data | null
     onVerify: (data: any) => void
     isPending: boolean
-}) {
+    }) {
+    
+       console.log("Component rendered") // Add this first
+    console.log("probe42Data on render:", probe42Data) // Add this too
+
     // Initialize form data from Probe42 flattened fields OR JSON OR Lead fields
     const [formData, setFormData] = useState({
-        companyName: assessment.lead.probe42LegalName || probe42Data?.data?.company?.legal_name || assessment.lead.companyName || "",
-        pan: assessment.lead.probe42Pan || probe42Data?.data?.company?.pan || "",
-        address: probe42Data?.data?.company?.registered_address?.full_address || assessment.lead.address || "",
-        gstNumbers: probe42Data?.data?.gst_details?.map(g => g.gstin || "").filter(Boolean).join(", ") || ""
+        companyName: assessment.lead.probe42LegalName || probe42Data?.company?.legal_name || assessment.lead.companyName || "",
+        pan: assessment.lead.probe42Pan || probe42Data?.company?.pan || "",
+        address: probe42Data?.company?.registered_address?.full_address || assessment.lead.address || "",
+        gstNumbers: probe42Data?.gst_details?.map(g => g.gstin || "").filter(Boolean).join(", ") || ""
     })
 
     const handleChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
-
+useEffect(() => {
+    console.log("company data:", probe42Data?.company)
+    console.log("full probe42Data:", probe42Data)
+}, [probe42Data])
     const handleSubmit = () => {
         if (!formData.companyName || !formData.address) {
             toast.error("Company Name and Address are required")
@@ -273,8 +291,16 @@ function Step2FinancialVerification({
     onVerify: (data: any) => void
     onBack: () => void
     isPending: boolean
-}) {
-    const financials = probe42Data?.data?.financials || []
+    }) {
+    
+    useEffect(() => {
+    console.log("Component financial rendered")
+        console.log("full probe42Data:", probe42Data)
+        console.log("finacial data",probe42Data?.financials )
+}, [probe42Data])
+  
+
+    const financials = probe42Data?.financials || []
     const latestFinancial = financials[0]
 
     // Initial Values Calculation
@@ -283,26 +309,30 @@ function Step2FinancialVerification({
     // Paid up capital: flattened (BigInt) -> number
     const initialPaidUpCapital = assessment.lead.probe42PaidUpCapital
         ? Number(assessment.lead.probe42PaidUpCapital) / 10000000
-        : (probe42Data?.data?.company?.paid_up_capital ? probe42Data.data.company.paid_up_capital / 10000000 : null)
+        : (probe42Data?.company?.paid_up_capital ? probe42Data?.company?.paid_up_capital / 10000000 : null)
 
     // Net Worth: derived from JSON usually
-    const initialNetWorth = latestFinancial && latestFinancial.total_assets && latestFinancial.total_liabilities
-        ? (latestFinancial.total_assets - latestFinancial.total_liabilities) / 10000000
+    const initialNetWorth = latestFinancial && latestFinancial.bs?.subTotals?.totalCurrentAssets && latestFinancial.bs?.subTotals?.totalCurrentLiabilities
+        ? (latestFinancial.bs?.subTotals?.totalCurrentAssets - latestFinancial.bs?.subTotals?.totalCurrentLiabilities) / 10000000
         : null
 
     // Borrowings: JSON total_liabilities
-    const initialBorrowings = latestFinancial?.total_liabilities
-        ? latestFinancial.total_liabilities / 10000000
+    const initialBorrowings = latestFinancial?.bs?.subTotals?.totalCurrentLiabilities
+        ? latestFinancial.bs?.subTotals?.totalCurrentLiabilities / 10000000
         : null
 
     // D/E Ratio
-    const equity = latestFinancial && latestFinancial.total_assets && latestFinancial.total_liabilities
-        ? latestFinancial.total_assets - latestFinancial.total_liabilities
+    const equity = latestFinancial && latestFinancial?.bs?.subTotals?.totalCurrentAssets && latestFinancial.bs?.subTotals?.totalCurrentLiabilities
+        ? latestFinancial?.bs?.subTotals?.totalCurrentAssets - latestFinancial.bs?.subTotals?.totalCurrentLiabilities
         : 0
-    const initialDERatio = equity > 0 && latestFinancial?.total_liabilities
-        ? (latestFinancial.total_liabilities / equity)
+    const initialDERatio = equity > 0 && latestFinancial?.bs?.subTotals?.totalCurrentLiabilities
+        ? (latestFinancial.bs?.subTotals?.totalCurrentLiabilities / equity)
         : null
+        console.log("latestFinancial:", latestFinancial?.bs?.subTotals) 
 
+    console.log("total_current_assets:", latestFinancial?.bs?.subTotals?.totalCurrentAssets) 
+    console.log("totalCurrentLiabilities:", latestFinancial?.bs?.subTotals?.totalCurrentLiabilities ) 
+   console.log("initialDERatio:", initialDERatio)
     const [formData, setFormData] = useState({
         paidUpCapital: initialPaidUpCapital,
         netWorth: initialNetWorth,
@@ -802,6 +832,12 @@ export function AssessmentStepper({ assessment, leadId }: Props) {
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
 
+console.log("📊 STEPPER - assessment.lead.probe42Data:", assessment.lead.probe42Data)
+  console.log("📊 STEPPER - Has financials?", (assessment.lead.probe42Data as any)?.financials ? "YES" : "NO")
+  console.log("📊 STEPPER - Has latestFinancials?", (assessment.lead.probe42Data as any)?.latestFinancials ? "YES" : "NO")
+
+
+
     // Parse Probe42 data
     const probe42Data = assessment.lead.probe42Data as Probe42Data | null
 
@@ -874,7 +910,6 @@ export function AssessmentStepper({ assessment, leadId }: Props) {
                     isPending={isPending}
                 />
             )}
-
             {assessment.currentStep === 2 && (
                 <Step2FinancialVerification
                     assessment={assessment}
@@ -884,7 +919,7 @@ export function AssessmentStepper({ assessment, leadId }: Props) {
                     isPending={isPending}
                 />
             )}
-
+            
             {assessment.currentStep === 3 && (
                 <Step3PresetQuestionnaire
                     assessment={assessment}
@@ -893,6 +928,51 @@ export function AssessmentStepper({ assessment, leadId }: Props) {
                     isPending={isPending}
                 />
             )}
+            {/* 
+            Button to refresh database
+            <ForceRefetchButton leadId={leadId} /> */}
         </div>
     )
 }
+
+
+
+/** tem button to refresh database */
+
+// In your lead detail page or wherever you display the lead
+// "use client"
+
+// import { forceRefetchProbe42Data } from "@/actions/lead"
+// import { useState } from "react"
+// import { toast } from "sonner"
+
+// export function ForceRefetchButton({ leadId }: { leadId: string }) {
+//   const [loading, setLoading] = useState(false)
+
+//   const handleRefetch = async () => {
+//     setLoading(true)
+//     try {
+//       const result = await forceRefetchProbe42Data(leadId)
+//       if (result.success) {
+//         toast.success("Data re-fetched successfully!")
+//         window.location.reload() // Force page refresh
+//       } else {
+//         toast.error(result.error || "Failed to re-fetch")
+//       }
+//     } catch (error) {
+//       toast.error("Error re-fetching data")
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+
+//   return (
+//     <button
+//       onClick={handleRefetch}
+//       disabled={loading}
+//       className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+//     >
+//       {loading ? "Re-fetching..." : "🔄 Force Re-fetch Probe42 Data"}
+//     </button>
+//   )
+// }
