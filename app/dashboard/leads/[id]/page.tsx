@@ -1,35 +1,35 @@
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { getLead, getAssessors } from "@/actions/lead"
-import { getStatusDisplay } from "@/lib/types"
-import { AssignAssessorForm } from "@/components/assign-assessor-form"
-import { getDocuments } from "@/actions/documents"
-import { UploadDocumentButton } from "@/components/documents/upload-document-button"
-import { DocumentList } from "@/components/documents/document-list"
-import { Probe42DataCard } from "@/components/probe42-data-card"
-import { EditLeadButton } from "@/components/edit-lead-button"
-import PaymentLinkCard from "../PaymentLinkCard"
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getLead, getAssessors } from "@/actions/lead";
+import { getStatusDisplay } from "@/lib/types";
+import { AssignAssessorForm } from "@/components/assign-assessor-form";
+import { getDocuments } from "@/actions/documents";
+import { UploadDocumentButton } from "@/components/documents/upload-document-button";
+import { DocumentList } from "@/components/documents/document-list";
+import { Probe42DataCard } from "@/components/probe42-data-card";
+import { EditLeadButton } from "@/components/edit-lead-button";
+import PaymentLinkCard from "../PaymentLinkCard";
 
 type Props = {
-  params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
 export default async function LeadDetailPage(props: Props) {
-  const params = await props.params
+  const params = await props.params;
 
   // 1. Verify authentication
   const session = await auth.api.getSession({
     headers: await headers(),
-  })
+  });
 
   if (!session) {
-    redirect("/login")
+    redirect("/login");
   }
 
   // 2. Fetch lead
-  const leadResult = await getLead(params.id)
+  const leadResult = await getLead(params.id);
 
   if (!leadResult.success) {
     return (
@@ -44,29 +44,33 @@ export default async function LeadDetailPage(props: Props) {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const lead = leadResult.data
-  const isReviewer = session.user.role === "REVIEWER"
-  const status = getStatusDisplay(lead.status)
+  const lead = leadResult.data;
+  const isReviewer = session.user.role === "REVIEWER";
+  const status = getStatusDisplay(lead.status);
 
   // 3. Fetch assessors if reviewer
-  let assessors: Array<{ id: string; name: string; email: string }> = []
+  let assessors: Array<{ id: string; name: string; email: string }> = [];
   if (isReviewer) {
-    const assessorsResult = await getAssessors()
+    const assessorsResult = await getAssessors();
     if (assessorsResult.success) {
-      assessors = assessorsResult.data
+      assessors = assessorsResult.data;
     }
   }
 
   // 4. Fetch documents
-  const documentsResult = await getDocuments(lead.id)
-  const documents = documentsResult.success ? documentsResult.data : []
+  const documentsResult = await getDocuments(lead.id);
+  const documents = documentsResult.success ? documentsResult.data : [];
 
   // Check if MOA and AOA are already downloaded
-  const hasMoa = documents.some(doc => doc.fileName.includes(`MoA_${lead.cin}`))
-  const hasAoa = documents.some(doc => doc.fileName.includes(`AoA_${lead.cin}`))
+  const hasMoa = documents.some((doc) =>
+    doc.fileName.includes(`MoA_${lead.cin}`),
+  );
+  const hasAoa = documents.some((doc) =>
+    doc.fileName.includes(`AoA_${lead.cin}`),
+  );
 
   return (
     <div className="p-4 md:p-6">
@@ -87,10 +91,15 @@ export default async function LeadDetailPage(props: Props) {
           <div className="glass space-y-4 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold">Contact & Key Information</h2>
+                <h2 className="text-lg font-semibold">
+                  Contact & Key Information
+                </h2>
                 {/* Subtle Probe42 data enrichment indicator */}
                 {!lead.probe42Fetched && (
-                  <span className="text-xs text-foreground/40" title="Company data not enriched from Probe42">
+                  <span
+                    className="text-xs text-foreground/40"
+                    title="Company data not enriched from Probe42"
+                  >
                     ⓘ Manual entry
                   </span>
                 )}
@@ -102,25 +111,33 @@ export default async function LeadDetailPage(props: Props) {
               {/* Contact Person */}
               <div className="flex items-center justify-between py-2 border-t border-foreground/10">
                 <span className="text-foreground/60">Contact Person</span>
-                <span className="font-medium">{lead.contactPerson || 'N/A'}</span>
+                <span className="font-medium">
+                  {lead.contactPerson || "N/A"}
+                </span>
               </div>
 
               {/* Email */}
               <div className="flex items-center justify-between py-2 border-t border-foreground/10">
                 <span className="text-foreground/60">Email</span>
-                <span className="font-medium text-xs">{lead.email || 'N/A'}</span>
+                <span className="font-medium text-xs">
+                  {lead.email || "N/A"}
+                </span>
               </div>
 
               {/* Phone */}
               <div className="flex items-center justify-between py-2 border-t border-foreground/10">
                 <span className="text-foreground/60">Phone</span>
-                <span className="font-medium font-mono">{lead.phone || 'N/A'}</span>
+                <span className="font-medium font-mono">
+                  {lead.phone || "N/A"}
+                </span>
               </div>
 
               {/* CIN */}
               <div className="flex items-center justify-between py-2 border-t border-foreground/10">
                 <span className="text-foreground/60">CIN</span>
-                <span className="font-medium font-mono text-xs">{lead.cin}</span>
+                <span className="font-medium font-mono text-xs">
+                  {lead.cin}
+                </span>
               </div>
 
               {/* Status */}
@@ -137,7 +154,9 @@ export default async function LeadDetailPage(props: Props) {
               {lead.probe42Classification && (
                 <div className="flex items-center justify-between py-2 border-t border-foreground/10">
                   <span className="text-foreground/60">Classification</span>
-                  <span className="font-medium text-right">{lead.probe42Classification}</span>
+                  <span className="font-medium text-right">
+                    {lead.probe42Classification}
+                  </span>
                 </div>
               )}
 
@@ -146,9 +165,9 @@ export default async function LeadDetailPage(props: Props) {
                 <div className="flex items-center justify-between py-2 border-t border-foreground/10">
                   <span className="text-foreground/60">Paid-up Capital</span>
                   <span className="font-medium">
-                    {new Intl.NumberFormat('en-IN', {
-                      style: 'currency',
-                      currency: 'INR',
+                    {new Intl.NumberFormat("en-IN", {
+                      style: "currency",
+                      currency: "INR",
                       maximumFractionDigits: 0,
                     }).format(Number(lead.probe42PaidUpCapital))}
                   </span>
@@ -160,9 +179,9 @@ export default async function LeadDetailPage(props: Props) {
                 <div className="flex items-center justify-between py-2 border-t border-foreground/10">
                   <span className="text-foreground/60">Authorized Capital</span>
                   <span className="font-medium">
-                    {new Intl.NumberFormat('en-IN', {
-                      style: 'currency',
-                      currency: 'INR',
+                    {new Intl.NumberFormat("en-IN", {
+                      style: "currency",
+                      currency: "INR",
                       maximumFractionDigits: 0,
                     }).format(Number(lead.probe42AuthCapital))}
                   </span>
@@ -172,8 +191,12 @@ export default async function LeadDetailPage(props: Props) {
               {/* Registered Address */}
               {lead.address && (
                 <div className="py-2 border-t border-foreground/10">
-                  <span className="text-foreground/60 text-sm block mb-1">Registered Address</span>
-                  <span className="text-sm text-foreground/70 leading-relaxed">{lead.address}</span>
+                  <span className="text-foreground/60 text-sm block mb-1">
+                    Registered Address
+                  </span>
+                  <span className="text-sm text-foreground/70 leading-relaxed">
+                    {lead.address}
+                  </span>
                 </div>
               )}
             </div>
@@ -188,7 +211,7 @@ export default async function LeadDetailPage(props: Props) {
 
             <DocumentList
               documents={documents}
-              userRole={session.user.role as 'ASSESSOR' | 'REVIEWER'}
+              userRole={session.user.role as "ASSESSOR" | "REVIEWER"}
               userId={session.user.id}
             />
           </div>
@@ -232,9 +255,11 @@ export default async function LeadDetailPage(props: Props) {
                         href={`/dashboard/leads/${lead.leadId}/assessment`}
                         className="inline-flex items-center justify-center rounded-lg bg-primary px-4 h-10 text-sm font-medium text-primary-foreground hover:bg-primary/90 active:scale-95 transition-transform"
                       >
-                        {lead.assessment.currentStep === 1 && !lead.assessment.companyVerified
+                        {lead.assessment.currentStep === 1 &&
+                        !lead.assessment.companyVerified
                           ? "Start Assessment"
-                          : lead.assessment.currentStep === 2 && !lead.assessment.financialVerified
+                          : lead.assessment.currentStep === 2 &&
+                              !lead.assessment.financialVerified
                             ? "Continue - Step 2"
                             : lead.assessment.currentStep === 3
                               ? "Continue - Questionnaire"
@@ -292,7 +317,9 @@ export default async function LeadDetailPage(props: Props) {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm text-foreground/70">Assigned To</p>
-                  <p className="mt-1 font-medium">{lead.assignedAssessor.name}</p>
+                  <p className="mt-1 font-medium">
+                    {lead.assignedAssessor.name}
+                  </p>
                   <p className="text-sm text-foreground/60">
                     {lead.assignedAssessor.email}
                   </p>
@@ -343,16 +370,18 @@ export default async function LeadDetailPage(props: Props) {
             <h2 className="text-lg font-semibold">Created By</h2>
             <div>
               <p className="font-medium">{lead.createdBy.name}</p>
-              <p className="text-sm text-foreground/60">{lead.createdBy.email}</p>
+              <p className="text-sm text-foreground/60">
+                {lead.createdBy.email}
+              </p>
               <p className="mt-2 text-xs text-foreground/60">
                 {new Date(lead.createdAt).toLocaleString()}
               </p>
             </div>
           </div>
 
-          <PaymentLinkCard/>
+          <PaymentLinkCard email={lead.email} />
         </div>
       </div>
     </div>
-  )
+  );
 }

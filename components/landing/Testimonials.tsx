@@ -1,7 +1,7 @@
 export const Testimonials = () => {
   return (
     <section
-      className="py-24 bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden"
+      className="py-24  from-blue-50 to-blue-100 relative overflow-hidden"
       id="success-stories"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

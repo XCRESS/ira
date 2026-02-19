@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { colors as themeColors } from "@/lib/theme/colors";
 import HeroCosmicBg from "./HeroCosmicBg";
+import { DisclaimerModal } from "./DisclaimerModal";
 
 interface HeroProps {
   onStartAssessment: () => void;
@@ -14,7 +15,7 @@ export const Hero = ({ onStartAssessment }: HeroProps) => {
   const scores = [92, 87, 32];
   const [scoreIndex, setScoreIndex] = useState(0);
   const score = scores[scoreIndex];
-
+const [showDisclaimer, setShowDisclaimer] = useState(false);
   useEffect(() => {
     const interval = setInterval(() => {
       setScoreIndex((prev) => (prev + 1) % scores.length);
@@ -83,11 +84,12 @@ export const Hero = ({ onStartAssessment }: HeroProps) => {
             gridTemplateColumns: "1fr 1fr",
             gap: 48,
             alignItems: "center",
+           
           }}
         >
           {/* LEFT */}
           <div>
-            <div
+            {/* <div
               style={{
                 display: "inline-flex",
                 gap: 8,
@@ -103,7 +105,7 @@ export const Hero = ({ onStartAssessment }: HeroProps) => {
               <span style={{ fontSize: 14 }}>
                 Trusted by Apollo Green Energy
               </span>
-            </div>
+            </div> */}
 
             <h1
               style={{
@@ -153,7 +155,7 @@ export const Hero = ({ onStartAssessment }: HeroProps) => {
             >
               {/* Primary Button */}
               <button
-                onClick={onStartAssessment}
+onClick={() => setShowDisclaimer(true)}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -249,7 +251,7 @@ export const Hero = ({ onStartAssessment }: HeroProps) => {
           </div>
 
           {/* RIGHT CARD */}
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative",top:25 }}>
             <div
               style={{
                 background: themeColors.white,
@@ -433,6 +435,17 @@ export const Hero = ({ onStartAssessment }: HeroProps) => {
           </div>
         </div>
       </div>
+      {/* Disclaimer Gate */}
+      {showDisclaimer && (
+        <DisclaimerModal
+          onAgree={() => {
+            setShowDisclaimer(false);
+            onStartAssessment(); // proceeds to score form
+          }}
+          onDecline={() => setShowDisclaimer(false)}
+          onClose={() => setShowDisclaimer(false)}
+        />
+      )}
     </div>
   );
 };

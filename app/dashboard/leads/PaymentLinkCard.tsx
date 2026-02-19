@@ -1,20 +1,20 @@
 "use client";
 import { useState } from "react";
 
-export default function PaymentLinkCard() {
+interface PaymentLinkCardProps {
+  email?: string;
+}
+
+export default function PaymentLinkCard({ email }: PaymentLinkCardProps) {
   const [loading, setLoading] = useState(false);
   const [paymentLink, setPaymentLink] = useState("");
-  const [email, setEmail] = useState("");
 
   const generateLink = async () => {
     try {
       setLoading(true);
-
-      // 🔥 Call your backend which creates Razorpay Payment Link
       const res = await fetch("/api/create-payment-link", { method: "POST" });
       const data = await res.json();
-
-      setPaymentLink(data.link); // 👈 Razorpay link here
+      setPaymentLink(data.link);
     } catch (err) {
       alert("Failed to generate payment link");
     } finally {
@@ -28,117 +28,72 @@ export default function PaymentLinkCard() {
   };
 
   const sendEmail = async () => {
-  if (!email) return alert("Enter email");
-  if (!paymentLink) return alert("Generate link first");
+    if (!email) return alert("No email found for this company");
+    if (!paymentLink) return alert("Generate link first");
 
-  try {
-    const res = await fetch("/api/send-payment-link", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, link: paymentLink }),
-    });
+    try {
+      const res = await fetch("/api/send-payment-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, link: paymentLink }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send email");
 
-    if (!res.ok) {
-      throw new Error(data.error || "Failed to send email");
+      alert("✅ Email sent successfully!");
+    } catch (err: any) {
+      alert("❌ Email failed: " + err.message);
     }
-
-    alert("✅ Email sent successfully!");
-  } catch (err: any) {
-    alert("❌ Email failed: " + err.message);
-  }
-};
-
+  };
 
   return (
-    <div
-    className="glass space-y-4 rounded-2xl p-6"
-    >
-      <h2 style={{ fontSize: "18px", fontWeight: 600, marginBottom: 12 }}>
-        Generate Payment Link
-      </h2>
+    <div className="glass space-y-4 rounded-2xl p-6">
+      <h2 className="text-lg font-semibold">Generate Payment Link</h2>
 
+      {/* Generate button */}
       <button
         onClick={generateLink}
         disabled={loading}
-        style={{
-          padding: "10px 16px",
-          borderRadius: "10px",
-          border: "none",
-          cursor: "pointer",
-          fontWeight: 600,
-          background: "linear-gradient(135deg, #7c3aed, #2563eb)",
-          color: "white",
-        }}
+        className="inline-flex items-center justify-center rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all h-10 px-4 text-sm font-semibold text-primary-foreground"
       >
         {loading ? "Generating..." : "Generate"}
       </button>
 
       {paymentLink && (
-        <div style={{ marginTop: 16 }}>
-          <p style={{ fontSize: 12, opacity: 0.8 }}>Payment Link</p>
+        <div className="space-y-3">
+          <p className="text-xs text-gray-500">Payment Link Ready</p>
 
-          <div
-            style={{
-              background: "rgba(0,0,0,0.4)",
-              padding: "10px",
-              borderRadius: 8,
-              wordBreak: "break-all",
-              fontSize: 13,
-              marginBottom: 10,
-            }}
-          >
-            {paymentLink}
-          </div>
-
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="flex gap-2">
+            {/* Copy */}
             <button
               onClick={copyLink}
-              style={{
-                flex: 1,
-                padding: "8px",
-                borderRadius: 8,
-                border: "none",
-                cursor: "pointer",
-                background: "#22c55e",
-                color: "black",
-                fontWeight: 600,
-              }}
+              className="flex-1 inline-flex items-center justify-center rounded-lg border border-border bg-muted hover:bg-muted/70 active:scale-95 transition-all h-10 text-sm font-semibold text-foreground"
             >
               Copy
             </button>
 
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              style={{
-                flex: 2,
-                padding: "8px",
-                borderRadius: 8,
-                border: "1px solid rgba(255,255,255,0.2)",
-                background: "transparent",
-                color: "white",
-              }}
-            />
-
+            {/* Send Email */}
             <button
               onClick={sendEmail}
-              style={{
-                flex: 1,
-                padding: "8px",
-                borderRadius: 8,
-                border: "none",
-                cursor: "pointer",
-                background: "#38bdf8",
-                color: "black",
-                fontWeight: 600,
-              }}
+              disabled={!email}
+              title={
+                !email
+                  ? "No email available for this company"
+                  : `Send to ${email}`
+              }
+              className="flex-1 inline-flex items-center justify-center rounded-lg bg-primary/15 hover:bg-primary/25 border border-primary/30 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all h-10 text-sm font-semibold text-primary"
             >
               Send
             </button>
           </div>
+
+          {email && (
+            <p className="text-xs text-gray-500 text-center">
+              Will send to{" "}
+              <span className="font-medium text-foreground/70">{email}</span>
+            </p>
+          )}
         </div>
       )}
     </div>
