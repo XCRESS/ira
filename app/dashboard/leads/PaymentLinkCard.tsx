@@ -3,9 +3,10 @@ import { useState } from "react";
 
 interface PaymentLinkCardProps {
   email?: string;
+  name?: string | null;
 }
 
-export default function PaymentLinkCard({ email }: PaymentLinkCardProps) {
+export default function PaymentLinkCard({ email,name }: PaymentLinkCardProps) {
   const [loading, setLoading] = useState(false);
   const [paymentLink, setPaymentLink] = useState("");
 
@@ -35,7 +36,7 @@ export default function PaymentLinkCard({ email }: PaymentLinkCardProps) {
       const res = await fetch("/api/send-payment-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, link: paymentLink }),
+        body: JSON.stringify({ email, link: paymentLink ,name}),
       });
 
       const data = await res.json();

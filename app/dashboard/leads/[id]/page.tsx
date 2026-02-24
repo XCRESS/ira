@@ -379,7 +379,7 @@ export default async function LeadDetailPage(props: Props) {
             </div>
           </div>
 
-          <PaymentLinkCard email={lead.email} />
+          <PaymentLinkCard email={lead.email} name={lead.contactPerson} />
         </div>
       </div>
     </div>

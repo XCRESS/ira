@@ -4,7 +4,7 @@ import { sendPaymentLinkEmail } from "@/lib/email"; // Adjust path as needed
 
 export async function POST(req: Request) {
   try {
-    const { email, link, amount, description } = await req.json();
+    const { email, link, amount, description, name } = await req.json();
 
     if (!email || !link) {
       return NextResponse.json(
@@ -12,14 +12,21 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
+const baseAmount = 50000;
+const gst = Math.round(baseAmount * 0.18);
+const total = baseAmount + gst;
     // Send email using centralized service
     const result = await sendPaymentLinkEmail({
-      recipientEmail: email,
-      paymentLink: link,
-      amount,
-      description
-    });
+    recipientEmail: email,
+    recipientName: name,                          
+    paymentLink: link,
+    amount: total.toLocaleString("en-IN"),                                
+    items: [
+    { label: "IRA Score Improvement Plan", amount: "₹50,000" },
+    { label: "GST (18%)", amount: `₹${gst.toLocaleString("en-IN")}` },  // "₹9,000"
+  ],
+description: "We've reviewed your IRA Score and have prepared a personalised improvement plan for you. Complete the steps below to get started."
+  });
 
     if (!result.success) {
       console.error("Failed to send payment link email:", result.error);

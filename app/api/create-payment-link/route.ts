@@ -10,7 +10,7 @@ export async function POST() {
   });
 
   const link = await razorpay.paymentLink.create({
-    amount: 50000,
+    amount: 5000000,
     currency: "INR",
     description: "Consultation Fee",
     customer: {
