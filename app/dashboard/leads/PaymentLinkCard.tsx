@@ -6,14 +6,18 @@ interface PaymentLinkCardProps {
   name?: string | null;
 }
 
-export default function PaymentLinkCard({ email,name }: PaymentLinkCardProps) {
+export default function PaymentLinkCard({ email, name }: PaymentLinkCardProps) {
   const [loading, setLoading] = useState(false);
   const [paymentLink, setPaymentLink] = useState("");
 
   const generateLink = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/create-payment-link", { method: "POST" });
+      const res = await fetch("/api/create-payment-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email }),
+      });
       const data = await res.json();
       setPaymentLink(data.link);
     } catch (err) {
@@ -36,7 +40,7 @@ export default function PaymentLinkCard({ email,name }: PaymentLinkCardProps) {
       const res = await fetch("/api/send-payment-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, link: paymentLink ,name}),
+        body: JSON.stringify({ email, link: paymentLink, name }),
       });
 
       const data = await res.json();

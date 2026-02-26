@@ -115,10 +115,12 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({
         >
           <button
             onClick={onCancel}
-            className="absolute top-0 left-0 text-white/80 hover:text-white z-10 p-1 rounded-full hover:bg-white/10 transition-colors"
+            className="absolute top-0 right-4 p-2 text-white/80 z-10  transition-colors"
             style={{ color: colors.gray[500] }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = colors.gray[600])}
+            onMouseLeave={(e) => (e.currentTarget.style.color = colors.gray[400])}
           >
-            <X size={18} />
+            <X size={20} />
           </button>
 
           <h2
