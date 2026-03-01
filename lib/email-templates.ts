@@ -1233,3 +1233,53 @@ This is an automated payment notification from IRA Platform.
 © ${new Date().getFullYear()} IRA Platform. All rights reserved.
   `.trim();
 }
+
+// Client email template
+
+export interface ClientCredentialsEmailData {
+  recipientEmail: string
+  recipientName: string
+  companyName: string
+  loginUrl: string
+  cin: string 
+}
+
+export function getClientCredentialsEmailHTML(data: ClientCredentialsEmailData): string {
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>Welcome to your IPO Readiness Portal</h2>
+      <p>Dear ${data.recipientName},</p>
+      <p>Your payment has been received. You can now access your IPO Readiness Dashboard.</p>
+      <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p><strong>Company:</strong> ${data.companyName}</p>
+        <p><strong>Your Login ID (CIN):</strong> ${data.cin}</p>
+      </div>
+      <p>Click the button below to login. You will receive an OTP on this email to verify.</p>
+      <a href="${data.loginUrl}" 
+        style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;">
+        Access Your Dashboard
+      </a>
+      <p style="margin-top: 16px; font-size: 13px; color: #6b7280;">
+        Or copy this link: ${data.loginUrl}
+      </p>
+    </div>
+  `
+}
+
+
+export function getClientCredentialsEmailText(data: ClientCredentialsEmailData): string {
+  return `
+Welcome to your IPO Readiness Portal
+
+Dear ${data.recipientName},
+
+Your payment has been received.
+
+Company: ${data.companyName}
+Your Login ID (CIN): ${data.cin}
+
+Login here: ${data.loginUrl}
+
+You will receive an OTP on this email to verify your identity.
+  `
+}

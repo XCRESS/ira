@@ -11,7 +11,7 @@ import { DocumentList } from "@/components/documents/document-list";
 import { Probe42DataCard } from "@/components/probe42-data-card";
 import { EditLeadButton } from "@/components/edit-lead-button";
 import PaymentLinkCard from "../PaymentLinkCard";
-
+import SendPortalAccessButton from "./SendPortalAccessButton";
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -379,7 +379,21 @@ export default async function LeadDetailPage(props: Props) {
             </div>
           </div>
 
-          <PaymentLinkCard email={lead.email} name={lead.contactPerson} />
+          <PaymentLinkCard
+            email={lead.email}
+            name={lead.contactPerson}
+            leadId={lead.leadId}
+          />
+          {/* Mark Complete & Send Access — shown when payment is pending */}
+          {lead.status === "COMPLETED" && (
+            <div className="glass space-y-4 rounded-2xl p-6">
+              <h2 className="text-lg font-semibold">Payment Received ✓</h2>
+              <p className="text-sm text-foreground/60">
+                Send portal access credentials to the client.
+              </p>
+              <SendPortalAccessButton leadId={lead.leadId} />
+            </div>
+          )}
         </div>
       </div>
     </div>

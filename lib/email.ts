@@ -32,6 +32,12 @@ import {
   type SubmissionApprovedEmailData,
   type SubmissionRejectedEmailData
 } from './email-templates'
+import {
+  // ... existing imports
+  getClientCredentialsEmailHTML,
+  getClientCredentialsEmailText,
+  type ClientCredentialsEmailData,
+} from './email-templates'
 
 // ============================================
 // CONFIGURATION
@@ -357,8 +363,6 @@ export async function sendBulkEmails(
 }
 
 
-
-
 /** Send payment link to customer
  * Called when a payment link is generated via Razorpay
  */
@@ -378,6 +382,24 @@ export async function sendPaymentLinkEmail(
       success: false,
       error: 'Recipient email not provided'
     }
+  }
+
+  return sendEmail(data.recipientEmail, subject, html, text)
+}
+
+/**
+ * Send lient credentials when client made the payment.
+ */
+
+export async function sendClientCredentialsEmail(
+  data: ClientCredentialsEmailData
+): Promise<EmailResult> {
+  const subject = `Your IPO Readiness Portal Access - ${data.companyName}`
+  const html = getClientCredentialsEmailHTML(data)
+  const text = getClientCredentialsEmailText(data)
+
+  if (!data.recipientEmail) {
+    return { success: false, error: 'Recipient email not provided' }
   }
 
   return sendEmail(data.recipientEmail, subject, html, text)

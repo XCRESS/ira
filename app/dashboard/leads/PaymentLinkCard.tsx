@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
+import { updateLeadStatusOnPaymentLink } from "@/actions/lead";
 
 interface PaymentLinkCardProps {
   email?: string;
   name?: string | null;
+  leadId: string;
 }
 
-export default function PaymentLinkCard({ email, name }: PaymentLinkCardProps) {
+export default function PaymentLinkCard({ email, name, leadId }: PaymentLinkCardProps) {
   const [loading, setLoading] = useState(false);
   const [paymentLink, setPaymentLink] = useState("");
 
@@ -20,6 +22,8 @@ export default function PaymentLinkCard({ email, name }: PaymentLinkCardProps) {
       });
       const data = await res.json();
       setPaymentLink(data.link);
+      await updateLeadStatusOnPaymentLink(leadId);
+
     } catch (err) {
       alert("Failed to generate payment link");
     } finally {
