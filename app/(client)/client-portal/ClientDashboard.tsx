@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, CSSProperties } from "react";
+import { useState, useEffect, CSSProperties, useRef } from "react";
 
 // ─── Lead Data Type ───────────────────────────────────────────────────────────
 interface LeadData {
@@ -100,7 +100,7 @@ const LIGHT_BASE = {
   bgHover: "#f0f2f8",
   text: "#111827",
   textMuted: "#6b7280",
-  textDim: "#9ca3af",
+  // textDim: "#9ca3af",
   accentBorder: "#e2e8f0",
   success: "#16a34a",
   warning: "#d97706",
@@ -113,8 +113,8 @@ const themes: Record<string, Theme> = {
     accent: "#2563eb",
     accentSoft: "#1d4ed820",
     accentBorder: "#2563eb40",
-    text: "#111827",
-    textMuted: "#7a9cc4",
+    // text: "#111827",
+    // textMuted: "#7a9cc4",
     textDim: "#3d6190",
     sidebar: "#1e293b",
     badge: "#1d4ed8",
@@ -125,14 +125,12 @@ const themes: Record<string, Theme> = {
   },
   "Midnight Slate": {
     id: "slate",
-    bg: "#0f1117",
-    bgCard: "#1a1d27",
-    bgHover: "#22263a",
+    ...LIGHT_BASE,
     accent: "#818cf8",
     accentSoft: "#818cf820",
     accentBorder: "#818cf840",
-    text: "#e2e8f0",
-    textMuted: "#94a3b8",
+    // text: "#e2e8f0",
+    // textMuted: "#94a3b8",
     textDim: "#475569",
     sidebar: "#0b0d14",
     badge: "#6366f1",
@@ -143,14 +141,12 @@ const themes: Record<string, Theme> = {
   },
   "Emerald Dark": {
     id: "emerald",
-    bg: "#071a11",
-    bgCard: "#0d2418",
-    bgHover: "#153320",
+    ...LIGHT_BASE,
     accent: "#10b981",
     accentSoft: "#10b98120",
     accentBorder: "#10b98140",
-    text: "#d1fae5",
-    textMuted: "#6ee7b7",
+    // text: "#d1fae5",
+    // textMuted: "#6ee7b7",
     textDim: "#2d6a4f",
     sidebar: "#050f0b",
     badge: "#059669",
@@ -161,14 +157,12 @@ const themes: Record<string, Theme> = {
   },
   "Rose Gold": {
     id: "rose",
-    bg: "#1a0a0e",
-    bgCard: "#261118",
-    bgHover: "#351822",
+    ...LIGHT_BASE,
     accent: "#fb7185",
     accentSoft: "#fb718520",
     accentBorder: "#fb718540",
-    text: "#ffe4e6",
-    textMuted: "#fda4af",
+    // text: "#ffe4e6",
+    // textMuted: "#fda4af",
     textDim: "#9f1239",
     sidebar: "#110508",
     badge: "#e11d48",
@@ -179,14 +173,12 @@ const themes: Record<string, Theme> = {
   },
   "Arctic Light": {
     id: "arctic",
-    bg: "#f0f4f8",
-    bgCard: "#ffffff",
-    bgHover: "#e2e8f0",
+    ...LIGHT_BASE,
     accent: "#0369a1",
     accentSoft: "#0369a115",
     accentBorder: "#0369a130",
-    text: "#0f172a",
-    textMuted: "#475569",
+    // text: "#0f172a",
+    // textMuted: "#475569",
     textDim: "#94a3b8",
     sidebar: "#ffffff",
     badge: "#0369a1",
@@ -197,14 +189,12 @@ const themes: Record<string, Theme> = {
   },
   "Warm Ivory": {
     id: "ivory",
-    bg: "#faf6f0",
-    bgCard: "#ffffff",
-    bgHover: "#f5ede0",
+    ...LIGHT_BASE,
     accent: "#b45309",
     accentSoft: "#b4530915",
     accentBorder: "#b4530930",
-    text: "#1c1917",
-    textMuted: "#78716c",
+    // text: "#1c1917",
+    // textMuted: "#78716c",
     textDim: "#a8a29e",
     sidebar: "#ffffff",
     badge: "#b45309",
@@ -428,6 +418,108 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// ─── Theme Picker Component ───────────────────────────────────────────────────
+function ThemePicker({
+  t,
+  themeKey,
+  onSelect,
+  onClose,
+}: {
+  t: Theme;
+  themeKey: string;
+  onSelect: (key: string) => void;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    // Use capture phase so we get the event before anything else
+    document.addEventListener("mousedown", handler, true);
+    return () => document.removeEventListener("mousedown", handler, true);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: "absolute",
+        right: 0,
+        top: 44,
+        zIndex: 200,
+        background: t.bgCard,
+        border: `1px solid ${t.accentBorder}`,
+        borderRadius: 14,
+        padding: 14,
+        width: 220,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          color: t.textDim,
+          marginBottom: 10,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+        }}
+      >
+        Choose Theme
+      </div>
+      {Object.entries(themes).map(([key, theme]) => (
+        <button
+          key={key}
+          onClick={() => {
+            onSelect(key);
+            onClose();
+          }}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "8px 10px",
+            borderRadius: 8,
+            border: "none",
+            cursor: "pointer",
+            background: themeKey === key ? t.accentSoft : "transparent",
+            color: t.text,
+            marginBottom: 4,
+            transition: "background 0.15s",
+          }}
+        >
+          <div
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 6,
+              background: theme.gradient,
+              flexShrink: 0,
+            }}
+          />
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: themeKey === key ? 600 : 400,
+            }}
+          >
+            {key}
+          </span>
+          {themeKey === key && (
+            <span style={{ marginLeft: "auto" }}>
+              <Icon d={icons.check} size={13} />
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function ClientDashboard({ lead }: { lead: LeadData }) {
   const [activeNav, setActiveNav] = useState("overview");
@@ -461,13 +553,9 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
 
   // ─── Derived Real Data ────────────────────────────────────────────────────
 
-  // Score (0-100)
   const score = a?.percentage ? Math.round(a.percentage) : 0;
-
-  // Rating label
   const ratingLabel = a?.rating ? a.rating.replace(/_/g, " ") : "Not Rated";
 
-  // Financials from assessment q9/q10
   const financials: Financial[] = [
     {
       year: "Year 3",
@@ -489,18 +577,15 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
     },
   ];
 
-  // Latest revenue for stat card
   const latestRevenue = a?.q9TurnoverYear1
     ? `₹${a.q9TurnoverYear1.toFixed(1)} Cr`
     : "N/A";
 
-  // Revenue YoY growth
   const revenueGrowth =
     a?.q9TurnoverYear1 && a?.q9TurnoverYear2 && a.q9TurnoverYear2 > 0
       ? `+${(((a.q9TurnoverYear1 - a.q9TurnoverYear2) / a.q9TurnoverYear2) * 100).toFixed(0)}% YoY`
       : "Latest year";
 
-  // Checklist from assessment answers
   const checklist: ChecklistItem[] = [
     {
       id: 1,
@@ -566,7 +651,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
 
   const checklistDone = checklist.filter((c) => c.done).length;
 
-  // Timeline — static milestones, marked based on lead status
   const timeline: TimelineItem[] = [
     {
       label: "Assessment Complete",
@@ -638,7 +722,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
   // ── Overview ──────────────────────────────────────────────────────────────
   const renderOverview = () => (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Welcome Banner */}
       <div
         style={{
           ...card,
@@ -702,7 +785,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
         </div>
       </div>
 
-      {/* Stat Cards */}
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         {statCard("Assessment Score", `${score}%`, ratingLabel, t.accent)}
         {statCard(
@@ -720,7 +802,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
         )}
       </div>
 
-      {/* Score Ring + Revenue Chart */}
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         <div
           style={{
@@ -788,7 +869,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
         </div>
       </div>
 
-      {/* Action Required */}
       <div style={card}>
         <div
           style={{
@@ -862,7 +942,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
         )}
       </div>
 
-      {/* Financial Summary */}
       {a && (
         <div style={card}>
           <div
@@ -905,7 +984,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
                 label: "EPS",
                 value: a.q11Eps ? `₹${a.q11Eps.toFixed(2)}` : "N/A",
               },
-              // { label: "Outstanding Shares", value: a.q5OutstandingShares ? a.q5OutstandingShares.toLocaleString("en-IN") : "N/A" },
             ].map((item, i) => (
               <div
                 key={i}
@@ -1013,7 +1091,7 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: item.done ? "#fff" : "transparent", // 👈 THIS LINE
+                        color: item.done ? "#fff" : "transparent",
                       }}
                     >
                       {item.done && (
@@ -1104,7 +1182,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
         </div>
       </div>
 
-      {/* Score Breakdown */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {[
           {
@@ -1694,7 +1771,8 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
           transition: "width 0.35s cubic-bezier(0.4,0,0.2,1)",
           flexShrink: 0,
           position: "relative",
-          zIndex: 10,
+          /* FIX: lower z-index so theme picker dropdown (z:200) appears above */
+          zIndex: 5,
           overflow: "hidden",
         }}
       >
@@ -1798,32 +1876,34 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
             );
           })}
         </nav>
+
+        {/* FIX: collapse toggle — moved inside sidebar, no negative right offset */}
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            position: "absolute",
-            top: "500px",
-            right: "-12px", // pushes it outside the sidebar
-            width: "28px",
-            height: "28px",
-            borderRadius: "50%",
-            border: `1px solid ${t.accent}`,
-            // background: t.bg,
-            color: t.textMuted,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.2s ease",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            zIndex: 10,
-          }}
-        >
-          <Icon
-            d={collapsed ? icons.chevronRight : icons.chevronLeft}
-            size={14}
-          />
-        </button>
+  onClick={() => setCollapsed(!collapsed)}
+  style={{
+    position: "absolute",
+    top: "500px",
+    right: "-12px",   // pushes it outside the sidebar
+    width: "28px",
+    height: "28px",
+    borderRadius: "50%",
+    border: `1px solid ${t.accent}`,
+    background: t.bg,
+    color: t.textMuted,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.2s ease",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    zIndex: 10
+  }}
+>
+  <Icon
+    d={collapsed ? icons.chevronRight : icons.chevronLeft}
+    size={14}
+  />
+</button>
       </div>
 
       {/* Main */}
@@ -1835,6 +1915,7 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
           minWidth: 0,
         }}
       >
+        {/* Header */}
         <div
           style={{
             height: 60,
@@ -1846,7 +1927,8 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
             background: t.bg,
             position: "sticky",
             top: 0,
-            zIndex: 9,
+            /* FIX: header z-index above sidebar but below theme picker */
+            zIndex: 100,
           }}
         >
           <div>
@@ -1865,94 +1947,36 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
               position: "relative",
             }}
           >
+            {/* Theme button */}
             <button
-              onClick={() => setShowThemePicker(!showThemePicker)}
+              onClick={() => setShowThemePicker((prev) => !prev)}
               style={{
                 padding: "6px 14px",
                 borderRadius: 8,
                 border: `1px solid ${t.accentBorder}`,
-                background: t.bgHover,
-                color: t.textMuted,
+                background: showThemePicker ? t.accentSoft : t.bgHover,
+                color: showThemePicker ? t.accent : t.textMuted,
                 fontSize: 12,
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
+                transition: "all 0.15s",
               }}
             >
-              <Icon d={icons.palette} size={14} /> Theme
+              <Icon d={icons.palette} size={14}  /> Theme
             </button>
+
+            {/* Theme picker dropdown — rendered as sibling, uses ref-based outside-click */}
             {showThemePicker && (
-              <div
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: 44,
-                  zIndex: 100,
-                  background: t.bgCard,
-                  border: `1px solid ${t.accentBorder}`,
-                  borderRadius: 14,
-                  padding: 14,
-                  width: 220,
-                  boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: t.textDim,
-                    marginBottom: 10,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Choose Theme
-                </div>
-                {Object.entries(themes).map(([key, theme]) => (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      setThemeKey(key);
-                      setShowThemePicker(false);
-                    }}
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "8px 10px",
-                      borderRadius: 8,
-                      border: "none",
-                      cursor: "pointer",
-                      background:
-                        themeKey === key ? t.accentSoft : "transparent",
-                      color: t.text,
-                      marginBottom: 4,
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 6,
-                        background: theme.gradient,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: themeKey === key ? 600 : 400,
-                      }}
-                    >
-                      {key}
-                    </span>
-                    {themeKey === key && <Icon d={icons.check} size={13} />}
-                  </button>
-                ))}
-              </div>
+              <ThemePicker
+                t={t}
+                themeKey={themeKey}
+                onSelect={(key) => setThemeKey(key)}
+                onClose={() => setShowThemePicker(false)}
+              />
             )}
+
             <div
               style={{
                 width: 34,
@@ -1980,13 +2004,6 @@ export default function ClientDashboard({ lead }: { lead: LeadData }) {
           {sections[activeNav] ? sections[activeNav]() : renderOverview()}
         </div>
       </div>
-
-      {showThemePicker && (
-        <div
-          onClick={() => setShowThemePicker(false)}
-          style={{ position: "fixed", inset: 0, zIndex: 49 }}
-        />
-      )}
     </div>
   );
 }
